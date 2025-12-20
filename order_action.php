@@ -39,8 +39,8 @@ try {
             redirect('order_details.php?id=' . $orderId, e('Invalid order status'), 'error');
         }
         
-        // Check if order exists
-        $stmt = $pdo->prepare('SELECT id FROM orders WHERE id = :id');
+        // Check if order exists and get user_id
+        $stmt = $pdo->prepare('SELECT id, user_id, order_status FROM orders WHERE id = :id');
         $stmt->execute(['id' => $orderId]);
         $order = $stmt->fetch();
         
@@ -48,17 +48,41 @@ try {
             redirect('admin/dashboard.php', e('Order not found'), 'error');
         }
         
+        $oldStatus = $order['order_status'] ?? 'pending';
+        
         // Update order status
         $stmt = $pdo->prepare('UPDATE orders SET order_status = :status WHERE id = :id');
         $stmt->execute(['status' => $newStatus, 'id' => $orderId]);
+        
+        // Create notification for user if status changed
+        if ($oldStatus !== $newStatus) {
+            $statusLabels = [
+                'pending' => 'Pending',
+                'processing' => 'Processing',
+                'shipped' => 'Shipped',
+                'delivered' => 'Delivered',
+                'cancelled' => 'Cancelled'
+            ];
+            
+            $title = e('Order Status Updated');
+            $message = e('Your order #' . $orderId . ' status has been updated from "' . ($statusLabels[$oldStatus] ?? ucfirst($oldStatus)) . '" to "' . ($statusLabels[$newStatus] ?? ucfirst($newStatus)) . '".');
+            
+            createNotification(
+                (int)$order['user_id'],
+                'order_status',
+                $title,
+                $message,
+                $orderId
+            );
+        }
         
         redirect('order_details.php?id=' . $orderId, e('Order status updated successfully'), 'success');
         
     } elseif ($action === 'update_tracking') {
         $trackingNumber = sanitizeInput('tracking_number', 'POST');
         
-        // Check if order exists
-        $stmt = $pdo->prepare('SELECT id FROM orders WHERE id = :id');
+        // Check if order exists and get user_id
+        $stmt = $pdo->prepare('SELECT id, user_id, tracking_number FROM orders WHERE id = :id');
         $stmt->execute(['id' => $orderId]);
         $order = $stmt->fetch();
         
@@ -69,6 +93,20 @@ try {
         // Update tracking number
         $stmt = $pdo->prepare('UPDATE orders SET tracking_number = :tracking WHERE id = :id');
         $stmt->execute(['tracking' => $trackingNumber, 'id' => $orderId]);
+        
+        // Create notification if tracking number was added/updated
+        if (!empty($trackingNumber)) {
+            $title = e('Tracking Number Added');
+            $message = e('A tracking number has been added to your order #' . $orderId . ': ' . $trackingNumber);
+            
+            createNotification(
+                (int)$order['user_id'],
+                'order_tracking',
+                $title,
+                $message,
+                $orderId
+            );
+        }
         
         redirect('order_details.php?id=' . $orderId, e('Tracking number updated successfully'), 'success');
         

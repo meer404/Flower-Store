@@ -309,3 +309,130 @@ function getFlashMessage(): ?array {
     return null;
 }
 
+/**
+ * Create a notification for a user
+ * 
+ * @param int $userId User ID to notify
+ * @param string $type Notification type (order_status, order_tracking, payment_status, general)
+ * @param string $title Notification title
+ * @param string $message Notification message
+ * @param int|null $orderId Optional order ID if related to an order
+ * @return bool True if notification created successfully
+ */
+function createNotification(int $userId, string $type, string $title, string $message, ?int $orderId = null): bool {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('INSERT INTO notifications (user_id, order_id, type, title, message) VALUES (:user_id, :order_id, :type, :title, :message)');
+        $stmt->execute([
+            'user_id' => $userId,
+            'order_id' => $orderId,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message
+        ]);
+        return true;
+    } catch (PDOException $e) {
+        error_log('Notification creation failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get unread notification count for current user
+ * 
+ * @return int Number of unread notifications
+ */
+function getUnreadNotificationCount(): int {
+    if (!isLoggedIn()) {
+        return 0;
+    }
+    
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = :user_id AND is_read = FALSE');
+        $stmt->execute(['user_id' => (int)$_SESSION['user_id']]);
+        $result = $stmt->fetch();
+        return (int)($result['count'] ?? 0);
+    } catch (PDOException $e) {
+        error_log('Notification count failed: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Get notifications for current user
+ * 
+ * @param int $limit Maximum number of notifications to retrieve
+ * @param bool $unreadOnly If true, only return unread notifications
+ * @return array Array of notification records
+ */
+function getNotifications(int $limit = 20, bool $unreadOnly = false): array {
+    if (!isLoggedIn()) {
+        return [];
+    }
+    
+    try {
+        $pdo = getDB();
+        $sql = 'SELECT * FROM notifications WHERE user_id = :user_id';
+        if ($unreadOnly) {
+            $sql .= ' AND is_read = FALSE';
+        }
+        $sql .= ' ORDER BY created_at DESC LIMIT :limit';
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':user_id', (int)$_SESSION['user_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        error_log('Get notifications failed: ' . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Mark notification as read
+ * 
+ * @param int $notificationId Notification ID to mark as read
+ * @return bool True if successful
+ */
+function markNotificationAsRead(int $notificationId): bool {
+    if (!isLoggedIn()) {
+        return false;
+    }
+    
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('UPDATE notifications SET is_read = TRUE WHERE id = :id AND user_id = :user_id');
+        $stmt->execute([
+            'id' => $notificationId,
+            'user_id' => (int)$_SESSION['user_id']
+        ]);
+        return true;
+    } catch (PDOException $e) {
+        error_log('Mark notification as read failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Mark all notifications as read for current user
+ * 
+ * @return bool True if successful
+ */
+function markAllNotificationsAsRead(): bool {
+    if (!isLoggedIn()) {
+        return false;
+    }
+    
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('UPDATE notifications SET is_read = TRUE WHERE user_id = :user_id AND is_read = FALSE');
+        $stmt->execute(['user_id' => (int)$_SESSION['user_id']]);
+        return true;
+    } catch (PDOException $e) {
+        error_log('Mark all notifications as read failed: ' . $e->getMessage());
+        return false;
+    }
+}
+

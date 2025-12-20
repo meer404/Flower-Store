@@ -50,6 +50,15 @@ $dir = getHtmlDir();
                         <?php if (isAdmin()): ?>
                             <a href="admin/dashboard.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_admin')) ?></a>
                         <?php endif; ?>
+                        <a href="notifications.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium relative">
+                            <?= e('Notifications') ?>
+                            <?php 
+                            $unreadCount = getUnreadNotificationCount();
+                            if ($unreadCount > 0): 
+                            ?>
+                                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"><?= e((string)$unreadCount) ?></span>
+                            <?php endif; ?>
+                        </a>
                         <a href="account.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e('Account') ?></a>
                         <a href="cart.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium">
                             <?= e(t('nav_cart')) ?> <span class="bg-luxury-accent text-white px-2 py-0.5 rounded-full text-xs"><?= e((string)getCartCount()) ?></span>
