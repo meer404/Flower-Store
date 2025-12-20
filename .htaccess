@@ -1,0 +1,26 @@
+# Bloom & Vine - Apache Configuration
+# Optional: Enable if you want clean URLs
+
+RewriteEngine On
+
+# Prevent directory listing
+Options -Indexes
+
+# Security: Prevent access to sensitive files
+<FilesMatch "^(\.htaccess|\.git|composer\.json|package\.json)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect uploads directory (optional - uncomment if needed)
+# <Directory "uploads">
+#     Options -Indexes
+#     AllowOverride None
+# </Directory>
+
+# PHP Settings (if allowed by server)
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+</IfModule>
+
