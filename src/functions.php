@@ -252,6 +252,28 @@ function getCartCount(): int {
 }
 
 /**
+ * Get wishlist count for the current user
+ * 
+ * @return int Number of items in wishlist
+ */
+function getWishlistCount(): int {
+    if (!isLoggedIn()) {
+        return 0;
+    }
+    
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('SELECT COUNT(*) as count FROM wishlist WHERE user_id = :user_id');
+        $stmt->execute(['user_id' => $_SESSION['user_id']]);
+        $result = $stmt->fetch();
+        return (int)($result['count'] ?? 0);
+    } catch (PDOException $e) {
+        error_log('Get wishlist count error: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
  * Get cart total price
  * 
  * @return float Total price of items in cart

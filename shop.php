@@ -59,42 +59,7 @@ $dir = getHtmlDir();
     <?= getLuxuryTailwindConfig() ?>
 </head>
 <body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-luxury-border shadow-sm">
-        <div class="container mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
-                <a href="index.php" class="text-2xl font-luxury font-bold text-luxury-primary tracking-wide">Bloom & Vine</a>
-                <div class="flex items-center space-x-8" style="direction: ltr;">
-                    <a href="index.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_home')) ?></a>
-                    <a href="shop.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_shop')) ?></a>
-                    <?php if (isLoggedIn()): ?>
-                        <?php if (isAdmin()): ?>
-                            <a href="admin/dashboard.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_admin')) ?></a>
-                        <?php endif; ?>
-                        <a href="notifications.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium relative">
-                            <?= e('Notifications') ?>
-                            <?php 
-                            $unreadCount = getUnreadNotificationCount();
-                            if ($unreadCount > 0): 
-                            ?>
-                                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"><?= e((string)$unreadCount) ?></span>
-                            <?php endif; ?>
-                        </a>
-                        <a href="account.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e('Account') ?></a>
-                        <a href="cart.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium">
-                            <?= e(t('nav_cart')) ?> <span class="bg-luxury-accent text-white px-2 py-0.5 rounded-full text-xs"><?= e((string)getCartCount()) ?></span>
-                        </a>
-                        <a href="logout.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_logout')) ?></a>
-                    <?php else: ?>
-                        <a href="login.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_login')) ?></a>
-                        <a href="register.php" class="bg-luxury-primary text-white px-6 py-2 rounded-sm hover:bg-opacity-90 transition-all font-medium"><?= e(t('nav_register')) ?></a>
-                    <?php endif; ?>
-                    <a href="?lang=<?= $lang === 'en' ? 'ku' : 'en' ?>" class="text-luxury-accent hover:text-luxury-primary font-semibold border border-luxury-accent px-3 py-1 rounded-sm">
-                        <?= $lang === 'en' ? 'KU' : 'EN' ?>
-                    </a>
-                </div>
-            </div>
-    </nav>
+    <?php include __DIR__ . '/src/header.php'; ?>
 
     <div class="container mx-auto px-6 py-12">
         <div class="flex flex-col md:flex-row gap-8">

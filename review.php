@@ -77,38 +77,10 @@ $dir = getHtmlDir();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e('Write a Review') ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3A4B41',
-                        secondary: '#E6CFA7'
-                    }
-                }
-            }
-        }
-    </script>
+    <?= getLuxuryTailwindConfig() ?>
 </head>
-<body class="bg-secondary min-h-screen" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-    <!-- Navbar -->
-    <nav class="bg-primary text-white p-4">
-        <div class="container mx-auto flex justify-between items-center flex-wrap">
-            <a href="index.php" class="text-xl font-bold">Bloom & Vine</a>
-            <div class="flex items-center space-x-4 flex-wrap" style="direction: ltr;">
-                <a href="index.php" class="hover:underline"><?= e(t('nav_home')) ?></a>
-                <a href="shop.php" class="hover:underline"><?= e(t('nav_shop')) ?></a>
-                <a href="account.php" class="hover:underline"><?= e('My Account') ?></a>
-                <a href="cart.php" class="hover:underline">
-                    <?= e(t('nav_cart')) ?> (<?= e((string)getCartCount()) ?>)
-                </a>
-                <a href="logout.php" class="hover:underline"><?= e(t('nav_logout')) ?></a>
-                <a href="?lang=<?= $lang === 'en' ? 'ku' : 'en' ?>&product_id=<?= e((string)$productId) ?>" class="hover:underline font-bold">
-                    <?= $lang === 'en' ? 'KU' : 'EN' ?>
-                </a>
-            </div>
-        </div>
-    </nav>
+<body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
+    <?php include __DIR__ . '/src/header.php'; ?>
 
     <div class="container mx-auto px-4 py-8 max-w-2xl">
         <h1 class="text-3xl font-bold text-primary mb-4"><?= e('Write a Review') ?></h1>
