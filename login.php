@@ -27,11 +27,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = sanitizeInput('password', 'POST');
     $csrfToken = sanitizeInput('csrf_token', 'POST');
     
+    // #region agent log
+    file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'A','location'=>'login.php:26','message'=>'Login attempt started','data'=>['email'=>$email,'hasPassword'=>!empty($password),'hasCsrf'=>!empty($csrfToken)],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+    // #endregion
+    
     // Verify CSRF token
     if (!verifyCSRFToken($csrfToken)) {
+        // #region agent log
+        file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'A','location'=>'login.php:32','message'=>'CSRF token verification failed','data'=>[],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+        // #endregion
         $error = t('login_error');
     } else {
         if (empty($email) || empty($password)) {
+            // #region agent log
+            file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'A','location'=>'login.php:35','message'=>'Email or password empty','data'=>['emailEmpty'=>empty($email),'passwordEmpty'=>empty($password)],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+            // #endregion
             $error = t('login_error');
         } else {
             try {
@@ -40,6 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute(['email' => $email]);
                 $user = $stmt->fetch();
                 
+                // #region agent log
+                file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'B','location'=>'login.php:42','message'=>'User lookup result','data'=>['userFound'=>!empty($user),'userId'=>$user['id']??null,'userEmail'=>$user['email']??null,'userRole'=>$user['role']??null,'hasPasswordHash'=>!empty($user['password_hash']??null),'hashLength'=>strlen($user['password_hash']??'')],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+                // #endregion
+                
+                if ($user) {
+                    $passwordVerifyResult = password_verify($password, $user['password_hash']);
+                    // #region agent log
+                    file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'C','location'=>'login.php:46','message'=>'Password verification result','data'=>['passwordVerify'=>$passwordVerifyResult,'hashPrefix'=>substr($user['password_hash'],0,10),'role'=>$user['role']],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+                    // #endregion
+                }
+                
                 if ($user && password_verify($password, $user['password_hash'])) {
                     // Login successful
                     $_SESSION['user_id'] = $user['id'];
@@ -47,12 +68,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['role'] = $user['role'];
                     $_SESSION['full_name'] = $user['full_name'];
                     
-                    $redirect = $_GET['redirect'] ?? 'index.php';
+                    // #region agent log
+                    file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'D','location'=>'login.php:52','message'=>'Login successful, setting session','data'=>['userId'=>$user['id'],'role'=>$user['role'],'isSuperAdmin'=>$user['role']==='super_admin'],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+                    // #endregion
+                    
+                    // Redirect super admin to super admin dashboard
+                    if ($user['role'] === 'super_admin') {
+                        $redirect = $_GET['redirect'] ?? 'admin/super_admin_dashboard.php';
+                        // #region agent log
+                        file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'D','location'=>'login.php:55','message'=>'Super admin redirect','data'=>['redirect'=>$redirect],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+                        // #endregion
+                    } else {
+                        $redirect = $_GET['redirect'] ?? 'index.php';
+                    }
+                    
+                    logActivity('user_login', 'user', $user['id'], "User logged in: {$user['email']}");
                     redirect($redirect, t('login_success'), 'success');
                 } else {
+                    // #region agent log
+                    file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'A,C','location'=>'login.php:62','message'=>'Login failed','data'=>['userFound'=>!empty($user),'passwordVerify'=>($user?password_verify($password,$user['password_hash']):false)],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+                    // #endregion
                     $error = t('login_error');
                 }
             } catch (PDOException $e) {
+                // #region agent log
+                file_put_contents('f:\XAMPP\htdocs\flower-store\.cursor\debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'E','location'=>'login.php:65','message'=>'Database error','data'=>['error'=>$e->getMessage(),'code'=>$e->getCode()],'timestamp'=>time()*1000])."\n", FILE_APPEND);
+                // #endregion
                 error_log('Login error: ' . $e->getMessage());
                 $error = t('login_error');
             }

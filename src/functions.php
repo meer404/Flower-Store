@@ -63,7 +63,28 @@ function isLoggedIn(): bool {
  * @return bool True if user is admin
  */
 function isAdmin(): bool {
-    return isLoggedIn() && isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+    return isLoggedIn() && isset($_SESSION['role']) && ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'super_admin');
+}
+
+/**
+ * Check if current user is a super admin
+ * 
+ * @return bool True if user is super admin
+ */
+function isSuperAdmin(): bool {
+    return isLoggedIn() && isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin';
+}
+
+/**
+ * Require super admin access - redirects to login if not super admin
+ * 
+ * @return void
+ */
+function requireSuperAdmin(): void {
+    if (!isSuperAdmin()) {
+        header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+        exit;
+    }
 }
 
 /**
@@ -455,6 +476,209 @@ function markAllNotificationsAsRead(): bool {
     } catch (PDOException $e) {
         error_log('Mark all notifications as read failed: ' . $e->getMessage());
         return false;
+    }
+}
+
+/**
+ * Log activity for super admin tracking
+ * 
+ * @param string $action Action performed
+ * @param string|null $entityType Type of entity (e.g., 'user', 'product', 'order')
+ * @param int|null $entityId ID of the entity
+ * @param string|null $description Additional description
+ * @return bool True if logged successfully
+ */
+function logActivity(string $action, ?string $entityType = null, ?int $entityId = null, ?string $description = null): bool {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('
+            INSERT INTO activity_log (user_id, action, entity_type, entity_id, description, ip_address, user_agent)
+            VALUES (:user_id, :action, :entity_type, :entity_id, :description, :ip_address, :user_agent)
+        ');
+        $stmt->execute([
+            'user_id' => isLoggedIn() ? (int)$_SESSION['user_id'] : null,
+            'action' => $action,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'description' => $description,
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
+        ]);
+        return true;
+    } catch (PDOException $e) {
+        error_log('Activity logging failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get system setting value
+ * 
+ * @param string $key Setting key
+ * @param mixed $default Default value if setting doesn't exist
+ * @return mixed Setting value
+ */
+function getSystemSetting(string $key, $default = null) {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('SELECT setting_value, setting_type FROM system_settings WHERE setting_key = :key');
+        $stmt->execute(['key' => $key]);
+        $setting = $stmt->fetch();
+        
+        if (!$setting) {
+            return $default;
+        }
+        
+        $value = $setting['setting_value'];
+        $type = $setting['setting_type'];
+        
+        switch ($type) {
+            case 'number':
+                return is_numeric($value) ? (float)$value : $default;
+            case 'boolean':
+                return (bool)$value;
+            case 'json':
+                return json_decode($value, true) ?? $default;
+            default:
+                return $value ?? $default;
+        }
+    } catch (PDOException $e) {
+        error_log('Get system setting failed: ' . $e->getMessage());
+        return $default;
+    }
+}
+
+/**
+ * Set system setting value
+ * 
+ * @param string $key Setting key
+ * @param mixed $value Setting value
+ * @param string $type Setting type (string, number, boolean, json)
+ * @return bool True if successful
+ */
+function setSystemSetting(string $key, $value, string $type = 'string'): bool {
+    try {
+        $pdo = getDB();
+        
+        if ($type === 'json' && is_array($value)) {
+            $value = json_encode($value);
+        } elseif ($type === 'boolean') {
+            $value = $value ? '1' : '0';
+        } else {
+            $value = (string)$value;
+        }
+        
+        $stmt = $pdo->prepare('
+            INSERT INTO system_settings (setting_key, setting_value, setting_type, updated_by)
+            VALUES (:key, :value, :type, :updated_by)
+            ON DUPLICATE KEY UPDATE
+                setting_value = VALUES(setting_value),
+                setting_type = VALUES(setting_type),
+                updated_by = VALUES(updated_by),
+                updated_at = CURRENT_TIMESTAMP
+        ');
+        $stmt->execute([
+            'key' => $key,
+            'value' => $value,
+            'type' => $type,
+            'updated_by' => isLoggedIn() ? (int)$_SESSION['user_id'] : null
+        ]);
+        
+        logActivity('system_setting_updated', 'system_setting', null, "Updated setting: {$key}");
+        return true;
+    } catch (PDOException $e) {
+        error_log('Set system setting failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get sales report data
+ * 
+ * @param string $period 'day', 'week', 'month', or 'year'
+ * @return array Report data
+ */
+function getSalesReport(string $period = 'month'): array {
+    try {
+        $pdo = getDB();
+        
+        $dateFormat = '%Y-%m';
+        switch ($period) {
+            case 'day':
+                $dateFormat = '%Y-%m-%d';
+                break;
+            case 'week':
+                $dateFormat = '%Y-%u';
+                break;
+            case 'month':
+                $dateFormat = '%Y-%m';
+                break;
+            case 'year':
+                $dateFormat = '%Y';
+                break;
+        }
+        
+        // Get sales by period
+        $stmt = $pdo->prepare("
+            SELECT 
+                DATE_FORMAT(order_date, :date_format) as period,
+                COUNT(*) as total_orders,
+                SUM(grand_total) as total_revenue,
+                SUM(CASE WHEN payment_status = 'paid' THEN grand_total ELSE 0 END) as paid_revenue,
+                AVG(grand_total) as avg_order_value
+            FROM orders
+            WHERE order_date >= DATE_SUB(NOW(), INTERVAL 1 {$period})
+            GROUP BY period
+            ORDER BY period DESC
+        ");
+        $stmt->execute(['date_format' => $dateFormat]);
+        $salesData = $stmt->fetchAll();
+        
+        // Get top products
+        $stmt = $pdo->prepare("
+            SELECT 
+                p.id,
+                p.name_en,
+                p.name_ku,
+                SUM(oi.quantity) as total_sold,
+                SUM(oi.quantity * oi.unit_price) as total_revenue
+            FROM order_items oi
+            JOIN products p ON oi.product_id = p.id
+            JOIN orders o ON oi.order_id = o.id
+            WHERE o.order_date >= DATE_SUB(NOW(), INTERVAL 1 {$period})
+            AND o.payment_status = 'paid'
+            GROUP BY p.id, p.name_en, p.name_ku
+            ORDER BY total_sold DESC
+            LIMIT 10
+        ");
+        $stmt->execute();
+        $topProducts = $stmt->fetchAll();
+        
+        // Get customer stats
+        $stmt = $pdo->prepare("
+            SELECT 
+                COUNT(DISTINCT user_id) as total_customers,
+                COUNT(DISTINCT CASE WHEN order_date >= DATE_SUB(NOW(), INTERVAL 1 {$period}) THEN user_id END) as new_customers
+            FROM orders
+            WHERE order_date >= DATE_SUB(NOW(), INTERVAL 1 {$period})
+        ");
+        $stmt->execute();
+        $customerStats = $stmt->fetch();
+        
+        return [
+            'sales_data' => $salesData,
+            'top_products' => $topProducts,
+            'customer_stats' => $customerStats,
+            'period' => $period
+        ];
+    } catch (PDOException $e) {
+        error_log('Get sales report failed: ' . $e->getMessage());
+        return [
+            'sales_data' => [],
+            'top_products' => [],
+            'customer_stats' => ['total_customers' => 0, 'new_customers' => 0],
+            'period' => $period
+        ];
     }
 }
 

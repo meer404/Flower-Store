@@ -156,7 +156,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 </a>
                 
                 <?php if (isLoggedIn()): ?>
-                    <?php if (isAdmin()): ?>
+                    <?php if (isSuperAdmin()): ?>
+                        <a href="admin/super_admin_dashboard.php" class="nav-link text-luxury-text hover:text-red-600 font-medium relative">
+                            <i class="fas fa-crown mr-2"></i><?= e('Super Admin') ?>
+                        </a>
+                    <?php elseif (isAdmin()): ?>
                         <a href="admin/dashboard.php" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative">
                             <i class="fas fa-dashboard mr-2"></i><?= e(t('nav_admin')) ?>
                         </a>
@@ -226,11 +230,22 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     <div class="relative dropdown hidden lg:block">
                         <button class="flex items-center space-x-2 text-luxury-text hover:text-luxury-accent p-2">
                             <div class="w-10 h-10 bg-luxury-accent rounded-full flex items-center justify-center text-white font-bold">
-                                <?= e(strtoupper(substr($_SESSION['user']['full_name'] ?? 'U', 0, 1))) ?>
+                                <?= e(strtoupper(substr($_SESSION['full_name'] ?? 'U', 0, 1))) ?>
                             </div>
                             <i class="fas fa-chevron-down text-sm"></i>
                         </button>
                         <div class="dropdown-menu">
+                            <?php if (isSuperAdmin()): ?>
+                                <a href="admin/super_admin_dashboard.php">
+                                    <i class="fas fa-crown mr-2 text-red-600"></i><?= e('Super Admin') ?>
+                                </a>
+                                <div class="border-t border-luxury-border my-1"></div>
+                            <?php elseif (isAdmin()): ?>
+                                <a href="admin/dashboard.php">
+                                    <i class="fas fa-dashboard mr-2"></i><?= e('Admin Dashboard') ?>
+                                </a>
+                                <div class="border-t border-luxury-border my-1"></div>
+                            <?php endif; ?>
                             <a href="account.php">
                                 <i class="fas fa-user mr-2"></i><?= e('My Account') ?>
                             </a>
@@ -292,7 +307,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 </a>
                 
                 <?php if (isLoggedIn()): ?>
-                    <?php if (isAdmin()): ?>
+                    <?php if (isSuperAdmin()): ?>
+                        <a href="admin/super_admin_dashboard.php" class="block py-2 px-4 text-red-600 hover:bg-red-50 rounded-lg">
+                            <i class="fas fa-crown mr-3"></i><?= e('Super Admin') ?>
+                        </a>
+                    <?php elseif (isAdmin()): ?>
                         <a href="admin/dashboard.php" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                             <i class="fas fa-dashboard mr-3"></i><?= e(t('nav_admin')) ?>
                         </a>
