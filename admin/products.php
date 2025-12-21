@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../src/language.php';
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/design_config.php';
+require_once __DIR__ . '/../src/components.php';
 
 requireAdmin();
 
@@ -48,75 +49,101 @@ $dir = getHtmlDir();
     <?= getLuxuryTailwindConfig() ?>
 </head>
 <body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-luxury-border shadow-sm">
-        <div class="container mx-auto px-4 md:px-6 py-4">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <a href="../index.php" class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary tracking-wide">Bloom & Vine</a>
-                <div class="flex items-center space-x-4 md:space-x-8 flex-wrap text-sm md:text-base" style="direction: ltr;">
-                    <a href="dashboard.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('admin_dashboard')) ?></a>
-                    <a href="add_product.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e('Add Product') ?></a>
-                    <a href="categories.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium hidden md:inline"><?= e('Categories') ?></a>
-                    <a href="../index.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_home')) ?></a>
-                    <a href="../logout.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_logout')) ?></a>
+    <?php include __DIR__ . '/../src/header.php'; ?>
+
+    <!-- Admin Header -->
+    <div class="bg-gradient-to-r from-green-600 via-green-700 to-teal-800 text-white py-16">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <h1 class="text-5xl font-luxury font-bold mb-4">
+                        <i class="fas fa-box-open mr-4"></i><?= e('Products Management') ?>
+                    </h1>
+                    <p class="text-xl text-green-200">Manage your entire product catalog</p>
                 </div>
+                <a href="add_product.php" 
+                   class="inline-flex items-center gap-3 bg-white text-green-700 px-8 py-4 rounded-full hover:bg-green-50 transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                    <i class="fas fa-plus-circle text-2xl"></i>
+                    <?= e('Add New Product') ?>
+                </a>
             </div>
         </div>
-    </nav>
+    </div>
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
-            <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary tracking-wide"><?= e('Products Management') ?></h1>
-            <a href="add_product.php" 
-               class="bg-luxury-accent text-white px-6 py-3 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                <?= e('Add New Product') ?>
-            </a>
-        </div>
         
-        <div class="bg-white border border-luxury-border shadow-luxury overflow-hidden">
+        <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold"><i class="fas fa-list mr-2"></i>All Products</h2>
+                    <p class="text-green-200 text-sm">Total: <?= e((string)$totalProducts) ?> products</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-green-200">Page <?= e((string)$page) ?> of <?= e((string)$totalPages) ?></p>
+                </div>
+            </div>
+            
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="min-w-full">
+                    <thead class="bg-green-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><?= e('Image') ?></th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><?= e('Product') ?></th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><?= e('Category') ?></th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><?= e('Price') ?></th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><?= e('Stock') ?></th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><?= e('Actions') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Image') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Product') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Category') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Price') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Stock') ?></th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Actions') ?></th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-luxury-border">
                         <?php foreach ($products as $product): ?>
-                            <tr>
+                            <tr class="hover:bg-green-50 transition-colors">
                                 <td class="px-6 py-4">
                                     <?php if ($product['image_url']): ?>
                                         <img src="<?= e($product['image_url']) ?>" 
                                              alt="<?= e(getProductName($product)) ?>"
-                                             class="w-16 h-16 object-cover rounded">
+                                             class="w-20 h-20 object-cover rounded-xl shadow-md">
                                     <?php else: ?>
-                                        <div class="w-16 h-16 bg-gray-200 rounded"></div>
+                                        <div class="w-20 h-20 bg-green-100 rounded-xl flex items-center justify-center">
+                                            <i class="fas fa-image text-3xl text-green-300"></i>
+                                        </div>
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm font-medium text-primary"><?= e(getProductName($product)) ?></div>
+                                    <div class="text-base font-bold text-luxury-primary"><?= e(getProductName($product)) ?></div>
                                     <?php if ($product['is_featured']): ?>
-                                        <span class="text-xs text-yellow-600">★ <?= e('Featured') ?></span>
+                                        <span class="inline-flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full mt-1">
+                                            <i class="fas fa-star"></i><?= e('Featured') ?>
+                                        </span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-900"><?= e(getCategoryName($product)) ?></td>
-                                <td class="px-6 py-4 text-sm text-gray-900"><?= e(formatPrice((float)$product['price'])) ?></td>
-                                <td class="px-6 py-4 text-sm">
-                                    <span class="px-2 py-1 text-xs rounded <?= $product['stock_qty'] > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
-                                        <?= e((string)$product['stock_qty']) ?>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                        <i class="fas fa-tag"></i>
+                                        <?= e(getCategoryName($product)) ?>
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-sm">
-                                    <a href="edit_product.php?id=<?= e((string)$product['id']) ?>" 
-                                       class="text-primary hover:underline mr-3"><?= e('Edit') ?></a>
-                                    <a href="../product.php?id=<?= e((string)$product['id']) ?>" 
-                                       target="_blank"
-                                       class="text-blue-600 hover:underline"><?= e('View') ?></a>
+                                <td class="px-6 py-4">
+                                    <span class="text-lg font-bold text-green-600"><?= e(formatPrice((float)$product['price'])) ?></span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1 px-3 py-2 text-sm font-bold rounded-xl <?= $product['stock_qty'] > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+                                        <i class="fas fa-<?= $product['stock_qty'] > 0 ? 'check' : 'times' ?>-circle"></i>
+                                        <?= e((string)$product['stock_qty']) ?> units
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <a href="edit_product.php?id=<?= e((string)$product['id']) ?>" 
+                                           class="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-all font-semibold shadow-md">
+                                            <i class="fas fa-edit"></i><?= e('Edit') ?>
+                                        </a>
+                                        <a href="../product.php?id=<?= e((string)$product['id']) ?>" 
+                                           target="_blank"
+                                           class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition-all font-semibold shadow-md">
+                                            <i class="fas fa-eye"></i><?= e('View') ?>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -126,22 +153,26 @@ $dir = getHtmlDir();
             
             <!-- Pagination -->
             <?php if ($totalPages > 1): ?>
-                <div class="px-6 py-4 border-t flex justify-between items-center">
-                    <div class="text-sm text-gray-600">
+                <div class="px-6 py-6 bg-green-50 border-t-2 border-luxury-border flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="text-sm font-semibold text-green-800">
+                        <i class="fas fa-info-circle mr-2"></i>
                         <?= e('Showing') ?> <?= e((string)(($page - 1) * $perPage + 1)) ?>-<?= e((string)min($page * $perPage, $totalProducts)) ?> 
-                        <?= e('of') ?> <?= e((string)$totalProducts) ?>
+                        <?= e('of') ?> <?= e((string)$totalProducts) ?> products
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex gap-3">
                         <?php if ($page > 1): ?>
                             <a href="?page=<?= e((string)($page - 1)) ?>" 
-                               class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                                <?= e('Previous') ?>
+                               class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all font-bold shadow-md">
+                                <i class="fas fa-chevron-left"></i><?= e('Previous') ?>
                             </a>
                         <?php endif; ?>
+                        <span class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl font-bold shadow-md">
+                            Page <?= e((string)$page) ?> / <?= e((string)$totalPages) ?>
+                        </span>
                         <?php if ($page < $totalPages): ?>
                             <a href="?page=<?= e((string)($page + 1)) ?>" 
-                               class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                                <?= e('Next') ?>
+                               class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all font-bold shadow-md">
+                                <?= e('Next') ?><i class="fas fa-chevron-right"></i>
                             </a>
                         <?php endif; ?>
                     </div>
@@ -149,6 +180,8 @@ $dir = getHtmlDir();
             <?php endif; ?>
         </div>
     </div>
+    
+    <?= modernFooter() ?>
 </body>
 </html>
 

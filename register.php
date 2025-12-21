@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/src/language.php';
 require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';
+require_once __DIR__ . '/src/components.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {

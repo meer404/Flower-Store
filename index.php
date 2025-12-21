@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/src/language.php';
 require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';
+require_once __DIR__ . '/src/components.php';
 
 $pdo = getDB();
 
@@ -41,14 +42,68 @@ $dir = getHtmlDir();
     <?php include __DIR__ . '/src/header.php'; ?>
 
     <!-- Hero Section -->
-    <section class="bg-white py-24 border-b border-luxury-border">
-        <div class="container mx-auto text-center px-4 max-w-4xl">
-            <h1 class="text-6xl font-luxury font-bold text-luxury-primary mb-6 leading-tight"><?= e(t('hero_title')) ?></h1>
-            <p class="text-xl text-luxury-textLight mb-10 font-light tracking-wide"><?= e(t('hero_subtitle')) ?></p>
-            <a href="shop.php" 
-               class="inline-block bg-luxury-primary text-white px-10 py-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium tracking-wide shadow-luxury hover:shadow-luxuryHover">
-                <?= e(t('hero_cta')) ?>
-            </a>
+    <section class="relative bg-gradient-to-br from-luxury-accentLight via-white to-luxury-accentLight overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute top-0 left-0 w-96 h-96 bg-luxury-accent/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-luxury-primary/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        
+        <div class="relative container mx-auto px-6 py-24 md:py-32">
+            <div class="max-w-5xl mx-auto text-center">
+                <!-- Badge -->
+                <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg mb-8 animate-fade-in">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-luxury-primary font-semibold text-sm">🌿 Fresh Flowers Daily</span>
+                </div>
+                
+                <!-- Main Heading -->
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-luxury font-bold mb-6 leading-tight animate-slide-up">
+                    <span class="gradient-text"><?= e(t('hero_title')) ?></span>
+                </h1>
+                
+                <!-- Subtitle -->
+                <p class="text-xl md:text-2xl text-luxury-textLight mb-12 font-light leading-relaxed max-w-3xl mx-auto animate-slide-up" style="animation-delay: 0.1s">
+                    <?= e(t('hero_subtitle')) ?>
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style="animation-delay: 0.2s">
+                    <a href="shop.php" 
+                       class="group inline-flex items-center gap-3 bg-gradient-to-r from-luxury-accent to-yellow-500 text-white px-10 py-5 rounded-full hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-semibold text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                        <i class="fas fa-store"></i>
+                        <?= e(t('hero_cta')) ?>
+                        <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                    <a href="#featured" 
+                       class="inline-flex items-center gap-3 bg-white text-luxury-primary px-10 py-5 rounded-full hover:bg-luxury-primary hover:text-white transition-all duration-300 font-semibold text-lg shadow-xl border-2 border-luxury-primary">
+                        <i class="fas fa-sparkles"></i>
+                        View Featured
+                    </a>
+                </div>
+                
+                <!-- Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 animate-fade-in" style="animation-delay: 0.3s">
+                    <?php
+                    $totalProducts = $pdo->query('SELECT COUNT(*) FROM products WHERE stock_qty > 0')->fetchColumn();
+                    $totalCustomers = $pdo->query('SELECT COUNT(*) FROM users WHERE role = "customer"')->fetchColumn();
+                    ?>
+                    <div class="text-center">
+                        <div class="text-4xl md:text-5xl font-bold text-luxury-accent mb-2"><?= number_format($totalProducts) ?>+</div>
+                        <div class="text-luxury-textLight font-medium">Products</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl md:text-5xl font-bold text-luxury-accent mb-2"><?= number_format($totalCustomers) ?>+</div>
+                        <div class="text-luxury-textLight font-medium">Happy Customers</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl md:text-5xl font-bold text-luxury-accent mb-2">100%</div>
+                        <div class="text-luxury-textLight font-medium">Fresh Quality</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl md:text-5xl font-bold text-luxury-accent mb-2">24/7</div>
+                        <div class="text-luxury-textLight font-medium">Support</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -56,80 +111,157 @@ $dir = getHtmlDir();
     <?php
     $flash = getFlashMessage();
     if ($flash):
-    ?>
-        <div class="container mx-auto px-4 mt-4">
-            <div class="bg-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'error' ? 'red' : 'blue') ?>-100 border border-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'error' ? 'red' : 'blue') ?>-400 text-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'error' ? 'red' : 'blue') ?>-700 px-4 py-3 rounded">
-                <?= e($flash['message']) ?>
+        echo alert($flash['message'], $flash['type']);
+    endif; ?>
+    
+    <!-- Features Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center p-8 rounded-2xl hover:bg-luxury-accentLight/30 transition-all duration-300 group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-luxury-accent to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-truck text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-luxury-primary mb-3">Free Delivery</h3>
+                    <p class="text-luxury-textLight">Free shipping on all orders over $50</p>
+                </div>
+                
+                <div class="text-center p-8 rounded-2xl hover:bg-luxury-accentLight/30 transition-all duration-300 group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-leaf text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-luxury-primary mb-3">Always Fresh</h3>
+                    <p class="text-luxury-textLight">Fresh flowers delivered daily</p>
+                </div>
+                
+                <div class="text-center p-8 rounded-2xl hover:bg-luxury-accentLight/30 transition-all duration-300 group">
+                    <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-heart text-3xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-luxury-primary mb-3">Quality Guaranteed</h3>
+                    <p class="text-luxury-textLight">100% satisfaction or money back</p>
+                </div>
             </div>
         </div>
-    <?php endif; ?>
+    </section>
 
     <!-- Featured Products -->
-    <section class="container mx-auto px-6 py-20">
-        <h2 class="text-4xl font-luxury font-bold text-luxury-primary mb-12 text-center tracking-wide"><?= e('Featured Products') ?></h2>
-        
-        <?php if (empty($featuredProducts)): ?>
-            <p class="text-center text-luxury-textLight"><?= e('No featured products available.') ?></p>
-        <?php else: ?>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                <?php foreach ($featuredProducts as $product): ?>
-                    <div class="bg-white border border-luxury-border shadow-luxury overflow-hidden hover:shadow-luxuryHover transition-all duration-300 group">
-                        <?php if ($product['image_url']): ?>
-                            <div class="overflow-hidden">
-                                <img src="<?= e($product['image_url']) ?>" 
-                                     alt="<?= e(getProductName($product)) ?>"
-                                     class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
-                            </div>
-                        <?php else: ?>
-                            <div class="w-full h-64 bg-luxury-border flex items-center justify-center">
-                                <span class="text-luxury-textLight"><?= e('No Image') ?></span>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <div class="p-6">
-                            <h3 class="text-lg font-semibold text-luxury-primary mb-2 font-luxury">
-                                <a href="product.php?id=<?= e((string)$product['id']) ?>" class="hover:text-luxury-accent transition-colors">
-                                    <?= e(getProductName($product)) ?>
-                                </a>
-                            </h3>
-                            <p class="text-sm text-luxury-textLight mb-3 line-clamp-2 leading-relaxed"><?= e(substr(getProductDescription($product), 0, 100)) ?>...</p>
-                            <p class="text-2xl font-bold text-luxury-accent mb-6 font-luxury"><?= e(formatPrice((float)$product['price'])) ?></p>
-                            
-                            <div class="space-y-3">
-                                <a href="product.php?id=<?= e((string)$product['id']) ?>" 
-                                   class="block w-full border border-luxury-primary text-luxury-primary py-2.5 px-4 rounded-sm hover:bg-luxury-primary hover:text-white transition-all duration-300 text-center font-medium">
-                                    <?= e(t('view_details')) ?>
-                                </a>
-                                <form method="POST" action="cart_action.php" class="inline">
-                                    <input type="hidden" name="action" value="add">
-                                    <input type="hidden" name="product_id" value="<?= e((string)$product['id']) ?>">
-                                    <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
-                                    <?php if (isLoggedIn()): ?>
-                                        <button type="submit" 
-                                                class="w-full bg-luxury-accent text-white py-2.5 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                                            <?= e(t('add_to_cart')) ?>
-                                        </button>
-                                    <?php else: ?>
-                                        <a href="login.php" 
-                                           class="block w-full bg-luxury-accent text-white py-2.5 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 text-center font-medium shadow-md">
-                                            <?= e(t('add_to_cart')) ?>
-                                        </a>
-                                    <?php endif; ?>
-                                </form>
-                            </div>
-                        </div>
+    <section id="featured" class="py-20 bg-gradient-to-b from-white to-luxury-accentLight/20">
+        <div class="container mx-auto px-6">
+            <!-- Section Header -->
+            <div class="text-center mb-16">
+                <div class="inline-block bg-luxury-accent/10 px-6 py-2 rounded-full mb-4">
+                    <span class="text-luxury-accent font-semibold text-sm">✨ FEATURED COLLECTION</span>
+                </div>
+                <h2 class="text-4xl md:text-5xl font-luxury font-bold text-luxury-primary mb-4">Our Best Sellers</h2>
+                <p class="text-luxury-textLight text-lg max-w-2xl mx-auto">
+                    Discover our most loved floral arrangements, handpicked for their beauty and elegance
+                </p>
+            </div>
+            
+            <?php if (empty($featuredProducts)): ?>
+                <div class="text-center py-16">
+                    <div class="w-32 h-32 bg-luxury-border rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-seedling text-5xl text-luxury-textLight"></i>
                     </div>
+                    <p class="text-luxury-textLight text-lg"><?= e('No featured products available at the moment.') ?></p>
+                    <a href="shop.php" class="inline-block mt-6 text-luxury-accent hover:text-luxury-primary font-semibold">
+                        Explore All Products <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <?php foreach ($featuredProducts as $product): ?>
+                        <?= productCard($product) ?>
+                    <?php endforeach; ?>
+                </div>
+                
+                <!-- View All Button -->
+                <div class="text-center mt-12">
+                    <a href="shop.php" 
+                       class="inline-flex items-center gap-3 bg-white border-2 border-luxury-accent text-luxury-accent px-8 py-4 rounded-full hover:bg-luxury-accent hover:text-white transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <span>View All Products</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    
+    <!-- Categories Section -->
+    <?php if (!empty($categories)): ?>
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-luxury font-bold text-luxury-primary mb-4">Shop by Category</h2>
+                <p class="text-luxury-textLight text-lg">Find the perfect flowers for every occasion</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                <?php foreach ($categories as $category): ?>
+                    <a href="shop.php?category=<?= e((string)$category['id']) ?>" 
+                       class="group text-center p-6 bg-white border-2 border-luxury-border rounded-2xl hover:border-luxury-accent hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                        <div class="w-16 h-16 bg-luxury-accentLight rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-luxury-accent transition-colors duration-300">
+                            <i class="fas fa-spa text-2xl text-luxury-accent group-hover:text-white transition-colors duration-300"></i>
+                        </div>
+                        <h3 class="font-semibold text-luxury-primary group-hover:text-luxury-accent transition-colors">
+                            <?= e(getCategoryName($category)) ?>
+                        </h3>
+                    </a>
                 <?php endforeach; ?>
             </div>
-        <?php endif; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+    
+    <!-- Newsletter Section -->
+    <section class="py-20 bg-gradient-to-br from-luxury-primary via-gray-900 to-luxury-primary text-white">
+        <div class="container mx-auto px-6">
+            <div class="max-w-3xl mx-auto text-center">
+                <div class="w-20 h-20 bg-luxury-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-envelope text-3xl text-white"></i>
+                </div>
+                <h2 class="text-4xl font-luxury font-bold mb-4">Stay in Bloom</h2>
+                <p class="text-xl text-gray-300 mb-8">
+                    Subscribe to our newsletter for exclusive offers, seasonal tips, and floral inspiration
+                </p>
+                <form class="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
+                    <input type="email" 
+                           placeholder="Enter your email address" 
+                           class="flex-1 px-6 py-4 rounded-full text-luxury-primary focus:outline-none focus:ring-4 focus:ring-luxury-accent/50">
+                    <button type="submit" 
+                            class="bg-luxury-accent hover:bg-yellow-500 text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-2xl">
+                        Subscribe <i class="fas fa-paper-plane ml-2"></i>
+                    </button>
+                </form>
+                <p class="text-sm text-gray-400 mt-4">
+                    <i class="fas fa-lock mr-2"></i>We respect your privacy. Unsubscribe anytime.
+                </p>
+            </div>
+        </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-luxury-primary text-white py-12 mt-20 border-t border-luxury-border">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-luxury-accentLight font-light tracking-wide">&copy; <?= e(date('Y')) ?> Bloom & Vine. <?= e('All rights reserved.') ?></p>
-        </div>
-    </footer>
+    <?= modernFooter() ?>
+    
+    <!-- Wishlist Toggle Script -->
+    <script>
+        function toggleWishlist(productId) {
+            fetch('wishlist_action.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=toggle&product_id=' + productId + '&csrf_token=<?= e(generateCSRFToken()) ?>'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
 

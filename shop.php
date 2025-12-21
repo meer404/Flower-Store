@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/src/language.php';
 require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';
+require_once __DIR__ . '/src/components.php';
 
 $pdo = getDB();
 
@@ -61,35 +62,51 @@ $dir = getHtmlDir();
 <body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
     <?php include __DIR__ . '/src/header.php'; ?>
 
+    <!-- Page Header -->
+    <div class="bg-gradient-to-r from-luxury-primary to-gray-900 text-white py-16">
+        <div class="container mx-auto px-6">
+            <h1 class="text-5xl font-luxury font-bold mb-4"><?= e(t('nav_shop')) ?></h1>
+            <p class="text-xl text-gray-300">Discover our complete collection of premium flowers</p>
+        </div>
+    </div>
+
     <div class="container mx-auto px-6 py-12">
-        <div class="flex flex-col md:flex-row gap-8">
+        <div class="flex flex-col lg:flex-row gap-8">
             <!-- Sidebar Filters -->
-            <aside class="w-full md:w-64">
-                <div class="bg-white border border-luxury-border shadow-luxury p-6">
-                    <h2 class="text-xl font-luxury font-bold text-luxury-primary mb-6"><?= e(t('category')) ?></h2>
+            <aside class="lg:w-80">
+                <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6 sticky top-24">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-luxury-accent rounded-xl flex items-center justify-center">
+                            <i class="fas fa-filter text-white text-xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-luxury font-bold text-luxury-primary">Filters</h2>
+                    </div>
                     
                     <form method="GET" action="shop.php" id="filterForm">
                         <input type="hidden" name="lang" value="<?= e($lang) ?>">
                         
                         <!-- Search -->
                         <div class="mb-6">
-                            <label for="search" class="block text-sm font-medium text-luxury-text mb-2">
-                                <?= e(t('search')) ?>
+                            <label for="search" class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
+                                <i class="fas fa-search mr-2"></i><?= e(t('search')) ?>
                             </label>
-                            <input type="text" id="search" name="search" 
-                                   value="<?= e($search) ?>"
-                                   placeholder="<?= e(t('search')) ?>..."
-                                   class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+                            <div class="relative">
+                                <input type="text" id="search" name="search" 
+                                       value="<?= e($search) ?>"
+                                       placeholder="<?= e(t('search')) ?> products..."
+                                       class="w-full pl-12 pr-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
+                                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-luxury-textLight"></i>
+                            </div>
                         </div>
                         
                         <!-- Category Filter -->
                         <div class="mb-6">
-                            <label for="category" class="block text-sm font-medium text-luxury-text mb-2">
-                                <?= e(t('category')) ?>
+                            <label for="category" class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
+                                <i class="fas fa-th-large mr-2"></i><?= e(t('category')) ?>
                             </label>
                             <select id="category" name="category" 
                                     onchange="document.getElementById('filterForm').submit();"
-                                    class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+                                    class="w-full px-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
                                 <option value="0"><?= e('All Categories') ?></option>
                                 <?php foreach ($categories as $category): ?>
                                     <option value="<?= e((string)$category['id']) ?>" 
@@ -101,78 +118,71 @@ $dir = getHtmlDir();
                         </div>
                         
                         <button type="submit" 
-                                class="w-full bg-luxury-primary text-white py-2.5 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                            <?= e(t('search')) ?>
+                                class="w-full bg-gradient-to-r from-luxury-accent to-yellow-500 text-white py-4 px-6 rounded-xl hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-search mr-2"></i><?= e(t('search')) ?>
                         </button>
                         
                         <?php if ($search || $categoryId > 0): ?>
                             <a href="shop.php?lang=<?= e($lang) ?>" 
-                               class="block mt-3 text-center text-luxury-accent hover:text-luxury-primary transition-colors font-medium">
-                                <?= e('Clear Filters') ?>
+                               class="block mt-4 text-center text-luxury-accent hover:text-luxury-primary transition-colors font-semibold py-2">
+                                <i class="fas fa-times mr-2"></i><?= e('Clear Filters') ?>
                             </a>
                         <?php endif; ?>
                     </form>
+                    
+                    <!-- Active Filters Display -->
+                    <?php if ($search || $categoryId > 0): ?>
+                        <div class="mt-6 pt-6 border-t-2 border-luxury-border">
+                            <p class="text-sm font-bold text-luxury-primary mb-3 uppercase">Active Filters:</p>
+                            <div class="flex flex-wrap gap-2">
+                                <?php if ($search): ?>
+                                    <span class="bg-luxury-accent/10 text-luxury-accent px-3 py-1 rounded-full text-sm font-semibold">
+                                        Search: "<?= e($search) ?>"
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($categoryId > 0):
+                                    $selectedCat = array_filter($categories, fn($c) => $c['id'] === $categoryId);
+                                    if (!empty($selectedCat)):
+                                        $catName = getCategoryName(reset($selectedCat));
+                                ?>
+                                    <span class="bg-luxury-accent/10 text-luxury-accent px-3 py-1 rounded-full text-sm font-semibold">
+                                        <?= e($catName) ?>
+                                    </span>
+                                <?php endif; endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </aside>
 
             <!-- Products Grid -->
             <main class="flex-1">
-                <h1 class="text-4xl font-luxury font-bold text-luxury-primary mb-8 tracking-wide"><?= e(t('nav_shop')) ?></h1>
+                <?php if (!empty($products)): ?>
+                    <div class="flex justify-between items-center mb-8">
+                        <div class="text-luxury-textLight">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            Found <span class="font-bold text-luxury-primary"><?= count($products) ?></span> products
+                        </div>
+                    </div>
+                <?php endif; ?>
                 
                 <?php if (empty($products)): ?>
-                    <div class="bg-white border border-luxury-border shadow-luxury p-12 text-center">
-                        <p class="text-luxury-textLight"><?= e('No products found.') ?></p>
+                    <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-16 text-center">
+                        <div class="w-32 h-32 bg-luxury-border rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-search text-5xl text-luxury-textLight"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-luxury-primary mb-3">No Products Found</h3>
+                        <p class="text-luxury-textLight mb-6">Try adjusting your search or filters</p>
+                        <a href="shop.php?lang=<?= e($lang) ?>" 
+                           class="inline-flex items-center gap-2 bg-luxury-accent text-white px-8 py-3 rounded-full hover:bg-opacity-90 transition-all font-semibold">
+                            <i class="fas fa-redo"></i>
+                            Clear Filters
+                        </a>
                     </div>
                 <?php else: ?>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
                         <?php foreach ($products as $product): ?>
-                            <div class="bg-white border border-luxury-border shadow-luxury overflow-hidden hover:shadow-luxuryHover transition-all duration-300 group">
-                                <?php if ($product['image_url']): ?>
-                                    <div class="overflow-hidden">
-                                        <img src="<?= e($product['image_url']) ?>" 
-                                             alt="<?= e(getProductName($product)) ?>"
-                                             class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
-                                    </div>
-                                <?php else: ?>
-                                    <div class="w-full h-64 bg-luxury-border flex items-center justify-center">
-                                        <span class="text-luxury-textLight"><?= e('No Image') ?></span>
-                                    </div>
-                                <?php endif; ?>
-                                
-                                <div class="p-6">
-                                    <h3 class="text-lg font-semibold text-luxury-primary mb-2 font-luxury">
-                                        <a href="product.php?id=<?= e((string)$product['id']) ?>" class="hover:text-luxury-accent transition-colors">
-                                            <?= e(getProductName($product)) ?>
-                                        </a>
-                                    </h3>
-                                    <p class="text-xs text-luxury-textLight mb-2 uppercase tracking-wide"><?= e(getCategoryName($product)) ?></p>
-                                    <p class="text-sm text-luxury-textLight mb-3 line-clamp-2 leading-relaxed"><?= e(substr(getProductDescription($product), 0, 100)) ?>...</p>
-                                    <p class="text-2xl font-bold text-luxury-accent mb-6 font-luxury"><?= e(formatPrice((float)$product['price'])) ?></p>
-                                    
-                                    <div class="space-y-3">
-                                        <a href="product.php?id=<?= e((string)$product['id']) ?>" 
-                                           class="block w-full border border-luxury-primary text-luxury-primary py-2.5 px-4 rounded-sm hover:bg-luxury-primary hover:text-white transition-all duration-300 text-center font-medium">
-                                            <?= e(t('view_details')) ?>
-                                        </a>
-                                        <form method="POST" action="cart_action.php" class="inline">
-                                            <input type="hidden" name="action" value="add">
-                                            <input type="hidden" name="product_id" value="<?= e((string)$product['id']) ?>">
-                                            <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
-                                            <?php if (isLoggedIn()): ?>
-                                                <button type="submit" 
-                                                        class="w-full bg-luxury-accent text-white py-2.5 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                                                    <?= e(t('add_to_cart')) ?>
-                                                </button>
-                                            <?php else: ?>
-                                                <a href="login.php" 
-                                                   class="block w-full bg-luxury-accent text-white py-2.5 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 text-center font-medium shadow-md">
-                                                    <?= e(t('add_to_cart')) ?>
-                                                </a>
-                                            <?php endif; ?>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                            <?= productCard($product) ?>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
@@ -180,12 +190,26 @@ $dir = getHtmlDir();
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-luxury-primary text-white py-12 mt-20 border-t border-luxury-border">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-luxury-accentLight font-light tracking-wide">&copy; <?= e(date('Y')) ?> Bloom & Vine. <?= e('All rights reserved.') ?></p>
-        </div>
-    </footer>
+    <?= modernFooter() ?>
+    
+    <!-- Wishlist Toggle Script -->
+    <script>
+        function toggleWishlist(productId) {
+            fetch('wishlist_action.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=toggle&product_id=' + productId + '&csrf_token=<?= e(generateCSRFToken()) ?>'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
 

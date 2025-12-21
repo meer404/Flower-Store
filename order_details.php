@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/src/language.php';
 require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';
+require_once __DIR__ . '/src/components.php';
 
 requireLogin();
 
@@ -223,12 +224,7 @@ $dir = getHtmlDir();
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-luxury-primary text-white py-12 mt-20 border-t border-luxury-border">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-luxury-accentLight font-light tracking-wide">&copy; <?= e(date('Y')) ?> Bloom & Vine. <?= e('All rights reserved.') ?></p>
-        </div>
-    </footer>
+    <?= modernFooter() ?>
 </body>
 </html>
 

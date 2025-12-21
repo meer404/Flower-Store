@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../src/language.php';
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/design_config.php';
+require_once __DIR__ . '/../src/components.php';
 
 requireAdmin();
 
@@ -116,23 +117,7 @@ $dir = getHtmlDir();
     <?= getLuxuryTailwindConfig() ?>
 </head>
 <body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-luxury-border shadow-sm">
-        <div class="container mx-auto px-4 md:px-6 py-4">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <a href="../index.php" class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary tracking-wide">Bloom & Vine</a>
-                <div class="flex items-center space-x-4 md:space-x-8 flex-wrap text-sm md:text-base" style="direction: ltr;">
-                    <a href="dashboard.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('admin_dashboard')) ?></a>
-                    <a href="products.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium hidden md:inline"><?= e('Products') ?></a>
-                    <a href="../index.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_home')) ?></a>
-                    <a href="../logout.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_logout')) ?></a>
-                    <a href="?lang=<?= $lang === 'en' ? 'ku' : 'en' ?>" class="text-luxury-accent hover:text-luxury-primary font-semibold border border-luxury-accent px-2 md:px-3 py-1 rounded-sm text-xs md:text-sm">
-                        <?= $lang === 'en' ? 'KU' : 'EN' ?>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/../src/header.php'; ?>
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
         <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('admin_add_product')) ?></h1>
@@ -245,12 +230,7 @@ $dir = getHtmlDir();
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-luxury-primary text-white py-12 mt-20 border-t border-luxury-border">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-luxury-accentLight font-light tracking-wide">&copy; <?= e(date('Y')) ?> Bloom & Vine. <?= e('All rights reserved.') ?></p>
-        </div>
-    </footer>
+    <?= modernFooter() ?>
 </body>
 </html>
 

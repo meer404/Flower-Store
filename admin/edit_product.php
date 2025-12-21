@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../src/language.php';
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/design_config.php';
+require_once __DIR__ . '/../src/components.php';
 
 requireAdmin();
 
@@ -155,20 +156,7 @@ $dir = getHtmlDir();
     <?= getLuxuryTailwindConfig() ?>
 </head>
 <body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <!-- Navbar -->
-    <nav class="bg-white border-b border-luxury-border shadow-sm">
-        <div class="container mx-auto px-4 md:px-6 py-4">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <a href="../index.php" class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary tracking-wide">Bloom & Vine</a>
-                <div class="flex items-center space-x-4 md:space-x-8 flex-wrap text-sm md:text-base" style="direction: ltr;">
-                    <a href="dashboard.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('admin_dashboard')) ?></a>
-                    <a href="products.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e('Products') ?></a>
-                    <a href="../index.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_home')) ?></a>
-                    <a href="../logout.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium"><?= e(t('nav_logout')) ?></a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/../src/header.php'; ?>
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
         <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e('Edit Product') ?></h1>
@@ -319,6 +307,8 @@ $dir = getHtmlDir();
             </form>
         </div>
     </div>
+    
+    <?= modernFooter() ?>
 </body>
 </html>
 
