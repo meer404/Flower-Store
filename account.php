@@ -348,6 +348,18 @@ $dir = getHtmlDir();
                                                 <span class="px-2 py-1 text-xs rounded-sm <?= $order['payment_status'] === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>">
                                                     <?= e('Payment: ') ?><?= e(ucfirst($order['payment_status'])) ?>
                                                 </span>
+                                                <?php if (isset($order['payment_method']) && $order['payment_method']): ?>
+                                                    <span class="px-2 py-1 text-xs rounded-sm bg-purple-100 text-purple-800 flex items-center gap-1">
+                                                        <?php if ($order['payment_method'] === 'visa'): ?>
+                                                            <span class="font-bold text-blue-600">VISA</span>
+                                                        <?php elseif ($order['payment_method'] === 'mastercard'): ?>
+                                                            <span class="font-bold text-red-600">MC</span>
+                                                        <?php endif; ?>
+                                                        <?php if (isset($order['card_last_four']) && $order['card_last_four']): ?>
+                                                            •••• <?= e($order['card_last_four']) ?>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                <?php endif; ?>
                                                 <?php if (isset($order['order_status']) && $order['order_status']): ?>
                                                     <span class="px-2 py-1 text-xs rounded-sm bg-blue-100 text-blue-800">
                                                         <?= e('Status: ') ?><?= e(ucfirst($order['order_status'])) ?>

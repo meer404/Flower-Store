@@ -152,6 +152,43 @@ $dir = getHtmlDir();
                                 <?= e(ucfirst($order['payment_status'])) ?>
                             </span>
                         </div>
+                        <?php if (isset($order['payment_method']) && $order['payment_method']): ?>
+                        <div>
+                            <p class="text-luxury-textLight mb-2"><?= e(t('payment_method')) ?></p>
+                            <div class="flex items-center gap-2 mb-2">
+                                <?php if ($order['payment_method'] === 'visa'): ?>
+                                    <div class="w-10 h-6 bg-blue-600 rounded flex items-center justify-center">
+                                        <span class="text-white font-bold text-xs">VISA</span>
+                                    </div>
+                                <?php elseif ($order['payment_method'] === 'mastercard'): ?>
+                                    <div class="w-10 h-6 bg-red-600 rounded flex items-center justify-center">
+                                        <span class="text-white font-bold text-xs">MC</span>
+                                    </div>
+                                <?php endif; ?>
+                                <span class="font-semibold text-luxury-primary">
+                                    <?= e(ucfirst($order['payment_method'])) ?>
+                                </span>
+                            </div>
+                            <?php if (isset($order['card_last_four']) && $order['card_last_four']): ?>
+                                <p class="text-sm text-luxury-textLight">
+                                    <i class="fas fa-credit-card mr-1"></i>
+                                    <?= e('Card ending in') ?> •••• <?= e($order['card_last_four']) ?>
+                                </p>
+                            <?php endif; ?>
+                            <?php if (isset($order['cardholder_name']) && $order['cardholder_name']): ?>
+                                <p class="text-sm text-luxury-textLight mt-1">
+                                    <i class="fas fa-user mr-1"></i>
+                                    <?= e($order['cardholder_name']) ?>
+                                </p>
+                            <?php endif; ?>
+                            <?php if (isset($order['card_expiry_month']) && isset($order['card_expiry_year'])): ?>
+                                <p class="text-sm text-luxury-textLight mt-1">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    <?= e(sprintf('%02d/%d', (int)$order['card_expiry_month'], (int)$order['card_expiry_year'])) ?>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
                         <?php if (isset($order['order_status'])): ?>
                             <div>
                                 <p class="text-luxury-textLight mb-2"><?= e('Order Status') ?></p>

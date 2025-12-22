@@ -167,6 +167,18 @@ $dir = getHtmlDir();
                                             <i class="fas fa-<?= $order['payment_status'] === 'paid' ? 'check-circle' : 'clock' ?> mr-1"></i>
                                             <?= e(ucfirst($order['payment_status'])) ?>
                                         </span>
+                                        <?php if (isset($order['payment_method']) && $order['payment_method']): ?>
+                                            <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800">
+                                                <?php if ($order['payment_method'] === 'visa'): ?>
+                                                    <span class="w-6 h-4 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">V</span>
+                                                <?php elseif ($order['payment_method'] === 'mastercard'): ?>
+                                                    <span class="w-6 h-4 bg-red-600 rounded text-white text-xs flex items-center justify-center font-bold">MC</span>
+                                                <?php endif; ?>
+                                                <?php if (isset($order['card_last_four']) && $order['card_last_four']): ?>
+                                                    •••• <?= e($order['card_last_four']) ?>
+                                                <?php endif; ?>
+                                            </span>
+                                        <?php endif; ?>
                                         <?php if (isset($order['order_status'])): ?>
                                             <span class="inline-flex px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
                                                 <i class="fas fa-truck mr-1"></i>
