@@ -136,7 +136,8 @@ $dir = getHtmlDir();
                                 <th class="px-6 py-4 text-left text-xs font-bold text-purple-900 uppercase tracking-wider"><?= e('Customer') ?></th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-purple-900 uppercase tracking-wider"><?= e('Total') ?></th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-purple-900 uppercase tracking-wider"><?= e('Status') ?></th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-purple-900 uppercase tracking-wider"><?= e('Date') ?></th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-purple-900 uppercase tracking-wider"><?= e('Order Date') ?></th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-purple-900 uppercase tracking-wider"><?= e('Delivery Date') ?></th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-purple-900 uppercase tracking-wider"><?= e('Actions') ?></th>
                             </tr>
                         </thead>
@@ -180,6 +181,36 @@ $dir = getHtmlDir();
                                     <br>
                                     <i class="fas fa-clock mr-1"></i>
                                     <?= e(date('H:i', strtotime($order['order_date']))) ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <?php if (isset($order['delivery_date']) && $order['delivery_date']): ?>
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-truck text-purple-600"></i>
+                                            <div>
+                                                <div class="font-semibold text-luxury-primary">
+                                                    <?= e(date('M d, Y', strtotime($order['delivery_date']))) ?>
+                                                </div>
+                                                <?php
+                                                $daysUntilDelivery = (strtotime($order['delivery_date']) - time()) / (60 * 60 * 24);
+                                                if ($daysUntilDelivery > 0):
+                                                ?>
+                                                    <div class="text-xs text-blue-600">
+                                                        <?= e(sprintf('In %d day(s)', (int)ceil($daysUntilDelivery))) ?>
+                                                    </div>
+                                                <?php elseif ($daysUntilDelivery <= 0 && $daysUntilDelivery > -1): ?>
+                                                    <div class="text-xs text-green-600 font-semibold">
+                                                        <i class="fas fa-check-circle mr-1"></i><?= e('Today') ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <div class="text-xs text-green-600 font-semibold">
+                                                        <i class="fas fa-check-circle mr-1"></i><?= e('Delivered') ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-luxury-textLight italic"><?= e('Not set') ?></span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     <a href="../order_details.php?id=<?= e((string)$order['id']) ?>" 

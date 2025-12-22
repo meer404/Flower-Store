@@ -75,6 +75,10 @@ return [
     
     // Checkout
     'shipping_address' => 'ناونیشانی گەیاندن',
+    'delivery_date' => 'بەرواری گەیاندن',
+    'select_delivery_date' => 'بەرواری گەیاندن هەڵبژێرە',
+    'delivery_date_required' => 'تکایە بەرواری گەیاندن هەڵبژێرە',
+    'delivery_date_invalid' => 'بەرواری گەیاندن دەبێت لە داهاتوودا بێت',
     'place_order' => 'داشکاندنی داواکاری',
     'order_placed' => 'داواکاری بە سەرکەوتوویی دەستنیشانکرا!',
     'order_error' => 'هەڵە لە داشکاندنی داواکاریدا. تکایە دووبارە هەوڵ بدە.',

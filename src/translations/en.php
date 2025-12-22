@@ -75,6 +75,10 @@ return [
     
     // Checkout
     'shipping_address' => 'Shipping Address',
+    'delivery_date' => 'Delivery Date',
+    'select_delivery_date' => 'Select Delivery Date',
+    'delivery_date_required' => 'Please select a delivery date',
+    'delivery_date_invalid' => 'Delivery date must be in the future',
     'place_order' => 'Place Order',
     'order_placed' => 'Order placed successfully!',
     'order_error' => 'Error placing order. Please try again.',

@@ -121,6 +121,31 @@ $dir = getHtmlDir();
                             <p class="text-luxury-textLight mb-1"><?= e('Order Date') ?></p>
                             <p class="font-semibold text-luxury-primary"><?= e(date('F j, Y g:i A', strtotime($order['order_date']))) ?></p>
                         </div>
+                        <?php if (isset($order['delivery_date']) && $order['delivery_date']): ?>
+                        <div>
+                            <p class="text-luxury-textLight mb-1"><?= e(t('delivery_date')) ?></p>
+                            <p class="font-semibold text-luxury-primary">
+                                <i class="fas fa-calendar-alt mr-2 text-luxury-accent"></i>
+                                <?= e(date('F j, Y', strtotime($order['delivery_date']))) ?>
+                            </p>
+                            <?php
+                            $daysUntilDelivery = (strtotime($order['delivery_date']) - time()) / (60 * 60 * 24);
+                            if ($daysUntilDelivery > 0):
+                            ?>
+                                <p class="text-xs text-luxury-textLight mt-1">
+                                    <?= e(sprintf('In %d day(s)', (int)ceil($daysUntilDelivery))) ?>
+                                </p>
+                            <?php elseif ($daysUntilDelivery <= 0 && $daysUntilDelivery > -1): ?>
+                                <p class="text-xs text-green-600 mt-1 font-semibold">
+                                    <i class="fas fa-check-circle mr-1"></i><?= e('Delivery Today') ?>
+                                </p>
+                            <?php else: ?>
+                                <p class="text-xs text-green-600 mt-1 font-semibold">
+                                    <i class="fas fa-check-circle mr-1"></i><?= e('Delivered') ?>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
                         <div>
                             <p class="text-luxury-textLight mb-2"><?= e('Payment Status') ?></p>
                             <span class="px-3 py-1 text-xs md:text-sm rounded-sm <?= $order['payment_status'] === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>">

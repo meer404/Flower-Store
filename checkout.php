@@ -59,11 +59,16 @@ $user = $stmt->fetch();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = sanitizeInput('csrf_token', 'POST');
     $shippingAddress = sanitizeInput('shipping_address', 'POST');
+    $deliveryDate = sanitizeInput('delivery_date', 'POST');
     
     if (!verifyCSRFToken($csrfToken)) {
         $error = t('order_error');
     } elseif (empty($shippingAddress)) {
         $error = t('order_error') . ' - ' . e('Shipping address is required');
+    } elseif (empty($deliveryDate)) {
+        $error = t('delivery_date_required');
+    } elseif (!strtotime($deliveryDate) || strtotime($deliveryDate) < strtotime('tomorrow')) {
+        $error = t('delivery_date_invalid');
     } else {
         try {
             $pdo->beginTransaction();
@@ -87,14 +92,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 // Create order
                 $stmt = $pdo->prepare('
-                    INSERT INTO orders (user_id, grand_total, payment_status, shipping_address)
-                    VALUES (:user_id, :grand_total, :payment_status, :shipping_address)
+                    INSERT INTO orders (user_id, grand_total, payment_status, shipping_address, delivery_date)
+                    VALUES (:user_id, :grand_total, :payment_status, :shipping_address, :delivery_date)
                 ');
                 $stmt->execute([
                     'user_id' => $userId,
                     'grand_total' => $cartTotal,
                     'payment_status' => 'pending',
-                    'shipping_address' => $shippingAddress
+                    'shipping_address' => $shippingAddress,
+                    'delivery_date' => $deliveryDate
                 ]);
                 
                 $orderId = (int)$pdo->lastInsertId();
@@ -205,6 +211,19 @@ $dir = getHtmlDir();
                         <textarea id="shipping_address" name="shipping_address" rows="4" required
                                   class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"
                                   placeholder="<?= e('Enter your complete shipping address') ?>"><?= e(sanitizeInput('shipping_address', 'POST', '')) ?></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="delivery_date" class="block text-sm font-medium text-luxury-text mb-2">
+                            <?= e(t('delivery_date')) ?> *
+                        </label>
+                        <input type="date" id="delivery_date" name="delivery_date" required
+                               min="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>"
+                               value="<?= e(sanitizeInput('delivery_date', 'POST', '')) ?>"
+                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+                        <p class="text-xs text-luxury-textLight mt-1">
+                            <?= e('Please select a date for flower delivery. Minimum delivery time is 1 day.') ?>
+                        </p>
                     </div>
                     
                     <button type="submit" 

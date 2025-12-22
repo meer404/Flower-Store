@@ -331,7 +331,16 @@ $dir = getHtmlDir();
                                                class="text-base md:text-lg font-semibold text-luxury-primary hover:text-luxury-accent transition-colors">
                                                 <?= e('Order #') ?><?= e((string)$order['id']) ?>
                                             </a>
-                                            <p class="text-sm text-luxury-textLight mt-1"><?= e(date('F j, Y g:i A', strtotime($order['order_date']))) ?></p>
+                                            <p class="text-sm text-luxury-textLight mt-1">
+                                                <i class="fas fa-calendar mr-1"></i>
+                                                <?= e(date('F j, Y g:i A', strtotime($order['order_date']))) ?>
+                                            </p>
+                                            <?php if (isset($order['delivery_date']) && $order['delivery_date']): ?>
+                                                <p class="text-sm text-luxury-accent mt-1 font-medium">
+                                                    <i class="fas fa-truck mr-1"></i>
+                                                    <?= e(t('delivery_date')) ?>: <?= e(date('F j, Y', strtotime($order['delivery_date']))) ?>
+                                                </p>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="text-left sm:text-right">
                                             <p class="text-lg md:text-xl font-bold text-luxury-accent font-luxury mb-2"><?= e(formatPrice((float)$order['grand_total'])) ?></p>
