@@ -26,8 +26,12 @@ $whereConditions = ['p.stock_qty > 0'];
 $params = [];
 
 if (!empty($search)) {
-    $whereConditions[] = '(p.name_en LIKE :search OR p.name_ku LIKE :search OR p.description_en LIKE :search OR p.description_ku LIKE :search)';
-    $params['search'] = '%' . $search . '%';
+    $whereConditions[] = '(p.name_en LIKE :search1 OR p.name_ku LIKE :search2 OR p.description_en LIKE :search3 OR p.description_ku LIKE :search4)';
+    $searchTerm = '%' . $search . '%';
+    $params['search1'] = $searchTerm;
+    $params['search2'] = $searchTerm;
+    $params['search3'] = $searchTerm;
+    $params['search4'] = $searchTerm;
 }
 
 if ($categoryId > 0) {

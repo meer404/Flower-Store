@@ -49,6 +49,42 @@ function sanitizeInput(string $key, string $method = 'POST', string $default = '
 }
 
 /**
+ * Generate a URL relative to the current script execution context.
+ * Useful for handling links when files are in different directories (e.g., /admin/ vs /).
+ * 
+ * @param string $path The target path from the project root (e.g., 'admin/dashboard.php' or 'index.php')
+ * @return string The resolved relative URL
+ */
+function url(string $path): string {
+    $path = ltrim($path, '/');
+    
+    // Check if we are currently inside the 'admin' directory
+    // We check for /admin/ in the script name
+    $currentScript = $_SERVER['SCRIPT_NAME'] ?? '';
+    $inAdmin = strpos($currentScript, '/admin/') !== false;
+    
+    // Check if the target path is pointing to the admin directory
+    $targetInAdmin = strpos($path, 'admin/') === 0;
+    
+    if ($inAdmin) {
+        // We are inside admin/
+        if ($targetInAdmin) {
+            // Target is also in admin/ (e.g. admin/users.php)
+            // We want to link to "users.php", so strip "admin/" prefix
+            return substr($path, 6); // length of 'admin/' is 6
+        } else {
+            // Target is in root (e.g. index.php)
+            // We need to go up one level
+            return '../' . $path;
+        }
+    } else {
+        // We are in root (or src/)
+        // Target is relative to root, so return as is
+        return $path;
+    }
+}
+
+/**
  * Check if user is logged in
  * 
  * @return bool True if user is logged in
@@ -601,6 +637,12 @@ function setSystemSetting(string $key, $value, string $type = 'string'): bool {
 function getSalesReport(string $period = 'month'): array {
     try {
         $pdo = getDB();
+        
+        // Strict validation for period to prevent SQL injection
+        $allowedPeriods = ['day', 'week', 'month', 'year'];
+        if (!in_array($period, $allowedPeriods)) {
+            $period = 'month';
+        }
         
         $dateFormat = '%Y-%m';
         switch ($period) {

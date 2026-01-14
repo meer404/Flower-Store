@@ -213,7 +213,7 @@ $recentOrders = $stmt->fetchAll();
                             <?php endforeach; ?>
                         </div>
                         <div class="mt-4 text-center">
-                            <a href="../order_details.php" class="text-red-600 hover:text-red-700 font-semibold">View All Orders →</a>
+                            <a href="<?= url('order_details.php') ?>" class="text-red-600 hover:text-red-700 font-semibold">View All Orders →</a>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -262,7 +262,7 @@ $recentOrders = $stmt->fetchAll();
                     <i class="fas fa-tags text-2xl text-orange-600 mb-2"></i>
                     <p class="font-semibold">Categories</p>
                 </a>
-                <a href="../index.php" class="text-center p-4 border-2 border-luxury-border rounded-xl hover:border-blue-600 hover:bg-blue-50 transition-all">
+                <a href="<?= url('index.php') ?>" class="text-center p-4 border-2 border-luxury-border rounded-xl hover:border-blue-600 hover:bg-blue-50 transition-all">
                     <i class="fas fa-store text-2xl text-blue-600 mb-2"></i>
                     <p class="font-semibold">View Store</p>
                 </a>
