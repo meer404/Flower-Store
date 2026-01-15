@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_all_read'])) {
     $csrfToken = sanitizeInput('csrf_token', 'POST');
     if (verifyCSRFToken($csrfToken)) {
         markAllNotificationsAsRead();
-        redirect('notifications.php', e('All notifications marked as read'), 'success');
+        redirect('notifications.php', t('all_notifications_read'), 'success');
     }
 }
 
@@ -44,7 +44,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e('Notifications') ?> - Bloom & Vine</title>
+    <title><?= e(t('notifications')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
 </head>
@@ -53,17 +53,17 @@ $dir = getHtmlDir();
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
         <div class="mb-6">
-            <a href="account.php" class="text-luxury-accent hover:text-luxury-primary transition-colors font-medium">← <?= e('Back to Account') ?></a>
+            <a href="account.php" class="text-luxury-accent hover:text-luxury-primary transition-colors font-medium">← <?= e(t('back_to_account')) ?></a>
         </div>
         
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary tracking-wide"><?= e('Notifications') ?></h1>
+            <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary tracking-wide"><?= e(t('notifications')) ?></h1>
             <?php if (!empty($notifications)): ?>
                 <form method="POST" action="" class="inline">
                     <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                     <input type="hidden" name="mark_all_read" value="1">
                     <button type="submit" class="text-sm text-luxury-accent hover:text-luxury-primary transition-colors font-medium">
-                        <?= e('Mark All as Read') ?>
+                        <?= e(t('mark_all_read')) ?>
                     </button>
                 </form>
             <?php endif; ?>
@@ -80,7 +80,7 @@ $dir = getHtmlDir();
         
         <?php if (empty($notifications)): ?>
             <div class="bg-white border border-luxury-border shadow-luxury p-8 text-center">
-                <p class="text-luxury-textLight text-lg"><?= e('No notifications yet.') ?></p>
+                <p class="text-luxury-textLight text-lg"><?= e(t('no_notifications_yet')) ?></p>
             </div>
         <?php else: ?>
             <div class="space-y-4">
@@ -98,7 +98,7 @@ $dir = getHtmlDir();
                                 <p class="text-sm text-luxury-textLight"><?= e(date('F j, Y g:i A', strtotime($notification['created_at']))) ?></p>
                                 <?php if ($notification['order_id']): ?>
                                     <a href="order_details.php?id=<?= e((string)$notification['order_id']) ?>" class="text-sm text-luxury-accent hover:text-luxury-primary transition-colors font-medium mt-2 inline-block">
-                                        <?= e('View Order') ?> →
+                                        <?= e(t('view_order')) ?> →
                                     </a>
                                 <?php endif; ?>
                             </div>
@@ -107,7 +107,7 @@ $dir = getHtmlDir();
                                     <input type="hidden" name="notification_id" value="<?= e((string)$notification['id']) ?>">
                                     <input type="hidden" name="mark_read" value="1">
                                     <button type="submit" class="text-xs text-luxury-textLight hover:text-luxury-accent transition-colors">
-                                        <?= e('Mark as read') ?>
+                                        <?= e(t('mark_read')) ?>
                                     </button>
                                 </form>
                             <?php endif; ?>

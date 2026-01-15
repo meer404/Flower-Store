@@ -403,6 +403,17 @@ return [
     'order_placed' => 'داواکاری بە سەرکەوتوویی دەستنیشانکرا!',
     'order_error' => 'هەڵە لە داشکاندنی داواکاریدا. تکایە دووبارە هەوڵ بدە.',
     
+    // Notifications
+    'mark_all_read' => 'هەموویان وەک خوێندراوە نیشان بکە',
+    'mark_read' => 'وەک خوێندراوە نیشان بکە',
+    'all_notifications_read' => 'هەموو ئاگانامەکان وەک خوێندراوە نیشان کران',
+    'no_notifications_yet' => 'هیچ ئاگانامەیەک نییە.',
+    'view_order' => 'بینینی داواکاری',
+    'order_status_updated_title' => 'دۆخی داواکاری نوێکرایەوە',
+    'order_status_msg' => 'دۆخی داواکاری #:order_id نوێکرایەوە لە ":old_status" بۆ ":new_status".',
+    'tracking_added_title' => 'ژمارەی بەدواداچوون زیادکرا',
+    'tracking_added_msg' => 'ژمارەی بەدواداچوون زیادکرا بۆ داواکاری #:order_id: :tracking_number',
+    
     // Messages
     'success' => 'سەرکەوتوو',
     'error' => 'هەڵە',

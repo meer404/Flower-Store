@@ -403,6 +403,17 @@ return [
     'order_placed' => 'Order placed successfully!',
     'order_error' => 'Error placing order. Please try again.',
     
+    // Notifications
+    'mark_all_read' => 'Mark All as Read',
+    'mark_read' => 'Mark as read',
+    'all_notifications_read' => 'All notifications marked as read',
+    'no_notifications_yet' => 'No notifications yet.',
+    'view_order' => 'View Order',
+    'order_status_updated_title' => 'Order Status Updated',
+    'order_status_msg' => 'Your order #:order_id status has been updated from ":old_status" to ":new_status".',
+    'tracking_added_title' => 'Tracking Number Added',
+    'tracking_added_msg' => 'A tracking number has been added to your order #:order_id: :tracking_number',
+    
     // Messages
     'success' => 'Success',
     'error' => 'Error',

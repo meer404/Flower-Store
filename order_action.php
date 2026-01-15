@@ -57,15 +57,19 @@ try {
         // Create notification for user if status changed
         if ($oldStatus !== $newStatus) {
             $statusLabels = [
-                'pending' => 'Pending',
-                'processing' => 'Processing',
-                'shipped' => 'Shipped',
-                'delivered' => 'Delivered',
-                'cancelled' => 'Cancelled'
+                'pending' => t('pending'),
+                'processing' => t('processing'),
+                'shipped' => t('shipped'),
+                'delivered' => t('delivered'),
+                'cancelled' => t('cancelled')
             ];
             
-            $title = e('Order Status Updated');
-            $message = e('Your order #' . $orderId . ' status has been updated from "' . ($statusLabels[$oldStatus] ?? ucfirst($oldStatus)) . '" to "' . ($statusLabels[$newStatus] ?? ucfirst($newStatus)) . '".');
+            $title = t('order_status_updated_title');
+            $message = t('order_status_msg', [
+                'order_id' => $orderId,
+                'old_status' => $statusLabels[$oldStatus] ?? ucfirst($oldStatus),
+                'new_status' => $statusLabels[$newStatus] ?? ucfirst($newStatus)
+            ]);
             
             createNotification(
                 (int)$order['user_id'],
@@ -96,8 +100,11 @@ try {
         
         // Create notification if tracking number was added/updated
         if (!empty($trackingNumber)) {
-            $title = e('Tracking Number Added');
-            $message = e('A tracking number has been added to your order #' . $orderId . ': ' . $trackingNumber);
+            $title = t('tracking_added_title');
+            $message = t('tracking_added_msg', [
+                'order_id' => $orderId,
+                'tracking_number' => $trackingNumber
+            ]);
             
             createNotification(
                 (int)$order['user_id'],
