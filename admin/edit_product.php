@@ -19,7 +19,7 @@ $error = '';
 $success = '';
 
 if ($productId <= 0) {
-    redirect('dashboard.php', e('Invalid product'), 'error');
+    redirect('dashboard.php', e(t('invalid_product')), 'error');
 }
 
 // Get product
@@ -28,7 +28,7 @@ $stmt->execute(['id' => $productId]);
 $product = $stmt->fetch();
 
 if (!$product) {
-    redirect('dashboard.php', e('Product not found'), 'error');
+    redirect('dashboard.php', e(t('product_not_found')), 'error');
 }
 
 // Get categories
@@ -151,7 +151,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e('Edit Product') ?> - Bloom & Vine</title>
+    <title><?= e(t('edit_product')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
 </head>
@@ -159,7 +159,7 @@ $dir = getHtmlDir();
     <?php include __DIR__ . '/../src/header.php'; ?>
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e('Edit Product') ?></h1>
+        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('edit_product')) ?></h1>
         
         <?php if ($error): ?>
             <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-sm mb-6">
@@ -245,7 +245,7 @@ $dir = getHtmlDir();
                     
                     <div>
                         <label for="sku" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e('SKU') ?>
+                            <?= e(t('sku')) ?>
                         </label>
                         <input type="text" id="sku" name="sku"
                                value="<?= e($product['sku'] ?? '') ?>"
@@ -255,10 +255,10 @@ $dir = getHtmlDir();
                 
                 <div>
                     <label for="image" class="block text-sm font-medium text-luxury-text mb-2">
-                        <?= e(t('product_image')) ?> (<?= e('Leave empty to keep current') ?>)
+                        <?= e(t('product_image')) ?> (<?= e(t('leave_empty_hint')) ?>)
                     </label>
                     <?php if ($product['image_url']): ?>
-                        <img src="<?= e($product['image_url']) ?>" alt="Current" class="w-32 h-32 object-cover rounded-sm mb-3 border border-luxury-border">
+                        <img src="<?= e($product['image_url']) ?>" alt="<?= e(t('current_image')) ?>" class="w-32 h-32 object-cover rounded-sm mb-3 border border-luxury-border">
                     <?php endif; ?>
                     <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif,image/webp"
                            class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
@@ -266,7 +266,7 @@ $dir = getHtmlDir();
                 
                 <div>
                     <label for="gallery_images" class="block text-sm font-medium text-luxury-text mb-2">
-                        <?= e('Gallery Images') ?>
+                        <?= e(t('gallery_images')) ?>
                     </label>
                     <?php if (!empty($productImages)): ?>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -274,8 +274,8 @@ $dir = getHtmlDir();
                                 <div class="relative group">
                                     <img src="<?= e($img['image_url']) ?>" class="w-full h-20 md:h-24 object-cover rounded-sm border border-luxury-border">
                                     <a href="delete_image.php?id=<?= e((string)$img['id']) ?>&product_id=<?= e((string)$productId) ?>" 
-                                       class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
-                                       onclick="return confirm('<?= e('Delete this image?') ?>')">×</a>
+                                       class="absolute top-1 end-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                                       onclick="return confirm('<?= e(t('delete_image_confirm')) ?>')">×</a>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -289,7 +289,7 @@ $dir = getHtmlDir();
                     <label class="flex items-center">
                         <input type="checkbox" name="is_featured" value="1" 
                                <?= $product['is_featured'] ? 'checked' : '' ?>
-                               class="mr-2 h-4 w-4 text-luxury-accent focus:ring-luxury-accent border-luxury-border rounded-sm">
+                               class="me-2 h-4 w-4 text-luxury-accent focus:ring-luxury-accent border-luxury-border rounded-sm">
                         <span class="text-sm font-medium text-luxury-text"><?= e(t('featured')) ?></span>
                     </label>
                 </div>
@@ -297,11 +297,11 @@ $dir = getHtmlDir();
                 <div class="flex flex-col sm:flex-row gap-4">
                     <button type="submit" 
                             class="flex-1 bg-luxury-accent text-white py-3 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                        <?= e('Update Product') ?>
+                        <?= e(t('update_product')) ?>
                     </button>
                     <a href="products.php" 
                        class="flex-1 border border-luxury-border text-luxury-text py-3 px-4 rounded-sm hover:bg-luxury-border transition-all duration-300 text-center font-medium">
-                        <?= e('Cancel') ?>
+                        <?= e(t('cancel')) ?>
                     </a>
                 </div>
             </form>

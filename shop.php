@@ -70,7 +70,7 @@ $dir = getHtmlDir();
     <div class="bg-gradient-to-r from-luxury-primary to-gray-900 text-white py-16">
         <div class="container mx-auto px-6">
             <h1 class="text-5xl font-luxury font-bold mb-4"><?= e(t('nav_shop')) ?></h1>
-            <p class="text-xl text-gray-300">Discover our complete collection of premium flowers</p>
+            <p class="text-xl text-gray-300"><?= e(t('shop_subtitle')) ?></p>
         </div>
     </div>
 
@@ -83,7 +83,7 @@ $dir = getHtmlDir();
                         <div class="w-12 h-12 bg-luxury-accent rounded-xl flex items-center justify-center">
                             <i class="fas fa-filter text-white text-xl"></i>
                         </div>
-                        <h2 class="text-2xl font-luxury font-bold text-luxury-primary">Filters</h2>
+                        <h2 class="text-2xl font-luxury font-bold text-luxury-primary"><?= e(t('filters')) ?></h2>
                     </div>
                     
                     <form method="GET" action="shop.php" id="filterForm">
@@ -92,26 +92,26 @@ $dir = getHtmlDir();
                         <!-- Search -->
                         <div class="mb-6">
                             <label for="search" class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
-                                <i class="fas fa-search mr-2"></i><?= e(t('search')) ?>
+                                <i class="fas fa-search me-2"></i><?= e(t('search')) ?>
                             </label>
                             <div class="relative">
                                 <input type="text" id="search" name="search" 
                                        value="<?= e($search) ?>"
-                                       placeholder="<?= e(t('search')) ?> products..."
-                                       class="w-full pl-12 pr-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
-                                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-luxury-textLight"></i>
+                                       placeholder="<?= e(t('search_placeholder')) ?>"
+                                       class="w-full ps-12 pe-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
+                                <i class="fas fa-search absolute start-4 top-1/2 transform -translate-y-1/2 text-luxury-textLight"></i>
                             </div>
                         </div>
                         
                         <!-- Category Filter -->
                         <div class="mb-6">
                             <label for="category" class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
-                                <i class="fas fa-th-large mr-2"></i><?= e(t('category')) ?>
+                                <i class="fas fa-th-large me-2"></i><?= e(t('category')) ?>
                             </label>
                             <select id="category" name="category" 
                                     onchange="document.getElementById('filterForm').submit();"
                                     class="w-full px-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
-                                <option value="0"><?= e('All Categories') ?></option>
+                                <option value="0"><?= e(t('all_categories')) ?></option>
                                 <?php foreach ($categories as $category): ?>
                                     <option value="<?= e((string)$category['id']) ?>" 
                                             <?= $categoryId === $category['id'] ? 'selected' : '' ?>>
@@ -123,13 +123,13 @@ $dir = getHtmlDir();
                         
                         <button type="submit" 
                                 class="w-full bg-gradient-to-r from-luxury-accent to-yellow-500 text-white py-4 px-6 rounded-xl hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
-                            <i class="fas fa-search mr-2"></i><?= e(t('search')) ?>
+                            <i class="fas fa-search me-2"></i><?= e(t('search')) ?>
                         </button>
                         
                         <?php if ($search || $categoryId > 0): ?>
                             <a href="shop.php?lang=<?= e($lang) ?>" 
                                class="block mt-4 text-center text-luxury-accent hover:text-luxury-primary transition-colors font-semibold py-2">
-                                <i class="fas fa-times mr-2"></i><?= e('Clear Filters') ?>
+                                <i class="fas fa-times me-2"></i><?= e(t('clear_filters')) ?>
                             </a>
                         <?php endif; ?>
                     </form>
@@ -137,7 +137,7 @@ $dir = getHtmlDir();
                     <!-- Active Filters Display -->
                     <?php if ($search || $categoryId > 0): ?>
                         <div class="mt-6 pt-6 border-t-2 border-luxury-border">
-                            <p class="text-sm font-bold text-luxury-primary mb-3 uppercase">Active Filters:</p>
+                            <p class="text-sm font-bold text-luxury-primary mb-3 uppercase"><?= e(t('active_filters')) ?></p>
                             <div class="flex flex-wrap gap-2">
                                 <?php if ($search): ?>
                                     <span class="bg-luxury-accent/10 text-luxury-accent px-3 py-1 rounded-full text-sm font-semibold">
@@ -164,8 +164,8 @@ $dir = getHtmlDir();
                 <?php if (!empty($products)): ?>
                     <div class="flex justify-between items-center mb-8">
                         <div class="text-luxury-textLight">
-                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                            Found <span class="font-bold text-luxury-primary"><?= count($products) ?></span> products
+                            <i class="fas fa-check-circle text-green-500 me-2"></i>
+                            <?= t('found_products', ['count' => count($products)]) ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -175,12 +175,12 @@ $dir = getHtmlDir();
                         <div class="w-32 h-32 bg-luxury-border rounded-full flex items-center justify-center mx-auto mb-6">
                             <i class="fas fa-search text-5xl text-luxury-textLight"></i>
                         </div>
-                        <h3 class="text-2xl font-bold text-luxury-primary mb-3">No Products Found</h3>
-                        <p class="text-luxury-textLight mb-6">Try adjusting your search or filters</p>
+                        <h3 class="text-2xl font-bold text-luxury-primary mb-3"><?= e(t('no_products_found')) ?></h3>
+                        <p class="text-luxury-textLight mb-6"><?= e(t('no_products_subtitle')) ?></p>
                         <a href="shop.php?lang=<?= e($lang) ?>" 
                            class="inline-flex items-center gap-2 bg-luxury-accent text-white px-8 py-3 rounded-full hover:bg-opacity-90 transition-all font-semibold">
                             <i class="fas fa-redo"></i>
-                            Clear Filters
+                            <?= e(t('clear_filters')) ?>
                         </a>
                     </div>
                 <?php else: ?>

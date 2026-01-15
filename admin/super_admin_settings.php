@@ -43,11 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setSystemSetting($key, $value, $type);
             }
             
-            logActivity('system_settings_updated', 'system', null, 'Updated system settings');
-            redirect('super_admin_settings.php', 'Settings updated successfully', 'success');
+            logActivity('system_settings_updated', 'system', null, t('settings_updated_log'));
+            redirect('super_admin_settings.php', t('settings_updated_success'), 'success');
         } catch (Exception $e) {
             error_log('Settings update error: ' . $e->getMessage());
-            redirect('super_admin_settings.php', 'Error updating settings', 'error');
+            redirect('super_admin_settings.php', t('settings_update_error'), 'error');
         }
     }
 }
@@ -70,7 +70,7 @@ $csrfToken = generateCSRFToken();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Settings - Super Admin</title>
+    <title><?= e(t('system_settings')) ?> - Super Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?= getLuxuryTailwindConfig() ?>
@@ -83,12 +83,12 @@ $csrfToken = generateCSRFToken();
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-4xl font-luxury font-bold mb-2">
-                        <i class="fas fa-cog mr-4"></i>System Settings
+                        <i class="fas fa-cog me-4"></i><?= e(t('system_settings')) ?>
                     </h1>
-                    <p class="text-red-200">Configure system-wide settings</p>
+                    <p class="text-red-200"><?= e(t('system_settings_desc')) ?></p>
                 </div>
                 <a href="super_admin_dashboard.php" class="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-xl transition-all">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    <i class="fas fa-arrow-left me-2 rtl:rotate-180"></i><?= e(t('back_to_dashboard')) ?>
                 </a>
             </div>
         </div>
@@ -108,24 +108,24 @@ $csrfToken = generateCSRFToken();
             <!-- General Settings -->
             <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6">
                 <h2 class="text-2xl font-bold text-luxury-primary mb-6">
-                    <i class="fas fa-info-circle mr-2 text-blue-600"></i>General Settings
+                    <i class="fas fa-info-circle me-2 text-blue-600"></i><?= e(t('general_settings')) ?>
                 </h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2">Site Name</label>
+                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('site_name')) ?></label>
                         <input type="text" name="site_name" value="<?= e($currentSettings['site_name']) ?>" required
                                class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2">Site Email</label>
+                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('site_email')) ?></label>
                         <input type="email" name="site_email" value="<?= e($currentSettings['site_email']) ?>" required
                                class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2">Currency Symbol</label>
+                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('currency_symbol')) ?></label>
                         <input type="text" name="currency" value="<?= e($currentSettings['currency']) ?>" required maxlength="5"
                                class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
                     </div>
@@ -135,22 +135,22 @@ $csrfToken = generateCSRFToken();
             <!-- Financial Settings -->
             <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6">
                 <h2 class="text-2xl font-bold text-luxury-primary mb-6">
-                    <i class="fas fa-dollar-sign mr-2 text-green-600"></i>Financial Settings
+                    <i class="fas fa-dollar-sign me-2 text-green-600"></i><?= e(t('financial_settings')) ?>
                 </h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2">Tax Rate (%)</label>
+                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('tax_rate')) ?></label>
                         <input type="number" name="tax_rate" value="<?= e((string)$currentSettings['tax_rate']) ?>" min="0" max="100" step="0.01"
                                class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                        <p class="text-xs text-luxury-textLight mt-1">Enter tax rate as percentage (e.g., 10 for 10%)</p>
+                        <p class="text-xs text-luxury-textLight mt-1"><?= e(t('tax_rate_hint')) ?></p>
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2">Default Shipping Cost</label>
+                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('shipping_cost')) ?></label>
                         <input type="number" name="shipping_cost" value="<?= e((string)$currentSettings['shipping_cost']) ?>" min="0" step="0.01"
                                class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                        <p class="text-xs text-luxury-textLight mt-1">Default shipping cost in <?= e($currentSettings['currency']) ?></p>
+                        <p class="text-xs text-luxury-textLight mt-1"><?= e(t('shipping_cost_hint') . ' ' . $currentSettings['currency']) ?></p>
                     </div>
                 </div>
             </div>
@@ -158,7 +158,7 @@ $csrfToken = generateCSRFToken();
             <!-- System Settings -->
             <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6">
                 <h2 class="text-2xl font-bold text-luxury-primary mb-6">
-                    <i class="fas fa-server mr-2 text-purple-600"></i>System Settings
+                    <i class="fas fa-server me-2 text-purple-600"></i><?= e(t('system_settings')) ?>
                 </h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -168,17 +168,17 @@ $csrfToken = generateCSRFToken();
                                    <?= $currentSettings['maintenance_mode'] ? 'checked' : '' ?>
                                    class="w-5 h-5 text-red-600 border-luxury-border rounded focus:ring-red-600">
                             <div>
-                                <span class="block text-sm font-medium text-luxury-text">Maintenance Mode</span>
-                                <span class="text-xs text-luxury-textLight">Enable to put site in maintenance mode</span>
+                                <span class="block text-sm font-medium text-luxury-text"><?= e(t('maintenance_mode')) ?></span>
+                                <span class="text-xs text-luxury-textLight"><?= e(t('maintenance_mode_hint')) ?></span>
                             </div>
                         </label>
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2">Max Upload Size (bytes)</label>
+                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('max_upload_size')) ?></label>
                         <input type="number" name="max_upload_size" value="<?= e((string)$currentSettings['max_upload_size']) ?>" min="1048576"
                                class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                        <p class="text-xs text-luxury-textLight mt-1">Maximum file upload size in bytes (default: 5MB = 5242880)</p>
+                        <p class="text-xs text-luxury-textLight mt-1"><?= e(t('max_upload_size_hint')) ?></p>
                     </div>
                 </div>
             </div>
@@ -186,21 +186,21 @@ $csrfToken = generateCSRFToken();
             <!-- Database Info -->
             <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6">
                 <h2 class="text-2xl font-bold text-luxury-primary mb-6">
-                    <i class="fas fa-database mr-2 text-orange-600"></i>Database Information
+                    <i class="fas fa-database me-2 text-orange-600"></i><?= e(t('database_info')) ?>
                 </h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <?php
                     $dbStats = [
-                        'Total Users' => $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn(),
-                        'Total Products' => $pdo->query('SELECT COUNT(*) FROM products')->fetchColumn(),
-                        'Total Orders' => $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn()
+                        'total_users' => $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn(),
+                        'total_products' => $pdo->query('SELECT COUNT(*) FROM products')->fetchColumn(),
+                        'total_orders' => $pdo->query('SELECT COUNT(*) FROM orders')->fetchColumn()
                     ];
-                    foreach ($dbStats as $label => $value):
+                    foreach ($dbStats as $key => $value):
                     ?>
                         <div class="text-center p-4 bg-gray-50 rounded-xl">
                             <p class="text-3xl font-bold text-luxury-primary"><?= e((string)$value) ?></p>
-                            <p class="text-sm text-luxury-textLight mt-2"><?= e($label) ?></p>
+                            <p class="text-sm text-luxury-textLight mt-2"><?= e(t($key)) ?></p>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -209,10 +209,10 @@ $csrfToken = generateCSRFToken();
             <!-- Submit Button -->
             <div class="flex justify-end gap-4">
                 <a href="super_admin_dashboard.php" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-8 py-3 rounded-xl transition-all font-semibold">
-                    Cancel
+                    <?= e(t('cancel')) ?>
                 </a>
                 <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl transition-all font-semibold">
-                    <i class="fas fa-save mr-2"></i>Save Settings
+                    <i class="fas fa-save me-2"></i><?= e(t('save_settings')) ?>
                 </button>
             </div>
         </form>

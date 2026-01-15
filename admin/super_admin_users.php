@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare('DELETE FROM users WHERE id = :id AND role != "super_admin"');
                     $stmt->execute(['id' => $userId]);
                     logActivity('user_deleted', 'user', $userId, "Deleted user ID: {$userId}");
-                    redirect('super_admin_users.php', 'User deleted successfully', 'success');
+                    redirect('super_admin_users.php', t('user_deleted_success'), 'success');
                     break;
                     
                 case 'toggle_status':
@@ -101,7 +101,7 @@ $csrfToken = generateCSRFToken();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - Super Admin</title>
+    <title><?= e(t('user_management')) ?> - Super Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?= getLuxuryTailwindConfig() ?>
@@ -114,12 +114,12 @@ $csrfToken = generateCSRFToken();
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-4xl font-luxury font-bold mb-2">
-                        <i class="fas fa-users mr-4"></i>User Management
+                        <i class="fas fa-users me-4"></i><?= e(t('user_management')) ?>
                     </h1>
-                    <p class="text-red-200">Manage all users in the system</p>
+                    <p class="text-red-200"><?= e(t('user_management_desc')) ?></p>
                 </div>
                 <a href="super_admin_dashboard.php" class="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-xl transition-all">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    <i class="fas fa-arrow-left me-2 rtl:rotate-180"></i><?= e(t('back_to_dashboard')) ?>
                 </a>
             </div>
         </div>
@@ -138,21 +138,21 @@ $csrfToken = generateCSRFToken();
             <form method="GET" class="flex flex-col md:flex-row gap-4">
                 <div class="flex-1">
                     <input type="text" name="search" value="<?= e($search) ?>" 
-                           placeholder="Search by name or email..." 
+                           placeholder="<?= e(t('search_users_placeholder')) ?>" 
                            class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
                 </div>
                 <div>
                     <select name="role" class="px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                        <option value="all" <?= $roleFilter === 'all' ? 'selected' : '' ?>>All Roles</option>
-                        <option value="customer" <?= $roleFilter === 'customer' ? 'selected' : '' ?>>Customers</option>
-                        <option value="admin" <?= $roleFilter === 'admin' ? 'selected' : '' ?>>Admins</option>
+                        <option value="all" <?= $roleFilter === 'all' ? 'selected' : '' ?>><?= e(t('all_roles')) ?></option>
+                        <option value="customer" <?= $roleFilter === 'customer' ? 'selected' : '' ?>><?= e(t('role_customer')) ?></option>
+                        <option value="admin" <?= $roleFilter === 'admin' ? 'selected' : '' ?>><?= e(t('role_admin')) ?></option>
                     </select>
                 </div>
                 <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition-all font-semibold">
-                    <i class="fas fa-search mr-2"></i>Search
+                    <i class="fas fa-search me-2"></i><?= e(t('search')) ?>
                 </button>
                 <a href="super_admin_users.php" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-xl transition-all font-semibold text-center">
-                    <i class="fas fa-redo mr-2"></i>Reset
+                    <i class="fas fa-redo me-2"></i><?= e(t('reset')) ?>
                 </a>
             </form>
         </div>
@@ -161,7 +161,7 @@ $csrfToken = generateCSRFToken();
         <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
             <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4">
                 <h2 class="text-2xl font-bold">
-                    <i class="fas fa-table mr-2"></i>Users (<?= e((string)$totalUsers) ?>)
+                    <i class="fas fa-table me-2"></i><?= e(t('users')) ?> (<?= e((string)$totalUsers) ?>)
                 </h2>
             </div>
             
@@ -169,12 +169,12 @@ $csrfToken = generateCSRFToken();
                 <table class="min-w-full">
                     <thead class="bg-blue-50">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase">User</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase">Role</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase">Orders</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase">Total Spent</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase">Joined</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-blue-900 uppercase">Actions</th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('user')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('role')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('order')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('total')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('joined')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('actions')) ?></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-luxury-border">
@@ -182,7 +182,7 @@ $csrfToken = generateCSRFToken();
                             <tr>
                                 <td colspan="6" class="px-6 py-12 text-center text-luxury-textLight">
                                     <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
-                                    <p class="text-xl">No users found</p>
+                                    <p class="text-xl"><?= e(t('no_users_found')) ?></p>
                                 </td>
                             </tr>
                         <?php else: ?>
@@ -190,7 +190,7 @@ $csrfToken = generateCSRFToken();
                                 <tr class="hover:bg-blue-50 transition-colors">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center">
-                                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold me-4">
                                                 <?= e(strtoupper(substr($user['full_name'], 0, 1))) ?>
                                             </div>
                                             <div>
@@ -204,7 +204,7 @@ $csrfToken = generateCSRFToken();
                                             $user['role'] === 'super_admin' ? 'bg-red-100 text-red-800' : 
                                             ($user['role'] === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800')
                                         ?>">
-                                            <i class="fas fa-<?= $user['role'] === 'super_admin' ? 'crown' : ($user['role'] === 'admin' ? 'user-shield' : 'user') ?> mr-1"></i>
+                                            <i class="fas fa-<?= $user['role'] === 'super_admin' ? 'crown' : ($user['role'] === 'admin' ? 'user-shield' : 'user') ?> me-1"></i>
                                             <?= e(ucfirst(str_replace('_', ' ', $user['role']))) ?>
                                         </span>
                                     </td>
@@ -220,12 +220,12 @@ $csrfToken = generateCSRFToken();
                                     <td class="px-6 py-4">
                                         <div class="flex gap-2">
                                             <?php if ($user['role'] !== 'super_admin'): ?>
-                                                <form method="POST" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                                <form method="POST" onsubmit="return confirm('<?= e(t('delete_user_confirm')) ?>');">
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="user_id" value="<?= e((string)$user['id']) ?>">
                                                     <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                                     <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all text-sm">
-                                                        <i class="fas fa-trash mr-1"></i>Delete
+                                                        <i class="fas fa-trash me-1"></i><?= e(t('delete')) ?>
                                                     </button>
                                                 </form>
                                             <?php endif; ?>
@@ -248,13 +248,13 @@ $csrfToken = generateCSRFToken();
                         <?php if ($page > 1): ?>
                             <a href="?page=<?= e((string)($page - 1)) ?>&search=<?= e($search) ?>&role=<?= e($roleFilter) ?>" 
                                class="px-4 py-2 border border-luxury-border rounded-lg hover:bg-gray-50 transition-all">
-                                <i class="fas fa-chevron-left"></i> Previous
+                                <i class="fas fa-chevron-left rtl:rotate-180"></i> <?= e(t('previous')) ?>
                             </a>
                         <?php endif; ?>
                         <?php if ($page < $totalPages): ?>
                             <a href="?page=<?= e((string)($page + 1)) ?>&search=<?= e($search) ?>&role=<?= e($roleFilter) ?>" 
                                class="px-4 py-2 border border-luxury-border rounded-lg hover:bg-gray-50 transition-all">
-                                Next <i class="fas fa-chevron-right"></i>
+                                <?= e(t('next')) ?> <i class="fas fa-chevron-right rtl:rotate-180"></i>
                             </a>
                         <?php endif; ?>
                     </div>

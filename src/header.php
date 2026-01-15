@@ -71,7 +71,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         display: none;
         position: absolute;
         top: 100%;
-        right: 0;
+        inset-inline-end: 0;
         background: white;
         border: 1px solid #e5e7eb;
         border-radius: 0.375rem;
@@ -108,8 +108,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         content: '';
         position: absolute;
         bottom: -4px;
-        left: 0;
-        right: 0;
+        inset-inline-start: 0;
+        inset-inline-end: 0;
         height: 2px;
         background: #d4af37;
     }
@@ -121,12 +121,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <div class="bg-luxury-primary text-white py-2 hidden md:block">
         <div class="container mx-auto px-6">
             <div class="flex justify-between items-center text-sm">
-                <div class="flex items-center space-x-4">
-                    <span><i class="fas fa-phone mr-2"></i>+964 750 123 4567</span>
-                    <span><i class="fas fa-envelope mr-2"></i>info@bloomandvine.com</span>
+                <div class="flex items-center gap-4">
+                    <span><i class="fas fa-phone me-2"></i>+964 750 123 4567</span>
+                    <span><i class="fas fa-envelope me-2"></i>info@bloomandvine.com</span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <span><i class="fas fa-truck mr-2"></i><?= e('Free shipping on orders over $50') ?></span>
+                <div class="flex items-center gap-4">
+                    <span><i class="fas fa-truck me-2"></i><?= e(t('free_shipping_notice')) ?></span>
                 </div>
             </div>
         </div>
@@ -136,43 +136,43 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <nav class="container mx-auto px-4 md:px-6 py-4">
         <div class="flex justify-between items-center">
             <!-- Logo -->
-            <a href="<?= url('index.php') ?>" class="flex items-center space-x-3 group">
+            <a href="index.php" class="flex items-center space-x-3 group">
                 <div class="w-12 h-12 bg-gradient-to-br from-luxury-primary to-luxury-accent rounded-full flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300">
                     <i class="fas fa-spa text-white text-xl"></i>
                 </div>
                 <div>
                     <div class="text-2xl font-luxury font-bold text-luxury-primary tracking-wide">Bloom & Vine</div>
-                    <div class="text-xs text-luxury-textLight tracking-wider"><?= e('Premium Flowers') ?></div>
+                    <div class="text-xs text-luxury-textLight tracking-wider"><?= e(t('premium_flowers')) ?></div>
                 </div>
             </a>
             
             <!-- Desktop Navigation -->
             <div class="hidden lg:flex items-center space-x-8">
-                <a href="<?= url('index.php') ?>" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative <?= $currentPage === 'index.php' ? 'active' : '' ?>">
+                <a href="index.php" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative <?= $currentPage === 'index.php' ? 'active' : '' ?>">
                     <i class="fas fa-home mr-2"></i><?= e(t('nav_home')) ?>
                 </a>
-                <a href="<?= url('shop.php') ?>" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative <?= $currentPage === 'shop.php' ? 'active' : '' ?>">
+                <a href="shop.php" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative <?= $currentPage === 'shop.php' ? 'active' : '' ?>">
                     <i class="fas fa-store mr-2"></i><?= e(t('nav_shop')) ?>
                 </a>
                 
                 <?php if (isLoggedIn()): ?>
                     <?php if (isSuperAdmin()): ?>
-                        <a href="<?= url('admin/super_admin_dashboard.php') ?>" class="nav-link text-luxury-text hover:text-red-600 font-medium relative <?= strpos($currentPage, 'super_admin_') === 0 ? 'active' : '' ?>">
+                        <a href="admin/super_admin_dashboard.php" class="nav-link text-luxury-text hover:text-red-600 font-medium relative">
                             <i class="fas fa-crown mr-2"></i><?= e('Super Admin') ?>
                         </a>
                     <?php elseif (isAdmin()): ?>
-                        <a href="<?= url('admin/dashboard.php') ?>" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative">
+                        <a href="admin/dashboard.php" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative">
                             <i class="fas fa-dashboard mr-2"></i><?= e(t('nav_admin')) ?>
                         </a>
                     <?php endif; ?>
                     
-                    <a href="<?= url('wishlist.php') ?>" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative">
+                    <a href="wishlist.php" class="nav-link text-luxury-text hover:text-luxury-accent font-medium relative">
                         <i class="fas fa-heart mr-2"></i><?= e('Wishlist') ?>
                         <?php 
                         $wishlistCount = getWishlistCount();
                         if ($wishlistCount > 0): 
                         ?>
-                            <span class="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center badge-pulse">
+                            <span class="absolute -top-2 -end-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center badge-pulse">
                                 <?= e((string)$wishlistCount) ?>
                             </span>
                         <?php endif; ?>
@@ -181,18 +181,18 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </div>
             
             <!-- Right Side Actions -->
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center gap-4">
                 <!-- Search Bar -->
                 <div class="hidden md:block relative">
                     <button onclick="toggleSearch()" class="text-luxury-text hover:text-luxury-accent p-2">
                         <i class="fas fa-search text-xl"></i>
                     </button>
                     <div id="searchBar" class="search-bar absolute right-0 top-12">
-                        <form action="<?= url('shop.php') ?>" method="GET" class="relative">
+                        <form action="shop.php" method="GET" class="relative">
                             <input type="hidden" name="lang" value="<?= e($lang) ?>">
                             <input type="text" name="search" placeholder="<?= e(t('search')) ?>..." 
-                                   class="w-full px-4 py-3 pr-12 border-2 border-luxury-accent rounded-full focus:outline-none focus:ring-2 focus:ring-luxury-accent shadow-lg">
-                            <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-luxury-accent text-white p-2 rounded-full hover:bg-opacity-90">
+                                   class="w-full px-4 py-3 pe-12 border-2 border-luxury-accent rounded-full focus:outline-none focus:ring-2 focus:ring-luxury-accent shadow-lg">
+                            <button type="submit" class="absolute end-2 top-1/2 transform -translate-y-1/2 bg-luxury-accent text-white p-2 rounded-full hover:bg-opacity-90">
                                 <i class="fas fa-search"></i>
                             </button>
                         </form>
@@ -207,7 +207,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         $unreadCount = getUnreadNotificationCount();
                         if ($unreadCount > 0): 
                         ?>
-                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center badge-pulse">
+                            <span class="absolute -top-1 -end-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center badge-pulse">
                                 <?= e((string)$unreadCount) ?>
                             </span>
                         <?php endif; ?>
@@ -220,7 +220,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         $cartCount = getCartCount();
                         if ($cartCount > 0): 
                         ?>
-                            <span class="absolute -top-1 -right-1 bg-luxury-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center badge-pulse">
+                            <span class="absolute -top-1 -end-1 bg-luxury-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center badge-pulse">
                                 <?= e((string)$cartCount) ?>
                             </span>
                         <?php endif; ?>
@@ -228,7 +228,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     
                     <!-- User Dropdown -->
                     <div class="relative dropdown hidden lg:block">
-                        <button class="flex items-center space-x-2 text-luxury-text hover:text-luxury-accent p-2">
+                        <button class="flex items-center gap-2 text-luxury-text hover:text-luxury-accent p-2">
                             <div class="w-10 h-10 bg-luxury-accent rounded-full flex items-center justify-center text-white font-bold">
                                 <?= e(strtoupper(substr($_SESSION['full_name'] ?? 'U', 0, 1))) ?>
                             </div>
@@ -236,23 +236,23 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         </button>
                         <div class="dropdown-menu">
                             <?php if (isSuperAdmin()): ?>
-                                <a href="<?= url('admin/super_admin_dashboard.php') ?>">
+                                <a href="admin/super_admin_dashboard.php">
                                     <i class="fas fa-crown mr-2 text-red-600"></i><?= e('Super Admin') ?>
                                 </a>
                                 <div class="border-t border-luxury-border my-1"></div>
                             <?php elseif (isAdmin()): ?>
-                                <a href="<?= url('admin/dashboard.php') ?>">
+                                <a href="admin/dashboard.php">
                                     <i class="fas fa-dashboard mr-2"></i><?= e('Admin Dashboard') ?>
                                 </a>
                                 <div class="border-t border-luxury-border my-1"></div>
                             <?php endif; ?>
-                            <a href="<?= url('account.php') ?>">
+                            <a href="account.php">
                                 <i class="fas fa-user mr-2"></i><?= e('My Account') ?>
                             </a>
-                            <a href="<?= url('order_details.php') ?>">
+                            <a href="order_details.php">
                                 <i class="fas fa-box mr-2"></i><?= e('My Orders') ?>
                             </a>
-                            <a href="<?= url('wishlist.php') ?>">
+                            <a href="wishlist.php">
                                 <i class="fas fa-heart mr-2"></i><?= e('My Wishlist') ?>
                             </a>
                             <div class="border-t border-luxury-border my-1"></div>
@@ -263,10 +263,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     </div>
                 <?php else: ?>
                     <!-- Login/Register -->
-                    <a href="<?= url('login.php') ?>" class="hidden md:inline-block text-luxury-text hover:text-luxury-accent font-medium px-4 py-2">
+                    <a href="login.php" class="hidden md:inline-block text-luxury-text hover:text-luxury-accent font-medium px-4 py-2">
                         <i class="fas fa-sign-in-alt mr-2"></i><?= e(t('nav_login')) ?>
                     </a>
-                    <a href="<?= url('register.php') ?>" class="hidden md:inline-block bg-luxury-accent text-white px-6 py-2 rounded-full hover:bg-opacity-90 transition-all font-medium shadow-md">
+                    <a href="register.php" class="hidden md:inline-block bg-luxury-accent text-white px-6 py-2 rounded-full hover:bg-opacity-90 transition-all font-medium shadow-md">
                         <i class="fas fa-user-plus mr-2"></i><?= e(t('nav_register')) ?>
                     </a>
                 <?php endif; ?>
@@ -274,7 +274,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 <!-- Language Switcher -->
                 <a href="?lang=<?= $lang === 'en' ? 'ku' : 'en' ?>" 
                    class="bg-gradient-to-r from-luxury-primary to-luxury-accent text-white px-4 py-2 rounded-full hover:shadow-lg font-semibold text-sm">
-                    <i class="fas fa-globe mr-2"></i><?= $lang === 'en' ? 'کوردی' : 'English' ?>
+                    <i class="fas fa-globe me-2"></i><?= $lang === 'en' ? 'کوردی' : 'English' ?>
                 </a>
                 
                 <!-- Mobile Menu Toggle -->
@@ -292,8 +292,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     <input type="hidden" name="lang" value="<?= e($lang) ?>">
                     <div class="relative">
                         <input type="text" name="search" placeholder="<?= e(t('search')) ?>..." 
-                               class="w-full px-4 py-2 pr-10 border border-luxury-border rounded-full focus:outline-none focus:ring-2 focus:ring-luxury-accent">
-                        <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-luxury-accent">
+                               class="w-full px-4 py-2 pe-10 border border-luxury-border rounded-full focus:outline-none focus:ring-2 focus:ring-luxury-accent">
+                        <button type="submit" class="absolute end-2 top-1/2 transform -translate-y-1/2 text-luxury-accent">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -308,48 +308,48 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 
                 <?php if (isLoggedIn()): ?>
                     <?php if (isSuperAdmin()): ?>
-                        <a href="<?= url('admin/super_admin_dashboard.php') ?>" class="block py-2 px-4 text-red-600 hover:bg-red-50 rounded-lg">
+                        <a href="admin/super_admin_dashboard.php" class="block py-2 px-4 text-red-600 hover:bg-red-50 rounded-lg">
                             <i class="fas fa-crown mr-3"></i><?= e('Super Admin') ?>
                         </a>
                     <?php elseif (isAdmin()): ?>
-                        <a href="<?= url('admin/dashboard.php') ?>" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
+                        <a href="admin/dashboard.php" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                             <i class="fas fa-dashboard mr-3"></i><?= e(t('nav_admin')) ?>
                         </a>
                     <?php endif; ?>
                     
-                    <a href="<?= url('account.php') ?>" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
+                    <a href="account.php" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                         <i class="fas fa-user mr-3"></i><?= e('Account') ?>
                     </a>
-                    <a href="<?= url('wishlist.php') ?>" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
+                    <a href="wishlist.php" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                         <i class="fas fa-heart mr-3"></i><?= e('Wishlist') ?>
                         <?php if ($wishlistCount > 0): ?>
-                            <span class="bg-pink-500 text-white px-2 py-0.5 rounded-full text-xs ml-2"><?= e((string)$wishlistCount) ?></span>
+                            <span class="bg-pink-500 text-white px-2 py-0.5 rounded-full text-xs ms-2"><?= e((string)$wishlistCount) ?></span>
                         <?php endif; ?>
                     </a>
-                    <a href="<?= url('notifications.php') ?>" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
+                    <a href="notifications.php" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                         <i class="fas fa-bell mr-3"></i><?= e('Notifications') ?>
                         <?php if ($unreadCount > 0): ?>
-                            <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs ml-2"><?= e((string)$unreadCount) ?></span>
+                            <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs ms-2"><?= e((string)$unreadCount) ?></span>
                         <?php endif; ?>
                     </a>
-                    <a href="<?= url('cart.php') ?>" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
+                    <a href="cart.php" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                         <i class="fas fa-shopping-cart mr-3"></i><?= e(t('nav_cart')) ?>
                         <?php if ($cartCount > 0): ?>
-                            <span class="bg-luxury-accent text-white px-2 py-0.5 rounded-full text-xs ml-2"><?= e((string)$cartCount) ?></span>
+                            <span class="bg-luxury-accent text-white px-2 py-0.5 rounded-full text-xs ms-2"><?= e((string)$cartCount) ?></span>
                         <?php endif; ?>
                     </a>
-                    <a href="<?= url('order_details.php') ?>" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
+                    <a href="order_details.php" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                         <i class="fas fa-box mr-3"></i><?= e('My Orders') ?>
                     </a>
                     <div class="border-t border-luxury-border my-2"></div>
-                    <a href="<?= url('logout.php') ?>" class="block py-2 px-4 text-red-600 hover:bg-red-50 rounded-lg">
+                    <a href="logout.php" class="block py-2 px-4 text-red-600 hover:bg-red-50 rounded-lg">
                         <i class="fas fa-sign-out-alt mr-3"></i><?= e(t('nav_logout')) ?>
                     </a>
                 <?php else: ?>
-                    <a href="<?= url('login.php') ?>" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
+                    <a href="login.php" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                         <i class="fas fa-sign-in-alt mr-3"></i><?= e(t('nav_login')) ?>
                     </a>
-                    <a href="<?= url('register.php') ?>" class="block py-2 px-4 bg-luxury-accent text-white hover:bg-opacity-90 rounded-lg text-center">
+                    <a href="register.php" class="block py-2 px-4 bg-luxury-accent text-white hover:bg-opacity-90 rounded-lg text-center">
                         <i class="fas fa-user-plus mr-2"></i><?= e(t('nav_register')) ?>
                     </a>
                 <?php endif; ?>

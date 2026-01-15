@@ -33,7 +33,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e('Wishlist') ?> - Bloom & Vine</title>
+    <title><?= e(t('wishlist_title')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
 </head>
@@ -41,7 +41,7 @@ $dir = getHtmlDir();
     <?php include __DIR__ . '/src/header.php'; ?>
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e('My Wishlist') ?></h1>
+        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('my_wishlist')) ?></h1>
         
         <?php
         $flash = getFlashMessage();
@@ -54,10 +54,10 @@ $dir = getHtmlDir();
         
         <?php if (empty($wishlistItems)): ?>
             <div class="bg-white border border-luxury-border shadow-luxury p-8 md:p-12 text-center">
-                <p class="text-luxury-textLight mb-6 text-lg"><?= e('Your wishlist is empty.') ?></p>
+                <p class="text-luxury-textLight mb-6 text-lg"><?= e(t('wishlist_empty')) ?></p>
                 <a href="shop.php" 
                    class="inline-block bg-luxury-primary text-white px-8 py-3 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                    <?= e('Continue Shopping') ?>
+                    <?= e(t('continue_shopping')) ?>
                 </a>
             </div>
         <?php else: ?>
@@ -73,7 +73,7 @@ $dir = getHtmlDir();
                                 </div>
                             <?php else: ?>
                                 <div class="w-full h-48 md:h-56 bg-luxury-border flex items-center justify-center">
-                                    <span class="text-luxury-textLight"><?= e('No Image') ?></span>
+                                    <span class="text-luxury-textLight"><?= e(t('no_image')) ?></span>
                                 </div>
                             <?php endif; ?>
                         </a>
@@ -105,7 +105,7 @@ $dir = getHtmlDir();
                                     <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                                     <button type="submit" 
                                             class="w-full border border-red-300 text-red-600 py-2.5 px-4 rounded-sm hover:bg-red-50 transition-all duration-300 font-medium">
-                                        <?= e('Remove from Wishlist') ?>
+                                        <?= e(t('remove_from_wishlist')) ?>
                                     </button>
                                 </form>
                             </div>

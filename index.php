@@ -44,15 +44,15 @@ $dir = getHtmlDir();
     <!-- Hero Section -->
     <section class="relative bg-gradient-to-br from-luxury-accentLight via-white to-luxury-accentLight overflow-hidden">
         <!-- Decorative elements -->
-        <div class="absolute top-0 left-0 w-96 h-96 bg-luxury-accent/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-        <div class="absolute bottom-0 right-0 w-96 h-96 bg-luxury-primary/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        <div class="absolute top-0 start-0 w-96 h-96 bg-luxury-accent/10 rounded-full blur-3xl ltr:-translate-x-1/2 rtl:translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute bottom-0 end-0 w-96 h-96 bg-luxury-primary/10 rounded-full blur-3xl ltr:translate-x-1/2 rtl:-translate-x-1/2 translate-y-1/2"></div>
         
         <div class="relative container mx-auto px-6 py-24 md:py-32">
             <div class="max-w-5xl mx-auto text-center">
                 <!-- Badge -->
                 <div class="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg mb-8 animate-fade-in">
                     <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    <span class="text-luxury-primary font-semibold text-sm">🌿 Fresh Flowers Daily</span>
+                    <span class="text-luxury-primary font-semibold text-sm"><?= e(t('fresh_flowers_daily')) ?></span>
                 </div>
                 
                 <!-- Main Heading -->
@@ -71,12 +71,12 @@ $dir = getHtmlDir();
                        class="group inline-flex items-center gap-3 bg-gradient-to-r from-luxury-accent to-yellow-500 text-white px-10 py-5 rounded-full hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-semibold text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
                         <i class="fas fa-store"></i>
                         <?= e(t('hero_cta')) ?>
-                        <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        <i class="fas fa-arrow-right group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform"></i>
                     </a>
                     <a href="#featured" 
                        class="inline-flex items-center gap-3 bg-white text-luxury-primary px-10 py-5 rounded-full hover:bg-luxury-primary hover:text-white transition-all duration-300 font-semibold text-lg shadow-xl border-2 border-luxury-primary">
                         <i class="fas fa-sparkles"></i>
-                        View Featured
+                        <?= e(t('view_featured')) ?>
                     </a>
                 </div>
                 
@@ -88,19 +88,19 @@ $dir = getHtmlDir();
                     ?>
                     <div class="text-center">
                         <div class="text-4xl md:text-5xl font-bold text-luxury-accent mb-2"><?= number_format($totalProducts) ?>+</div>
-                        <div class="text-luxury-textLight font-medium">Products</div>
+                        <div class="text-luxury-textLight font-medium"><?= e(t('stats_products')) ?></div>
                     </div>
                     <div class="text-center">
                         <div class="text-4xl md:text-5xl font-bold text-luxury-accent mb-2"><?= number_format($totalCustomers) ?>+</div>
-                        <div class="text-luxury-textLight font-medium">Happy Customers</div>
+                        <div class="text-luxury-textLight font-medium"><?= e(t('stats_customers')) ?></div>
                     </div>
                     <div class="text-center">
                         <div class="text-4xl md:text-5xl font-bold text-luxury-accent mb-2">100%</div>
-                        <div class="text-luxury-textLight font-medium">Fresh Quality</div>
+                        <div class="text-luxury-textLight font-medium"><?= e(t('stats_quality')) ?></div>
                     </div>
                     <div class="text-center">
                         <div class="text-4xl md:text-5xl font-bold text-luxury-accent mb-2">24/7</div>
-                        <div class="text-luxury-textLight font-medium">Support</div>
+                        <div class="text-luxury-textLight font-medium"><?= e(t('stats_support')) ?></div>
                     </div>
                 </div>
             </div>
@@ -122,24 +122,24 @@ $dir = getHtmlDir();
                     <div class="w-20 h-20 bg-gradient-to-br from-luxury-accent to-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                         <i class="fas fa-truck text-3xl text-white"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-luxury-primary mb-3">Free Delivery</h3>
-                    <p class="text-luxury-textLight">Free shipping on all orders over $50</p>
+                    <h3 class="text-xl font-bold text-luxury-primary mb-3"><?= e(t('feature_delivery_title')) ?></h3>
+                    <p class="text-luxury-textLight"><?= e(t('feature_delivery_desc')) ?></p>
                 </div>
                 
                 <div class="text-center p-8 rounded-2xl hover:bg-luxury-accentLight/30 transition-all duration-300 group">
                     <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                         <i class="fas fa-leaf text-3xl text-white"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-luxury-primary mb-3">Always Fresh</h3>
-                    <p class="text-luxury-textLight">Fresh flowers delivered daily</p>
+                    <h3 class="text-xl font-bold text-luxury-primary mb-3"><?= e(t('feature_fresh_title')) ?></h3>
+                    <p class="text-luxury-textLight"><?= e(t('feature_fresh_desc')) ?></p>
                 </div>
                 
                 <div class="text-center p-8 rounded-2xl hover:bg-luxury-accentLight/30 transition-all duration-300 group">
                     <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                         <i class="fas fa-heart text-3xl text-white"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-luxury-primary mb-3">Quality Guaranteed</h3>
-                    <p class="text-luxury-textLight">100% satisfaction or money back</p>
+                    <h3 class="text-xl font-bold text-luxury-primary mb-3"><?= e(t('feature_quality_title')) ?></h3>
+                    <p class="text-luxury-textLight"><?= e(t('feature_quality_desc')) ?></p>
                 </div>
             </div>
         </div>
@@ -151,11 +151,11 @@ $dir = getHtmlDir();
             <!-- Section Header -->
             <div class="text-center mb-16">
                 <div class="inline-block bg-luxury-accent/10 px-6 py-2 rounded-full mb-4">
-                    <span class="text-luxury-accent font-semibold text-sm">✨ FEATURED COLLECTION</span>
+                    <span class="text-luxury-accent font-semibold text-sm">✨ <?= e(t('featured_collection')) ?></span>
                 </div>
-                <h2 class="text-4xl md:text-5xl font-luxury font-bold text-luxury-primary mb-4">Our Best Sellers</h2>
+                <h2 class="text-4xl md:text-5xl font-luxury font-bold text-luxury-primary mb-4"><?= e(t('best_sellers_title')) ?></h2>
                 <p class="text-luxury-textLight text-lg max-w-2xl mx-auto">
-                    Discover our most loved floral arrangements, handpicked for their beauty and elegance
+                    <?= e(t('best_sellers_subtitle')) ?>
                 </p>
             </div>
             
@@ -164,9 +164,9 @@ $dir = getHtmlDir();
                     <div class="w-32 h-32 bg-luxury-border rounded-full flex items-center justify-center mx-auto mb-6">
                         <i class="fas fa-seedling text-5xl text-luxury-textLight"></i>
                     </div>
-                    <p class="text-luxury-textLight text-lg"><?= e('No featured products available at the moment.') ?></p>
+                    <p class="text-luxury-textLight text-lg"><?= e(t('no_featured_products')) ?></p>
                     <a href="shop.php" class="inline-block mt-6 text-luxury-accent hover:text-luxury-primary font-semibold">
-                        Explore All Products <i class="fas fa-arrow-right ml-2"></i>
+                        <?= e(t('explore_all_products')) ?> <i class="fas fa-arrow-right ms-2 rtl:rotate-180"></i>
                     </a>
                 </div>
             <?php else: ?>
@@ -180,7 +180,7 @@ $dir = getHtmlDir();
                 <div class="text-center mt-12">
                     <a href="shop.php" 
                        class="inline-flex items-center gap-3 bg-white border-2 border-luxury-accent text-luxury-accent px-8 py-4 rounded-full hover:bg-luxury-accent hover:text-white transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                        <span>View All Products</span>
+                        <span><?= e(t('view_all_products')) ?></span>
                         <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -193,8 +193,8 @@ $dir = getHtmlDir();
     <section class="py-20 bg-white">
         <div class="container mx-auto px-6">
             <div class="text-center mb-12">
-                <h2 class="text-4xl font-luxury font-bold text-luxury-primary mb-4">Shop by Category</h2>
-                <p class="text-luxury-textLight text-lg">Find the perfect flowers for every occasion</p>
+                <h2 class="text-4xl font-luxury font-bold text-luxury-primary mb-4"><?= e(t('shop_by_category')) ?></h2>
+                <p class="text-luxury-textLight text-lg"><?= e(t('shop_by_category_subtitle')) ?></p>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
@@ -221,21 +221,21 @@ $dir = getHtmlDir();
                 <div class="w-20 h-20 bg-luxury-accent rounded-full flex items-center justify-center mx-auto mb-6">
                     <i class="fas fa-envelope text-3xl text-white"></i>
                 </div>
-                <h2 class="text-4xl font-luxury font-bold mb-4">Stay in Bloom</h2>
+                <h2 class="text-4xl font-luxury font-bold mb-4"><?= e(t('newsletter_title')) ?></h2>
                 <p class="text-xl text-gray-300 mb-8">
-                    Subscribe to our newsletter for exclusive offers, seasonal tips, and floral inspiration
+                    <?= e(t('newsletter_subtitle')) ?>
                 </p>
                 <form class="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
                     <input type="email" 
-                           placeholder="Enter your email address" 
+                           placeholder="<?= e(t('email_placeholder')) ?>" 
                            class="flex-1 px-6 py-4 rounded-full text-luxury-primary focus:outline-none focus:ring-4 focus:ring-luxury-accent/50">
                     <button type="submit" 
                             class="bg-luxury-accent hover:bg-yellow-500 text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-2xl">
-                        Subscribe <i class="fas fa-paper-plane ml-2"></i>
+                        <?= e(t('subscribe_button')) ?> <i class="fas fa-paper-plane ms-2 rtl:rotate-180"></i>
                     </button>
                 </form>
                 <p class="text-sm text-gray-400 mt-4">
-                    <i class="fas fa-lock mr-2"></i>We respect your privacy. Unsubscribe anytime.
+                    <i class="fas fa-lock me-2"></i><?= e(t('privacy_notice')) ?>
                 </p>
             </div>
         </div>

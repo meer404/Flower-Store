@@ -85,8 +85,8 @@ function alert(string $message, string $type = 'info'): string {
     
     $style = $types[$type] ?? $types['info'];
     
-    return '<div class="' . $style['bg'] . ' border-l-4 ' . $style['border'] . ' ' . $style['text'] . ' p-4 rounded-r-lg mb-6 flex items-center">
-        <i class="fas ' . $style['icon'] . ' text-2xl mr-3"></i>
+    return '<div class="' . $style['bg'] . ' border-s-4 ' . $style['border'] . ' ' . $style['text'] . ' p-4 rounded-e-lg mb-6 flex items-center">
+        <i class="fas ' . $style['icon'] . ' text-2xl me-3"></i>
         <span>' . e($message) . '</span>
     </div>';
 }
@@ -109,21 +109,21 @@ function productCard(array $product): string {
     if ($imageUrl) {
         $html .= '<div class="relative overflow-hidden h-72">
             <img src="' . e($imageUrl) . '" alt="' . e($productName) . '" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-            <div class="absolute top-4 right-4">';
+            <div class="absolute top-4 end-4">';
         
         if ($product['is_featured'] ?? false) {
-            $html .= '<span class="bg-luxury-accent text-white px-3 py-1 rounded-full text-xs font-bold uppercase">Featured</span>';
+            $html .= '<span class="bg-luxury-accent text-white px-3 py-1 rounded-full text-xs font-bold uppercase">' . e(t('featured')) . '</span>';
         }
         
         if (!$inStock) {
-            $html .= '<span class="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase ml-2">Out of Stock</span>';
+            $html .= '<span class="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase ms-2">' . e(t('out_of_stock')) . '</span>';
         }
         
         $html .= '</div>';
         
         // Wishlist button overlay
         if (isLoggedIn()) {
-            $html .= '<button onclick="toggleWishlist(' . $productId . ')" class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm w-12 h-12 rounded-full flex items-center justify-center hover:bg-luxury-accent hover:text-white transition-all duration-300 shadow-lg">
+            $html .= '<button onclick="toggleWishlist(' . $productId . ')" class="absolute top-4 start-4 bg-white/90 backdrop-blur-sm w-12 h-12 rounded-full flex items-center justify-center hover:bg-luxury-accent hover:text-white transition-all duration-300 shadow-lg">
                 <i class="fas fa-heart text-lg"></i>
             </button>';
         }
@@ -170,7 +170,7 @@ function productCard(array $product): string {
     
     $html .= '<a href="product.php?id=' . $productId . '" 
         class="block w-full text-center border-2 border-luxury-primary text-luxury-primary py-3 px-4 rounded-full hover:bg-luxury-primary hover:text-white transition-all duration-300 font-semibold">
-        <i class="fas fa-eye mr-2"></i>View Details
+        <i class="fas fa-eye me-2"></i>' . e(t('view_details')) . '
     </a>';
     
     if ($inStock) {
@@ -180,17 +180,17 @@ function productCard(array $product): string {
                 <input type="hidden" name="product_id" value="' . $productId . '">
                 <input type="hidden" name="csrf_token" value="' . e(generateCSRFToken()) . '">
                 <button type="submit" class="w-full bg-gradient-to-r from-luxury-accent to-yellow-500 text-white py-3 px-4 rounded-full hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                    <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
+                    <i class="fas fa-shopping-cart me-2"></i>' . e(t('add_to_cart')) . '
                 </button>
             </form>';
         } else {
             $html .= '<a href="login.php" class="block w-full text-center bg-gradient-to-r from-luxury-accent to-yellow-500 text-white py-3 px-4 rounded-full hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-semibold shadow-lg">
-                <i class="fas fa-shopping-cart mr-2"></i>Login to Purchase
+                <i class="fas fa-shopping-cart me-2"></i>' . e(t('login_to_purchase')) . '
             </a>';
         }
     } else {
         $html .= '<button disabled class="w-full bg-gray-300 text-gray-500 py-3 px-4 rounded-full cursor-not-allowed">
-            <i class="fas fa-times mr-2"></i>Out of Stock
+            <i class="fas fa-times me-2"></i>' . e(t('out_of_stock')) . '
         </button>';
     }
     
@@ -254,19 +254,19 @@ function modernFooter(): string {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                 <!-- Brand Column -->
                 <div>
-                    <div class="flex items-center space-x-3 mb-6">
+                    <div class="flex items-center gap-3 mb-6">
                         <div class="w-12 h-12 bg-gradient-to-br from-luxury-accent to-yellow-500 rounded-full flex items-center justify-center">
                             <i class="fas fa-spa text-white text-xl"></i>
                         </div>
                         <div>
                             <h3 class="text-2xl font-luxury font-bold">Bloom & Vine</h3>
-                            <p class="text-xs text-luxury-accentLight">Premium Flowers</p>
+                            <p class="text-xs text-luxury-accentLight">' . e(t('premium_flowers')) . '</p>
                         </div>
                     </div>
                     <p class="text-gray-300 mb-6 leading-relaxed">
                         Experience the beauty of nature with our carefully curated collection of premium flowers and arrangements.
                     </p>
-                    <div class="flex space-x-4">
+                    <div class="flex gap-4">
                         <a href="#" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
                             <i class="fab fa-facebook-f"></i>
                         </a>
@@ -284,48 +284,48 @@ function modernFooter(): string {
                 
                 <!-- Quick Links -->
                 <div>
-                    <h4 class="text-lg font-bold mb-6 text-luxury-accent">Quick Links</h4>
+                    <h4 class="text-lg font-bold mb-6 text-luxury-accent">' . e(t('quick_links')) . '</h4>
                     <ul class="space-y-3">
-                        <li><a href="index.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2"></i>Home</a></li>
-                        <li><a href="shop.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2"></i>Shop</a></li>
-                        <li><a href="account.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2"></i>My Account</a></li>
-                        <li><a href="wishlist.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2"></i>Wishlist</a></li>
+                        <li><a href="index.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_home')) . '</a></li>
+                        <li><a href="shop.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_shop')) . '</a></li>
+                        <li><a href="account.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_account')) . '</a></li>
+                        <li><a href="wishlist.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_wishlist')) . '</a></li>
                     </ul>
                 </div>
                 
                 <!-- Customer Service -->
                 <div>
-                    <h4 class="text-lg font-bold mb-6 text-luxury-accent">Customer Service</h4>
+                    <h4 class="text-lg font-bold mb-6 text-luxury-accent">' . e(t('customer_service')) . '</h4>
                     <ul class="space-y-3">
-                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2"></i>About Us</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2"></i>Contact Us</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2"></i>Shipping Info</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs mr-2"></i>Returns</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('about_us')) . '</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('contact_us')) . '</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('shipping_info')) . '</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('returns')) . '</a></li>
                     </ul>
                 </div>
                 
                 <!-- Contact Info -->
                 <div>
-                    <h4 class="text-lg font-bold mb-6 text-luxury-accent">Contact Us</h4>
+                    <h4 class="text-lg font-bold mb-6 text-luxury-accent">' . e(t('contact_us')) . '</h4>
                     <ul class="space-y-4">
                         <li class="flex items-start">
-                            <i class="fas fa-phone text-luxury-accent mt-1 mr-3"></i>
+                            <i class="fas fa-phone text-luxury-accent mt-1 me-3"></i>
                             <div>
-                                <p class="text-sm text-gray-400">Phone</p>
+                                <p class="text-sm text-gray-400">' . e(t('phone')) . '</p>
                                 <p class="text-white">+964 750 123 4567</p>
                             </div>
                         </li>
                         <li class="flex items-start">
-                            <i class="fas fa-envelope text-luxury-accent mt-1 mr-3"></i>
+                            <i class="fas fa-envelope text-luxury-accent mt-1 me-3"></i>
                             <div>
-                                <p class="text-sm text-gray-400">Email</p>
+                                <p class="text-sm text-gray-400">' . e(t('email')) . '</p>
                                 <p class="text-white">info@bloomandvine.com</p>
                             </div>
                         </li>
                         <li class="flex items-start">
-                            <i class="fas fa-map-marker-alt text-luxury-accent mt-1 mr-3"></i>
+                            <i class="fas fa-map-marker-alt text-luxury-accent mt-1 me-3"></i>
                             <div>
-                                <p class="text-sm text-gray-400">Address</p>
+                                <p class="text-sm text-gray-400">' . e(t('address')) . '</p>
                                 <p class="text-white">Kurdistan Region, Iraq</p>
                             </div>
                         </li>
@@ -339,12 +339,12 @@ function modernFooter(): string {
             <div class="container mx-auto px-6 py-6">
                 <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                     <p class="text-gray-400 text-sm">
-                        © ' . $year . ' Bloom & Vine. All rights reserved.
+                        © ' . $year . ' Bloom & Vine. ' . e(t('all_rights_reserved')) . '
                     </p>
-                    <div class="flex items-center space-x-6 text-sm">
-                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">Privacy Policy</a>
-                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">Terms of Service</a>
-                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">Cookie Policy</a>
+                    <div class="flex items-center gap-6 text-sm">
+                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('privacy_policy')) . '</a>
+                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('terms_of_service')) . '</a>
+                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('cookie_policy')) . '</a>
                     </div>
                 </div>
             </div>

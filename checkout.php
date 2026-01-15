@@ -46,7 +46,7 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION[
 
 // Redirect if cart is empty
 if (empty($cartItems)) {
-    redirect('cart.php', e('Your cart is empty'), 'error');
+    redirect('cart.php', e(t('empty_cart')), 'error');
 }
 
 // Get user info
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCSRFToken($csrfToken)) {
         $error = t('order_error');
     } elseif (empty($shippingAddress)) {
-        $error = t('order_error') . ' - ' . e('Shipping address is required');
+        $error = t('order_error') . ' - ' . t('shipping_address_required');
     } elseif (empty($deliveryDate)) {
         $error = t('delivery_date_required');
     } elseif (!strtotime($deliveryDate) || strtotime($deliveryDate) < strtotime('tomorrow')) {
@@ -91,9 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!preg_match('/^\d{13,19}$/', $cardNumberClean)) {
             $error = t('card_number_invalid');
         } elseif ($paymentMethod === 'visa' && !preg_match('/^4\d{12,15}$/', $cardNumberClean)) {
-            $error = t('card_number_invalid') . ' - ' . e('Visa cards must start with 4');
+            $error = t('card_number_invalid') . ' - ' . t('visa_start_4');
         } elseif ($paymentMethod === 'mastercard' && !preg_match('/^5[1-5]\d{14}$/', $cardNumberClean)) {
-            $error = t('card_number_invalid') . ' - ' . e('Mastercard must start with 51-55');
+            $error = t('card_number_invalid') . ' - ' . t('mastercard_start_5');
         } else {
             // Validate expiry date
             $expiryMonthInt = (int)$expiryMonth;
@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     if (!$stockOk) {
                         $pdo->rollBack();
-                        $error = t('order_error') . ' - ' . e('Insufficient stock for one or more products');
+                        $error = t('order_error') . ' - ' . t('insufficient_stock');
                     } else {
                         // Create order with payment details
                         $stmt = $pdo->prepare('
@@ -216,7 +216,7 @@ $dir = getHtmlDir();
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             <!-- Order Summary -->
             <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 order-2 lg:order-1">
-                <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Order Summary') ?></h2>
+                <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('order_summary')) ?></h2>
                 
                 <div class="space-y-4 md:space-y-6 mb-6">
                     <?php foreach ($cartItems as $item): ?>
@@ -225,7 +225,7 @@ $dir = getHtmlDir();
                                 <p class="font-medium text-luxury-primary mb-1"><?= e(getProductName($item)) ?></p>
                                 <p class="text-sm text-luxury-textLight"><?= e((string)$item['cart_quantity']) ?> x <?= e(formatPrice((float)$item['price'])) ?></p>
                             </div>
-                            <p class="font-semibold text-luxury-accent ml-4"><?= e(formatPrice($item['subtotal'])) ?></p>
+                            <p class="font-semibold text-luxury-accent ms-4"><?= e(formatPrice($item['subtotal'])) ?></p>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -240,11 +240,11 @@ $dir = getHtmlDir();
             
             <!-- Checkout Form -->
             <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 order-1 lg:order-2">
-                <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Customer Information') ?></h2>
+                <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('customer_info')) ?></h2>
                 
                 <div class="mb-6 p-4 bg-luxury-border rounded-sm">
-                    <p class="text-sm text-luxury-textLight mb-2"><?= e('Name') ?>: <span class="font-medium text-luxury-primary"><?= e($user['full_name']) ?></span></p>
-                    <p class="text-sm text-luxury-textLight"><?= e('Email') ?>: <span class="font-medium text-luxury-primary"><?= e($user['email']) ?></span></p>
+                    <p class="text-sm text-luxury-textLight mb-2"><?= e(t('name')) ?>: <span class="font-medium text-luxury-primary"><?= e($user['full_name']) ?></span></p>
+                    <p class="text-sm text-luxury-textLight"><?= e(t('email')) ?>: <span class="font-medium text-luxury-primary"><?= e($user['email']) ?></span></p>
                 </div>
                 
                 <form method="POST" action="" class="space-y-6">
@@ -256,7 +256,7 @@ $dir = getHtmlDir();
                         </label>
                         <textarea id="shipping_address" name="shipping_address" rows="4" required
                                   class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"
-                                  placeholder="<?= e('Enter your complete shipping address') ?>"><?= e(sanitizeInput('shipping_address', 'POST', '')) ?></textarea>
+                                  placeholder="<?= e(t('enter_shipping_address')) ?>"><?= e(sanitizeInput('shipping_address', 'POST', '')) ?></textarea>
                     </div>
                     
                     <div>
@@ -268,7 +268,7 @@ $dir = getHtmlDir();
                                value="<?= e(sanitizeInput('delivery_date', 'POST', '')) ?>"
                                class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                         <p class="text-xs text-luxury-textLight mt-1">
-                            <?= e('Please select a date for flower delivery. Minimum delivery time is 1 day.') ?>
+                            <?= e(t('delivery_date_hint')) ?>
                         </p>
                     </div>
                     
@@ -320,7 +320,7 @@ $dir = getHtmlDir();
                                 </label>
                                 <input type="text" id="cardholder_name" name="cardholder_name" required
                                        value="<?= e(sanitizeInput('cardholder_name', 'POST', '')) ?>"
-                                       placeholder="<?= e('Name on card') ?>"
+                                       placeholder="<?= e(t('name_on_card')) ?>"
                                        class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                             </div>
                             
@@ -377,7 +377,7 @@ $dir = getHtmlDir();
                 
                 <a href="cart.php" 
                    class="block mt-6 text-center text-luxury-accent hover:text-luxury-primary transition-colors font-medium">
-                    <?= e('← Back to Cart') ?>
+                    <i class="fas fa-arrow-left rtl:rotate-180"></i> <?= e(t('back_to_cart')) ?>
                 </a>
             </div>
         </div>
@@ -421,7 +421,7 @@ $dir = getHtmlDir();
             }
             
             if (!isValid && cardNumber.length >= 13) {
-                this.setCustomValidity('<?= e("Card number does not match selected payment method") ?>');
+                this.setCustomValidity('<?= e(t('card_mismatch')) ?>');
                 this.classList.add('border-red-500');
             } else {
                 this.setCustomValidity('');
@@ -447,8 +447,8 @@ $dir = getHtmlDir();
             const currentMonth = new Date().getMonth() + 1;
             
             if (year < currentYear || (year === currentYear && month < currentMonth)) {
-                expiryMonth.setCustomValidity('<?= e("Card has expired") ?>');
-                expiryYear.setCustomValidity('<?= e("Card has expired") ?>');
+                expiryMonth.setCustomValidity('<?= e(t('card_expired')) ?>');
+                expiryYear.setCustomValidity('<?= e(t('card_expired')) ?>');
             } else {
                 expiryMonth.setCustomValidity('');
                 expiryYear.setCustomValidity('');

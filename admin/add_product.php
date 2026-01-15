@@ -57,9 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $maxSize = 5 * 1024 * 1024; // 5MB
                 
                 if (!in_array($file['type'], $allowedTypes, true)) {
-                    $error = t('product_error') . ' - ' . e('Invalid file type');
+                    $error = t('product_error') . ' - ' . t('invalid_file_type');
                 } elseif ($file['size'] > $maxSize) {
-                    $error = t('product_error') . ' - ' . e('File too large');
+                    $error = t('product_error') . ' - ' . t('file_too_large');
                 } else {
                     // Generate unique filename
                     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (move_uploaded_file($file['tmp_name'], $filepath)) {
                         $imageUrl = 'uploads/' . $filename;
                     } else {
-                        $error = t('product_error') . ' - ' . e('Upload failed');
+                        $error = t('product_error') . ' - ' . t('upload_failed');
                     }
                 }
             }
@@ -177,7 +177,7 @@ $dir = getHtmlDir();
                         </label>
                         <select id="category_id" name="category_id" required
                                 class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                            <option value=""><?= e('Select Category') ?></option>
+                            <option value=""><?= e(t('select_category')) ?></option>
                             <?php foreach ($categories as $category): ?>
                                 <option value="<?= e((string)$category['id']) ?>">
                                     <?= e($category['name_en']) ?> / <?= e($category['name_ku']) ?>
@@ -210,14 +210,14 @@ $dir = getHtmlDir();
                     </label>
                     <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif,image/webp"
                            class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                    <p class="text-xs text-luxury-textLight mt-1.5"><?= e('Max size: 5MB. Formats: JPEG, PNG, GIF, WebP') ?></p>
+                    <p class="text-xs text-luxury-textLight mt-1.5"><?= e(t('file_upload_hint')) ?></p>
                 </div>
                 
                 <!-- Featured Checkbox -->
                 <div>
                     <label class="flex items-center">
                         <input type="checkbox" name="is_featured" value="1"
-                               class="mr-2 h-4 w-4 text-luxury-accent focus:ring-luxury-accent border-luxury-border rounded-sm">
+                               class="me-2 h-4 w-4 text-luxury-accent focus:ring-luxury-accent border-luxury-border rounded-sm">
                         <span class="text-sm font-medium text-luxury-text"><?= e(t('featured')) ?></span>
                     </label>
                 </div>

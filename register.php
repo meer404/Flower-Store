@@ -125,7 +125,7 @@ $dir = getHtmlDir();
                     <input type="password" id="password" name="password" required
                            minlength="8"
                            class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                    <p class="text-xs text-luxury-textLight mt-1.5"><?= e('Minimum 8 characters') ?></p>
+                    <p class="text-xs text-luxury-textLight mt-1.5"><?= e(t('min_8_chars')) ?></p>
                 </div>
                 
                 <div>

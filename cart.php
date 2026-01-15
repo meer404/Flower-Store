@@ -64,19 +64,19 @@ $dir = getHtmlDir();
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-5xl font-luxury font-bold mb-4">
-                        <i class="fas fa-shopping-cart mr-4"></i><?= e(t('nav_cart')) ?>
+                        <i class="fas fa-shopping-cart me-4"></i><?= e(t('nav_cart')) ?>
                     </h1>
                     <p class="text-xl text-gray-300">
                         <?php if (!empty($cartItems)): ?>
-                            You have <?= count($cartItems) ?> item<?= count($cartItems) > 1 ? 's' : '' ?> in your cart
+                            <?= e(t('cart_items_count', ['count' => count($cartItems)])) ?>
                         <?php else: ?>
-                            Your cart is waiting for beautiful flowers
+                            <?= e(t('cart_empty_message')) ?>
                         <?php endif; ?>
                     </p>
                 </div>
                 <?php if (!empty($cartItems)): ?>
                 <div class="hidden md:block bg-white/10 backdrop-blur-sm px-8 py-6 rounded-2xl">
-                    <p class="text-sm text-gray-300 mb-1">Cart Total</p>
+                    <p class="text-sm text-gray-300 mb-1"><?= e(t('cart_total')) ?></p>
                     <p class="text-4xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal)) ?></p>
                 </div>
                 <?php endif; ?>
@@ -98,7 +98,7 @@ $dir = getHtmlDir();
                     <i class="fas fa-shopping-cart text-6xl text-luxury-textLight"></i>
                 </div>
                 <h3 class="text-3xl font-bold text-luxury-primary mb-4"><?= e(t('empty_cart')) ?></h3>
-                <p class="text-luxury-textLight text-lg mb-8">Start adding beautiful flowers to your cart!</p>
+                <p class="text-luxury-textLight text-lg mb-8"><?= e(t('cart_start_shopping')) ?></p>
                 <a href="shop.php" 
                    class="inline-flex items-center gap-3 bg-gradient-to-r from-luxury-accent to-yellow-500 text-white px-10 py-4 rounded-full hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
                     <i class="fas fa-store"></i>
@@ -110,17 +110,17 @@ $dir = getHtmlDir();
             <!-- Desktop Table View -->
             <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden hidden md:block">
                 <div class="bg-gradient-to-r from-luxury-primary to-gray-900 text-white px-6 py-4">
-                    <h2 class="text-xl font-bold"><i class="fas fa-shopping-basket mr-2"></i>Cart Items</h2>
+                    <h2 class="text-xl font-bold"><i class="fas fa-shopping-basket me-2"></i><?= e(t('cart_items_title')) ?></h2>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
                         <thead class="bg-luxury-accentLight/30">
                             <tr>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e('Product') ?></th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('price')) ?></th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('quantity')) ?></th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('subtotal')) ?></th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e('Action') ?></th>
+                                <th class="px-6 py-4 text-start text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('cart_table_product')) ?></th>
+                                <th class="px-6 py-4 text-start text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('price')) ?></th>
+                                <th class="px-6 py-4 text-start text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('quantity')) ?></th>
+                                <th class="px-6 py-4 text-start text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('subtotal')) ?></th>
+                                <th class="px-6 py-4 text-start text-xs font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('cart_table_action')) ?></th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-luxury-border">
@@ -131,11 +131,11 @@ $dir = getHtmlDir();
                                             <?php if ($item['image_url']): ?>
                                                 <img src="<?= e($item['image_url']) ?>" 
                                                      alt="<?= e(getProductName($item)) ?>"
-                                                     class="w-20 h-20 object-cover rounded-xl mr-4 shadow-md">
+                                                     class="w-20 h-20 object-cover rounded-xl me-4 shadow-md">
                                             <?php endif; ?>
                                             <div>
                                                 <h3 class="text-base font-bold text-luxury-primary mb-1"><?= e(getProductName($item)) ?></h3>
-                                                <p class="text-sm text-luxury-textLight"><i class="fas fa-tag mr-1"></i><?= e(getCategoryName($item)) ?></p>
+                                                <p class="text-sm text-luxury-textLight"><i class="fas fa-tag me-1"></i><?= e(getCategoryName($item)) ?></p>
                                             </div>
                                         </div>
                                     </td>
@@ -168,7 +168,7 @@ $dir = getHtmlDir();
                                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                                             <button type="submit" 
                                                     class="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-4 py-2 rounded-xl transition-all duration-300 font-semibold">
-                                                <i class="fas fa-trash-alt mr-1"></i><?= e(t('remove')) ?>
+                                                <i class="fas fa-trash-alt me-1"></i><?= e(t('remove')) ?>
                                             </button>
                                         </form>
                                     </td>
@@ -177,8 +177,8 @@ $dir = getHtmlDir();
                         </tbody>
                         <tfoot class="bg-gradient-to-r from-luxury-accentLight to-yellow-100">
                             <tr>
-                                <td colspan="3" class="px-6 py-6 text-right text-lg font-bold text-luxury-primary">
-                                    <i class="fas fa-calculator mr-2"></i><?= e(t('total')) ?>:
+                                <td colspan="3" class="px-6 py-6 text-end text-lg font-bold text-luxury-primary">
+                                    <i class="fas fa-calculator me-2"></i><?= e(t('total')) ?>:
                                 </td>
                                 <td colspan="2" class="px-6 py-6">
                                     <span class="text-3xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal)) ?></span>
@@ -201,7 +201,7 @@ $dir = getHtmlDir();
                             <?php endif; ?>
                             <div class="flex-1">
                                 <h3 class="text-lg font-bold text-luxury-primary mb-1"><?= e(getProductName($item)) ?></h3>
-                                <p class="text-sm text-luxury-textLight mb-2"><i class="fas fa-tag mr-1"></i><?= e(getCategoryName($item)) ?></p>
+                                <p class="text-sm text-luxury-textLight mb-2"><i class="fas fa-tag me-1"></i><?= e(getCategoryName($item)) ?></p>
                                 <p class="text-xl font-bold text-luxury-accent"><?= e(formatPrice((float)$item['price'])) ?></p>
                             </div>
                         </div>
@@ -211,14 +211,14 @@ $dir = getHtmlDir();
                                 <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
                                 <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                                 <label class="text-sm font-bold text-luxury-primary">
-                                    <i class="fas fa-hashtag mr-1"></i><?= e(t('quantity')) ?>:
+                                    <i class="fas fa-hashtag me-1"></i><?= e(t('quantity')) ?>:
                                 </label>
                                 <input type="number" name="quantity" value="<?= e((string)$item['cart_quantity']) ?>" 
                                        min="1" max="<?= e((string)$item['stock_qty']) ?>"
                                        class="w-20 px-3 py-2 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent text-center font-bold"
                                        onchange="this.form.submit()">
                             </form>
-                            <div class="text-right">
+                            <div class="text-end">
                                 <p class="text-xs text-luxury-textLight uppercase tracking-wider"><?= e(t('subtotal')) ?></p>
                                 <p class="text-2xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($item['subtotal'])) ?></p>
                             </div>
@@ -229,7 +229,7 @@ $dir = getHtmlDir();
                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                             <button type="submit" 
                                     class="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl transition-all duration-300 font-bold shadow-md">
-                                <i class="fas fa-trash-alt mr-2"></i><?= e(t('remove')) ?>
+                                <i class="fas fa-trash-alt me-2"></i><?= e(t('remove')) ?>
                             </button>
                         </form>
                     </div>
@@ -238,7 +238,7 @@ $dir = getHtmlDir();
                 <!-- Mobile Total -->
                 <div class="bg-gradient-to-r from-luxury-accent to-yellow-500 text-white p-6 rounded-2xl shadow-xl">
                     <div class="flex justify-between items-center">
-                        <span class="text-xl font-bold"><i class="fas fa-calculator mr-2"></i><?= e(t('total')) ?>:</span>
+                        <span class="text-xl font-bold"><i class="fas fa-calculator me-2"></i><?= e(t('total')) ?>:</span>
                         <span class="text-3xl font-bold font-luxury"><?= e(formatPrice($cartTotal)) ?></span>
                     </div>
                 </div>
