@@ -94,14 +94,14 @@ $recentOrders = $stmt->fetchAll();
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-5xl font-luxury font-bold mb-4">
-                        <i class="fas fa-crown mr-4"></i>Super Admin Dashboard
+                        <i class="fas fa-crown me-4"></i><?= e(t('super_admin_dashboard')) ?>
                     </h1>
-                    <p class="text-xl text-red-200">Full System Control & Analytics</p>
-                    <p class="text-sm text-red-300 mt-2">Welcome, <?= e($_SESSION['full_name'] ?? 'Super Admin') ?>!</p>
+                    <p class="text-xl text-red-200"><?= e(t('system_control')) ?></p>
+                    <p class="text-sm text-red-300 mt-2"><?= e(t('admin_welcome', ['name' => $_SESSION['full_name'] ?? 'Super Admin'])) ?></p>
                 </div>
                 <div class="hidden md:block">
                     <div class="bg-white/10 backdrop-blur-sm px-8 py-6 rounded-2xl">
-                        <p class="text-sm text-red-200 mb-1">Total System Revenue</p>
+                        <p class="text-sm text-red-200 mb-1"><?= e(t('total_system_revenue')) ?></p>
                         <p class="text-4xl font-bold text-white font-luxury"><?= e(formatPrice($stats['total_revenue'])) ?></p>
                     </div>
                 </div>
@@ -119,7 +119,7 @@ $recentOrders = $stmt->fetchAll();
         
         <!-- Quick Actions -->
         <div class="mb-12">
-            <h2 class="text-2xl font-bold text-luxury-primary mb-6"><i class="fas fa-bolt mr-2 text-red-600"></i>Quick Actions</h2>
+            <h2 class="text-2xl font-bold text-luxury-primary mb-6"><i class="fas fa-bolt me-2 text-red-600"></i>Quick Actions</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <a href="super_admin_reports.php?period=day" class="group bg-white border-2 border-luxury-border hover:border-blue-600 rounded-2xl p-6 text-center transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1">
                     <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600 transition-colors">
@@ -155,14 +155,14 @@ $recentOrders = $stmt->fetchAll();
                     <div class="w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-600 transition-colors">
                         <i class="fas fa-cog text-3xl text-indigo-600 group-hover:text-white transition-colors"></i>
                     </div>
-                    <h3 class="font-bold text-luxury-primary text-sm">System Settings</h3>
+                    <h3 class="font-bold text-luxury-primary text-sm"><?= e(t('system_settings')) ?></h3>
                 </a>
             </div>
         </div>
         
         <!-- Statistics Cards -->
         <div class="mb-12">
-            <h2 class="text-2xl font-bold text-luxury-primary mb-6"><i class="fas fa-chart-bar mr-2 text-red-600"></i>Overview Statistics</h2>
+            <h2 class="text-2xl font-bold text-luxury-primary mb-6"><i class="fas fa-chart-bar me-2 text-red-600"></i><?= e(t('overview_statistics')) ?></h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <?= statsCard('Total Orders', (string)$stats['total_orders'], 'fas fa-shopping-bag text-3xl', 'blue') ?>
                 <?= statsCard('Total Revenue', formatPrice($stats['total_revenue']), 'fas fa-dollar-sign text-3xl', 'green') ?>
@@ -171,15 +171,15 @@ $recentOrders = $stmt->fetchAll();
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <?= statsCard('Today\'s Revenue', formatPrice($stats['today_revenue']), 'fas fa-calendar-day text-3xl', 'gold') ?>
-                <?= statsCard('This Week Revenue', formatPrice($stats['week_revenue']), 'fas fa-calendar-week text-3xl', 'green') ?>
-                <?= statsCard('This Month Revenue', formatPrice($stats['month_revenue']), 'fas fa-calendar-alt text-3xl', 'purple') ?>
+                <?= statsCard(t('todays_revenue'), formatPrice($stats['today_revenue']), 'fas fa-calendar-day text-3xl', 'gold') ?>
+                <?= statsCard(t('week_revenue'), formatPrice($stats['week_revenue']), 'fas fa-calendar-week text-3xl', 'green') ?>
+                <?= statsCard(t('month_revenue'), formatPrice($stats['month_revenue']), 'fas fa-calendar-alt text-3xl', 'purple') ?>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <?= statsCard('Low Stock Items', (string)$stats['low_stock'], 'fas fa-exclamation-triangle text-3xl', 'orange') ?>
-                <?= statsCard('Pending Orders', (string)$stats['pending_orders'], 'fas fa-clock text-3xl', 'blue') ?>
-                <?= statsCard('Total Admins', (string)$stats['total_admins'], 'fas fa-user-shield text-3xl', 'purple') ?>
+                <?= statsCard(t('low_stock_items'), (string)$stats['low_stock'], 'fas fa-exclamation-triangle text-3xl', 'orange') ?>
+                <?= statsCard(t('pending_orders'), (string)$stats['pending_orders'], 'fas fa-clock text-3xl', 'blue') ?>
+                <?= statsCard(t('total_admins'), (string)$stats['total_admins'], 'fas fa-user-shield text-3xl', 'purple') ?>
             </div>
         </div>
         
@@ -187,7 +187,7 @@ $recentOrders = $stmt->fetchAll();
             <!-- Recent Orders -->
             <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
                 <div class="bg-gradient-to-r from-red-600 to-purple-600 text-white px-6 py-4">
-                    <h2 class="text-2xl font-bold"><i class="fas fa-shopping-cart mr-2"></i>Recent Orders</h2>
+                    <h2 class="text-2xl font-bold"><i class="fas fa-shopping-cart me-2"></i>Recent Orders</h2>
                 </div>
                 <div class="p-6">
                     <?php if (empty($recentOrders)): ?>
@@ -202,7 +202,7 @@ $recentOrders = $stmt->fetchAll();
                                             <p class="text-sm text-luxury-textLight"><?= e($order['full_name']) ?></p>
                                             <p class="text-xs text-luxury-textLight"><?= e(date('M d, Y H:i', strtotime($order['order_date']))) ?></p>
                                         </div>
-                                        <div class="text-right">
+                                        <div class="text-end">
                                             <p class="font-bold text-green-600"><?= e(formatPrice((float)$order['grand_total'])) ?></p>
                                             <span class="inline-flex px-2 py-1 text-xs font-bold rounded-full <?= $order['payment_status'] === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>">
                                                 <?= e(ucfirst($order['payment_status'])) ?>
@@ -213,7 +213,7 @@ $recentOrders = $stmt->fetchAll();
                             <?php endforeach; ?>
                         </div>
                         <div class="mt-4 text-center">
-                            <a href="../order_details.php" class="text-red-600 hover:text-red-700 font-semibold">View All Orders →</a>
+                            <a href="../order_details.php" class="text-red-600 hover:text-red-700 font-semibold"><?= e(t('view_all_orders')) ?> →</a>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -222,11 +222,11 @@ $recentOrders = $stmt->fetchAll();
             <!-- Recent Activity -->
             <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
                 <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-4">
-                    <h2 class="text-2xl font-bold"><i class="fas fa-history mr-2"></i>Recent Activity</h2>
+                    <h2 class="text-2xl font-bold"><i class="fas fa-history me-2"></i><?= e(t('recent_activity')) ?></h2>
                 </div>
                 <div class="p-6">
                     <?php if (empty($recentActivity)): ?>
-                        <p class="text-center text-luxury-textLight py-8">No recent activity</p>
+                        <p class="text-center text-luxury-textLight py-8"><?= e(t('no_recent_activity')) ?></p>
                     <?php else: ?>
                         <div class="space-y-4 max-h-96 overflow-y-auto">
                             <?php foreach ($recentActivity as $activity): ?>
@@ -236,7 +236,7 @@ $recentOrders = $stmt->fetchAll();
                                         <p class="text-sm text-luxury-textLight"><?= e($activity['description']) ?></p>
                                     <?php endif; ?>
                                     <p class="text-xs text-luxury-textLight mt-1">
-                                        <i class="fas fa-clock mr-1"></i><?= e(date('M d, Y H:i', strtotime($activity['created_at']))) ?>
+                                        <i class="fas fa-clock me-1"></i><?= e(date('M d, Y H:i', strtotime($activity['created_at']))) ?>
                                     </p>
                                 </div>
                             <?php endforeach; ?>
@@ -248,7 +248,7 @@ $recentOrders = $stmt->fetchAll();
         
         <!-- Additional Admin Links -->
         <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6">
-            <h2 class="text-2xl font-bold text-luxury-primary mb-6"><i class="fas fa-link mr-2 text-red-600"></i>Admin Panel Links</h2>
+            <h2 class="text-2xl font-bold text-luxury-primary mb-6"><i class="fas fa-link me-2 text-red-600"></i><?= e(t('admin_panel_links')) ?></h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <a href="dashboard.php" class="text-center p-4 border-2 border-luxury-border rounded-xl hover:border-purple-600 hover:bg-purple-50 transition-all">
                     <i class="fas fa-tachometer-alt text-2xl text-purple-600 mb-2"></i>

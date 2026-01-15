@@ -49,8 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
                 'id' => $userId
             ]);
             
-            $_SESSION['full_name'] = $fullName;
-            $success = e('Profile updated successfully!');
+            $success = e(t('profile_updated'));
             $user = array_merge($user, [
                 'full_name' => $fullName,
                 'phone' => $phone,
@@ -76,17 +75,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     if (!verifyCSRFToken($csrfToken)) {
         $error = t('error');
     } elseif (!password_verify($currentPassword, $user['password_hash'])) {
-        $error = e('Current password is incorrect');
+        $error = e(t('password_incorrect'));
     } elseif ($newPassword !== $confirmPassword) {
-        $error = e('New passwords do not match');
+        $error = e(t('passwords_mismatch'));
     } elseif (strlen($newPassword) < 8) {
-        $error = e('Password must be at least 8 characters');
+        $error = e(t('password_min_length'));
     } else {
         try {
             $passwordHash = password_hash($newPassword, PASSWORD_ARGON2ID);
             $stmt = $pdo->prepare('UPDATE users SET password_hash = :password_hash WHERE id = :id');
             $stmt->execute(['password_hash' => $passwordHash, 'id' => $userId]);
-            $success = e('Password changed successfully!');
+            $success = e(t('password_changed'));
         } catch (PDOException $e) {
             error_log('Password change error: ' . $e->getMessage());
             $error = t('error');
@@ -132,7 +131,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e('My Account') ?> - Bloom & Vine</title>
+    <title><?= e(t('nav_account')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -141,7 +140,7 @@ $dir = getHtmlDir();
     <?php include __DIR__ . '/src/header.php'; ?>
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e('My Account') ?></h1>
+        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('nav_account')) ?></h1>
         
         <?php if ($error): ?>
             <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-sm mb-6">
@@ -168,12 +167,12 @@ $dir = getHtmlDir();
                     </div>
                     
                     <nav class="space-y-2">
-                        <a href="#profile" class="block px-4 py-2.5 bg-luxury-primary text-white rounded-sm font-medium"><?= e('Profile') ?></a>
-                        <a href="#orders" class="block px-4 py-2.5 text-luxury-text hover:bg-luxury-border rounded-sm transition-colors font-medium"><?= e('Orders') ?></a>
+                        <a href="#profile" class="block px-4 py-2.5 bg-luxury-primary text-white rounded-sm font-medium"><?= e(t('profile')) ?></a>
+                        <a href="#orders" class="block px-4 py-2.5 text-luxury-text hover:bg-luxury-border rounded-sm transition-colors font-medium"><?= e(t('admin_orders')) ?></a>
                         <a href="wishlist.php" class="block px-4 py-2.5 text-luxury-text hover:bg-luxury-border rounded-sm transition-colors font-medium">
-                            <?= e('Wishlist') ?> (<?= e((string)$wishlistCount) ?>)
+                            <?= e(t('nav_wishlist')) ?> (<?= e((string)$wishlistCount) ?>)
                         </a>
-                        <a href="#password" class="block px-4 py-2.5 text-luxury-text hover:bg-luxury-border rounded-sm transition-colors font-medium"><?= e('Change Password') ?></a>
+                        <a href="#password" class="block px-4 py-2.5 text-luxury-text hover:bg-luxury-border rounded-sm transition-colors font-medium"><?= e(t('change_password')) ?></a>
                     </nav>
                 </div>
             </div>
@@ -182,7 +181,7 @@ $dir = getHtmlDir();
             <div class="lg:col-span-2 space-y-6 md:space-y-8">
                 <!-- Profile Section -->
                 <div id="profile" class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
-                    <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Profile Information') ?></h2>
+                    <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('profile_info')) ?></h2>
                     <form method="POST" action="" class="space-y-5 md:space-y-6">
                         <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                         <input type="hidden" name="update_profile" value="1">
@@ -195,31 +194,31 @@ $dir = getHtmlDir();
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e('Phone') ?></label>
+                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('phone')) ?></label>
                                 <input type="tel" name="phone" value="<?= e($user['phone'] ?? '') ?>"
                                        class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                             </div>
                             
                             <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e('Address') ?></label>
+                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('address')) ?></label>
                                 <textarea name="address" rows="2"
                                           class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"><?= e($user['address'] ?? '') ?></textarea>
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e('City') ?></label>
+                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('city')) ?></label>
                                 <input type="text" name="city" value="<?= e($user['city'] ?? '') ?>"
                                        class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e('Postal Code') ?></label>
+                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('postal_code')) ?></label>
                                 <input type="text" name="postal_code" value="<?= e($user['postal_code'] ?? '') ?>"
                                        class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e('Country') ?></label>
+                                <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('country')) ?></label>
                                 <input type="text" name="country" value="<?= e($user['country'] ?? '') ?>"
                                        class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                             </div>
@@ -227,20 +226,20 @@ $dir = getHtmlDir();
                         
                         <button type="submit" 
                                 class="bg-luxury-primary text-white py-2.5 px-8 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                            <?= e('Update Profile') ?>
+                            <?= e(t('update_profile')) ?>
                         </button>
                     </form>
                 </div>
 
                 <!-- Orders Section -->
                 <div id="orders" class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
-                    <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Order History') ?></h2>
+                    <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('order_history')) ?></h2>
                     <?php if (empty($orders)): ?>
-                        <p class="text-luxury-textLight"><?= e('No orders yet.') ?></p>
+                        <p class="text-luxury-textLight"><?= e(t('no_orders_yet')) ?></p>
                     <?php else: ?>
                         <!-- Order Status Graph -->
                         <div class="mb-8 p-6 bg-gray-50 rounded-lg border border-luxury-border">
-                            <h3 class="text-lg md:text-xl font-semibold text-luxury-primary mb-4"><?= e('Order Status Overview') ?></h3>
+                            <h3 class="text-lg md:text-xl font-semibold text-luxury-primary mb-4"><?= e(t('order_status_overview')) ?></h3>
                             <div class="flex justify-center">
                                 <canvas id="orderStatusChart" style="max-width: 400px; max-height: 400px;"></canvas>
                             </div>
@@ -254,11 +253,11 @@ $dir = getHtmlDir();
                                     type: 'doughnut',
                                     data: {
                                         labels: [
-                                            '<?= e('Pending') ?>',
-                                            '<?= e('Processing') ?>',
-                                            '<?= e('Shipped') ?>',
-                                            '<?= e('Delivered') ?>',
-                                            '<?= e('Cancelled') ?>'
+                                            '<?= e(t('pending')) ?>',
+                                            '<?= e(t('processing')) ?>',
+                                            '<?= e(t('shipped')) ?>',
+                                            '<?= e(t('delivered')) ?>',
+                                            '<?= e(t('cancelled')) ?>'
                                         ],
                                         datasets: [{
                                             data: [
@@ -311,7 +310,7 @@ $dir = getHtmlDir();
                                                         if (label) {
                                                             label += ': ';
                                                         }
-                                                        label += context.parsed + ' ' + (context.parsed === 1 ? '<?= e('order') ?>' : '<?= e('orders') ?>');
+                                                        label += context.parsed + ' ' + (context.parsed === 1 ? '<?= e(t('order')) ?>' : '<?= e(t('orders')) ?>');
                                                         return label;
                                                     }
                                                 }
@@ -329,24 +328,24 @@ $dir = getHtmlDir();
                                         <div>
                                             <a href="order_details.php?id=<?= e((string)$order['id']) ?>" 
                                                class="text-base md:text-lg font-semibold text-luxury-primary hover:text-luxury-accent transition-colors">
-                                                <?= e('Order #') ?><?= e((string)$order['id']) ?>
+                                                <?= e(t('order_id')) ?>: #<?= e((string)$order['id']) ?>
                                             </a>
                                             <p class="text-sm text-luxury-textLight mt-1">
-                                                <i class="fas fa-calendar mr-1"></i>
+                                                <i class="fas fa-calendar me-1"></i>
                                                 <?= e(date('F j, Y g:i A', strtotime($order['order_date']))) ?>
                                             </p>
                                             <?php if (isset($order['delivery_date']) && $order['delivery_date']): ?>
                                                 <p class="text-sm text-luxury-accent mt-1 font-medium">
-                                                    <i class="fas fa-truck mr-1"></i>
+                                                    <i class="fas fa-truck me-1"></i>
                                                     <?= e(t('delivery_date')) ?>: <?= e(date('F j, Y', strtotime($order['delivery_date']))) ?>
                                                 </p>
                                             <?php endif; ?>
                                         </div>
-                                        <div class="text-left sm:text-right">
+                                        <div class="text-start sm:text-end">
                                             <p class="text-lg md:text-xl font-bold text-luxury-accent font-luxury mb-2"><?= e(formatPrice((float)$order['grand_total'])) ?></p>
                                             <div class="flex flex-col gap-2 items-start sm:items-end">
                                                 <span class="px-2 py-1 text-xs rounded-sm <?= $order['payment_status'] === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>">
-                                                    <?= e('Payment: ') ?><?= e(ucfirst($order['payment_status'])) ?>
+                                                    <?= e(t('payment_label')) ?><?= e(ucfirst($order['payment_status'])) ?>
                                                 </span>
                                                 <?php if (isset($order['payment_method']) && $order['payment_method']): ?>
                                                     <span class="px-2 py-1 text-xs rounded-sm bg-purple-100 text-purple-800 flex items-center gap-1">
@@ -362,11 +361,11 @@ $dir = getHtmlDir();
                                                 <?php endif; ?>
                                                 <?php if (isset($order['order_status']) && $order['order_status']): ?>
                                                     <span class="px-2 py-1 text-xs rounded-sm bg-blue-100 text-blue-800">
-                                                        <?= e('Status: ') ?><?= e(ucfirst($order['order_status'])) ?>
+                                                        <?= e(t('status_label')) ?><?= e(ucfirst($order['order_status'])) ?>
                                                     </span>
                                                 <?php else: ?>
                                                     <span class="px-2 py-1 text-xs rounded-sm bg-gray-100 text-gray-800">
-                                                        <?= e('Status: Pending') ?>
+                                                        <?= e(t('status_label')) ?><?= e(t('pending')) ?>
                                                     </span>
                                                 <?php endif; ?>
                                             </div>
@@ -380,32 +379,32 @@ $dir = getHtmlDir();
 
                 <!-- Change Password Section -->
                 <div id="password" class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
-                    <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Change Password') ?></h2>
+                    <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('change_password')) ?></h2>
                     <form method="POST" action="" class="space-y-5 md:space-y-6">
                         <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                         <input type="hidden" name="change_password" value="1">
                         
                         <div>
-                            <label class="block text-sm font-medium text-luxury-text mb-2"><?= e('Current Password') ?></label>
+                            <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('current_password')) ?></label>
                             <input type="password" name="current_password" required
                                    class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-luxury-text mb-2"><?= e('New Password') ?></label>
+                            <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('new_password')) ?></label>
                             <input type="password" name="new_password" required minlength="8"
                                    class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-luxury-text mb-2"><?= e('Confirm New Password') ?></label>
+                            <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('confirm_new_password')) ?></label>
                             <input type="password" name="confirm_password" required minlength="8"
                                    class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
                         </div>
                         
                         <button type="submit" 
                                 class="bg-luxury-primary text-white py-2.5 px-8 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                            <?= e('Change Password') ?>
+                            <?= e(t('change_password')) ?>
                         </button>
                     </form>
                 </div>

@@ -44,7 +44,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e('Products Management') ?> - Bloom & Vine</title>
+    <title><?= e(t('products_management')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
 </head>
@@ -57,14 +57,14 @@ $dir = getHtmlDir();
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                     <h1 class="text-5xl font-luxury font-bold mb-4">
-                        <i class="fas fa-box-open mr-4"></i><?= e('Products Management') ?>
+                        <i class="fas fa-box-open me-4"></i><?= e(t('products_management')) ?>
                     </h1>
-                    <p class="text-xl text-green-200">Manage your entire product catalog</p>
+                    <p class="text-xl text-green-200"><?= e(t('products_desc')) ?></p>
                 </div>
                 <a href="add_product.php" 
                    class="inline-flex items-center gap-3 bg-white text-green-700 px-8 py-4 rounded-full hover:bg-green-50 transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
                     <i class="fas fa-plus-circle text-2xl"></i>
-                    <?= e('Add New Product') ?>
+                    <?= e(t('add_new_product')) ?>
                 </a>
             </div>
         </div>
@@ -75,11 +75,11 @@ $dir = getHtmlDir();
         <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
             <div class="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-4 flex justify-between items-center">
                 <div>
-                    <h2 class="text-2xl font-bold"><i class="fas fa-list mr-2"></i>All Products</h2>
-                    <p class="text-green-200 text-sm">Total: <?= e((string)$totalProducts) ?> products</p>
+                    <h2 class="text-2xl font-bold"><i class="fas fa-list me-2"></i><?= e(t('all_products')) ?></h2>
+                    <p class="text-green-200 text-sm"><?= e(t('total_products_count', ['count' => $totalProducts])) ?></p>
                 </div>
-                <div class="text-right">
-                    <p class="text-sm text-green-200">Page <?= e((string)$page) ?> of <?= e((string)$totalPages) ?></p>
+                <div class="text-end">
+                    <p class="text-sm text-green-200"><?= e(t('page_x_of_y', ['page' => $page, 'total' => $totalPages])) ?></p>
                 </div>
             </div>
             
@@ -87,12 +87,12 @@ $dir = getHtmlDir();
                 <table class="min-w-full">
                     <thead class="bg-green-50">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Image') ?></th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Product') ?></th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Category') ?></th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Price') ?></th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Stock') ?></th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-green-900 uppercase tracking-wider"><?= e('Actions') ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-green-900 uppercase tracking-wider"><?= e(t('image')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-green-900 uppercase tracking-wider"><?= e(t('product')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-green-900 uppercase tracking-wider"><?= e(t('category')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-green-900 uppercase tracking-wider"><?= e(t('price')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-green-900 uppercase tracking-wider"><?= e(t('stock')) ?></th>
+                            <th class="px-6 py-4 text-start text-xs font-bold text-green-900 uppercase tracking-wider"><?= e(t('actions')) ?></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-luxury-border">
@@ -113,7 +113,7 @@ $dir = getHtmlDir();
                                     <div class="text-base font-bold text-luxury-primary"><?= e(getProductName($product)) ?></div>
                                     <?php if ($product['is_featured']): ?>
                                         <span class="inline-flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full mt-1">
-                                            <i class="fas fa-star"></i><?= e('Featured') ?>
+                                            <i class="fas fa-star"></i><?= e(t('featured')) ?>
                                         </span>
                                     <?php endif; ?>
                                 </td>
@@ -129,19 +129,19 @@ $dir = getHtmlDir();
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center gap-1 px-3 py-2 text-sm font-bold rounded-xl <?= $product['stock_qty'] > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
                                         <i class="fas fa-<?= $product['stock_qty'] > 0 ? 'check' : 'times' ?>-circle"></i>
-                                        <?= e((string)$product['stock_qty']) ?> units
+                                        <?= e(t('units_suffix', ['count' => (string)$product['stock_qty']])) ?>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex gap-2">
                                         <a href="edit_product.php?id=<?= e((string)$product['id']) ?>" 
                                            class="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-all font-semibold shadow-md">
-                                            <i class="fas fa-edit"></i><?= e('Edit') ?>
+                                            <i class="fas fa-edit"></i><?= e(t('edit')) ?>
                                         </a>
                                         <a href="../product.php?id=<?= e((string)$product['id']) ?>" 
                                            target="_blank"
                                            class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition-all font-semibold shadow-md">
-                                            <i class="fas fa-eye"></i><?= e('View') ?>
+                                            <i class="fas fa-eye"></i><?= e(t('view')) ?>
                                         </a>
                                     </div>
                                 </td>
@@ -155,24 +155,27 @@ $dir = getHtmlDir();
             <?php if ($totalPages > 1): ?>
                 <div class="px-6 py-6 bg-green-50 border-t-2 border-luxury-border flex flex-col md:flex-row justify-between items-center gap-4">
                     <div class="text-sm font-semibold text-green-800">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        <?= e('Showing') ?> <?= e((string)(($page - 1) * $perPage + 1)) ?>-<?= e((string)min($page * $perPage, $totalProducts)) ?> 
-                        <?= e('of') ?> <?= e((string)$totalProducts) ?> products
+                        <i class="fas fa-info-circle me-2"></i>
+                        <?= e(t('showing_results', [
+                            'start' => ($page - 1) * $perPage + 1,
+                            'end' => min($page * $perPage, $totalProducts),
+                            'total' => $totalProducts
+                        ])) ?>
                     </div>
                     <div class="flex gap-3">
                         <?php if ($page > 1): ?>
                             <a href="?page=<?= e((string)($page - 1)) ?>" 
                                class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all font-bold shadow-md">
-                                <i class="fas fa-chevron-left"></i><?= e('Previous') ?>
+                                <i class="fas fa-chevron-left rtl:rotate-180"></i><?= e(t('previous')) ?>
                             </a>
                         <?php endif; ?>
                         <span class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl font-bold shadow-md">
-                            Page <?= e((string)$page) ?> / <?= e((string)$totalPages) ?>
+                            <?= e(t('page_x_of_y', ['page' => $page, 'total' => $totalPages])) ?>
                         </span>
                         <?php if ($page < $totalPages): ?>
                             <a href="?page=<?= e((string)($page + 1)) ?>" 
                                class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-green-600 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all font-bold shadow-md">
-                                <?= e('Next') ?><i class="fas fa-chevron-right"></i>
+                                <?= e(t('next')) ?><i class="fas fa-chevron-right rtl:rotate-180"></i>
                             </a>
                         <?php endif; ?>
                     </div>

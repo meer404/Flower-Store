@@ -15,7 +15,7 @@ $pdo = getDB();
 $productId = (int)sanitizeInput('id', 'GET', '0');
 
 if ($productId <= 0) {
-    redirect('shop.php', e('Product not found'), 'error');
+    redirect('shop.php', e(t('product_not_found')), 'error');
 }
 
 // Get product details
@@ -27,7 +27,7 @@ $stmt->execute(['id' => $productId]);
 $product = $stmt->fetch();
 
 if (!$product) {
-    redirect('shop.php', e('Product not found'), 'error');
+    redirect('shop.php', e(t('product_not_found')), 'error');
 }
 
 // Increment view count
@@ -128,7 +128,7 @@ $dir = getHtmlDir();
                          class="w-full h-64 md:h-96 object-cover rounded-sm">
                 <?php else: ?>
                     <div class="w-full h-64 md:h-96 bg-luxury-border flex items-center justify-center rounded-sm">
-                        <span class="text-luxury-textLight"><?= e('No Image') ?></span>
+                        <span class="text-luxury-textLight"><?= e(t('no_image')) ?></span>
                     </div>
                 <?php endif; ?>
             </div>
@@ -151,7 +151,7 @@ $dir = getHtmlDir();
                             <?php endfor; ?>
                         </div>
                         <span class="text-sm md:text-base text-luxury-textLight">
-                            <?= e(number_format($avgRating, 1)) ?> (<?= e((string)$reviewCount) ?> <?= e('reviews') ?>)
+                            <?= e(number_format($avgRating, 1)) ?> (<?= e((string)$reviewCount) ?> <?= e(t('reviews_count')) ?>)
                         </span>
                     </div>
                 <?php endif; ?>
@@ -163,9 +163,9 @@ $dir = getHtmlDir();
                     
                     <div class="space-y-2 text-sm md:text-base">
                         <?php if ($product['stock_qty'] > 0): ?>
-                            <p class="text-green-600 font-medium">✓ <?= e('In Stock') ?> (<?= e((string)$product['stock_qty']) ?> <?= e('available') ?>)</p>
+                            <p class="text-green-600 font-medium">✓ <?= e(t('in_stock')) ?> (<?= e((string)$product['stock_qty']) ?> <?= e(t('available')) ?>)</p>
                         <?php else: ?>
-                            <p class="text-red-600 font-medium">✗ <?= e('Out of Stock') ?></p>
+                            <p class="text-red-600 font-medium">✗ <?= e(t('out_of_stock')) ?></p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -204,7 +204,7 @@ $dir = getHtmlDir();
                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                             <button type="submit" 
                                     class="w-full border border-luxury-primary text-luxury-primary py-2.5 px-4 rounded-sm hover:bg-luxury-primary hover:text-white transition-all duration-300 font-medium">
-                                <?= $inWishlist ? '❤️ ' . e('Remove from Wishlist') : '🤍 ' . e('Add to Wishlist') ?>
+                                <?= $inWishlist ? '❤️ ' . e(t('remove_from_wishlist')) : '🤍 ' . e(t('add_to_wishlist')) ?>
                             </button>
                         </form>
                     <?php endif; ?>
@@ -214,7 +214,7 @@ $dir = getHtmlDir();
 
         <!-- Reviews Section -->
         <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 mb-8 md:mb-12">
-            <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Customer Reviews') ?></h2>
+            <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('customer_reviews')) ?></h2>
             
             <?php
             $hasReviewed = false;
@@ -228,13 +228,13 @@ $dir = getHtmlDir();
                 <div class="mb-6">
                     <a href="review.php?product_id=<?= e((string)$productId) ?>" 
                        class="inline-block bg-luxury-primary text-white py-2.5 px-6 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                        <?= e('Write a Review') ?>
+                        <?= e(t('write_review')) ?>
                     </a>
                 </div>
             <?php endif; ?>
 
             <?php if (empty($reviews)): ?>
-                <p class="text-luxury-textLight"><?= e('No reviews yet. Be the first to review!') ?></p>
+                <p class="text-luxury-textLight"><?= e(t('no_reviews_yet')) ?></p>
             <?php else: ?>
                 <div class="space-y-6 md:space-y-8">
                     <?php foreach ($reviews as $review): ?>
@@ -262,7 +262,7 @@ $dir = getHtmlDir();
         <!-- Related Products -->
         <?php if (!empty($relatedProducts)): ?>
             <div class="mb-8 md:mb-12">
-                <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e('Related Products') ?></h2>
+                <h2 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('related_products')) ?></h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                     <?php foreach ($relatedProducts as $related): ?>
                         <div class="bg-white border border-luxury-border shadow-luxury overflow-hidden hover:shadow-luxuryHover transition-all duration-300 group">
@@ -275,7 +275,7 @@ $dir = getHtmlDir();
                                     </div>
                                 <?php else: ?>
                                     <div class="w-full h-48 md:h-56 bg-luxury-border flex items-center justify-center">
-                                        <span class="text-luxury-textLight"><?= e('No Image') ?></span>
+                                        <span class="text-luxury-textLight"><?= e(t('no_image')) ?></span>
                                     </div>
                                 <?php endif; ?>
                                 

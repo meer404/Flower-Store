@@ -183,7 +183,7 @@ function t(string $key, array $replacements = []): string {
     // Replace placeholders if provided
     if (!empty($replacements)) {
         foreach ($replacements as $placeholder => $value) {
-            $text = str_replace(':' . $placeholder, e($value), $text);
+            $text = str_replace(':' . $placeholder, e((string)$value), $text);
         }
     }
     

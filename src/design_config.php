@@ -136,9 +136,9 @@ function getLuxuryNavbar(string $currentPage = ''): string {
     $lang = getCurrentLang();
     $nav = '<nav class="bg-white border-b border-luxury-border shadow-sm">
         <div class="container mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center gap-4">
                 <a href="index.php" class="text-2xl font-luxury font-bold text-luxury-primary tracking-wide">Bloom & Vine</a>
-                <div class="flex items-center space-x-8" style="direction: ltr;">
+                <div class="flex items-center gap-8">
                     <a href="index.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium">' . e(t('nav_home')) . '</a>
                     <a href="shop.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium">' . e(t('nav_shop')) . '</a>';
     

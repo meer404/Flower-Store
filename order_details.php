@@ -18,7 +18,7 @@ $orderId = (int)sanitizeInput('id', 'GET', '0');
 $userId = (int)$_SESSION['user_id'];
 
 if ($orderId <= 0) {
-    redirect('account.php', e('Invalid order'), 'error');
+    redirect('account.php', e(t('invalid_order')), 'error');
 }
 
 // Get order details
@@ -31,7 +31,7 @@ $stmt->execute(['id' => $orderId, 'user_id' => $userId, 'is_admin' => $isAdmin])
 $order = $stmt->fetch();
 
 if (!$order) {
-    redirect('account.php', e('Order not found'), 'error');
+    redirect('account.php', e(t('order_not_found')), 'error');
 }
 
 // Get order items
@@ -50,7 +50,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e('Order #') ?><?= e((string)$orderId) ?> - Bloom & Vine</title>
+    <title><?= e(t('order_number_prefix')) ?><?= e((string)$orderId) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
 </head>
@@ -60,13 +60,13 @@ $dir = getHtmlDir();
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
         <div class="mb-6">
             <?php if (isAdmin()): ?>
-                <a href="admin/dashboard.php" class="text-luxury-accent hover:text-luxury-primary transition-colors font-medium">← <?= e('Back to Admin Dashboard') ?></a>
+                <a href="admin/dashboard.php" class="text-luxury-accent hover:text-luxury-primary transition-colors font-medium"><i class="fas fa-arrow-left rtl:rotate-180 me-1"></i> <?= e(t('back_to_admin')) ?></a>
             <?php else: ?>
-                <a href="account.php" class="text-luxury-accent hover:text-luxury-primary transition-colors font-medium">← <?= e('Back to Account') ?></a>
+                <a href="account.php" class="text-luxury-accent hover:text-luxury-primary transition-colors font-medium"><i class="fas fa-arrow-left rtl:rotate-180 me-1"></i> <?= e(t('back_to_account')) ?></a>
             <?php endif; ?>
         </div>
         
-        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e('Order #') ?><?= e((string)$orderId) ?></h1>
+        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('order_number_prefix')) ?><?= e((string)$orderId) ?></h1>
         
         <?php
         $flash = getFlashMessage();
@@ -81,7 +81,7 @@ $dir = getHtmlDir();
             <!-- Order Items -->
             <div class="lg:col-span-2 order-2 lg:order-1">
                 <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 mb-6">
-                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Order Items') ?></h2>
+                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('order_items')) ?></h2>
                     <div class="space-y-4 md:space-y-6">
                         <?php foreach ($orderItems as $item): ?>
                             <div class="flex items-center gap-4 border-b border-luxury-border pb-4 md:pb-6 last:border-0">
@@ -96,7 +96,7 @@ $dir = getHtmlDir();
                                         <?= e((string)$item['quantity']) ?> x <?= e(formatPrice((float)$item['unit_price'])) ?>
                                     </p>
                                 </div>
-                                <p class="font-semibold text-luxury-accent text-right flex-shrink-0">
+                                <p class="font-semibold text-luxury-accent text-end flex-shrink-0">
                                     <?= e(formatPrice((float)$item['quantity'] * (float)$item['unit_price'])) ?>
                                 </p>
                             </div>
@@ -115,17 +115,17 @@ $dir = getHtmlDir();
             <!-- Order Information -->
             <div class="order-1 lg:order-2 space-y-6">
                 <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
-                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Order Information') ?></h2>
+                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('order_info')) ?></h2>
                     <div class="space-y-4 text-sm md:text-base">
                         <div>
-                            <p class="text-luxury-textLight mb-1"><?= e('Order Date') ?></p>
+                            <p class="text-luxury-textLight mb-1"><?= e(t('order_date')) ?></p>
                             <p class="font-semibold text-luxury-primary"><?= e(date('F j, Y g:i A', strtotime($order['order_date']))) ?></p>
                         </div>
                         <?php if (isset($order['delivery_date']) && $order['delivery_date']): ?>
                         <div>
                             <p class="text-luxury-textLight mb-1"><?= e(t('delivery_date')) ?></p>
                             <p class="font-semibold text-luxury-primary">
-                                <i class="fas fa-calendar-alt mr-2 text-luxury-accent"></i>
+                                <i class="fas fa-calendar-alt me-2 text-luxury-accent"></i>
                                 <?= e(date('F j, Y', strtotime($order['delivery_date']))) ?>
                             </p>
                             <?php
@@ -133,23 +133,23 @@ $dir = getHtmlDir();
                             if ($daysUntilDelivery > 0):
                             ?>
                                 <p class="text-xs text-luxury-textLight mt-1">
-                                    <?= e(sprintf('In %d day(s)', (int)ceil($daysUntilDelivery))) ?>
+                                    <?= e(t('in_days', ['days' => (int)ceil($daysUntilDelivery)])) ?>
                                 </p>
                             <?php elseif ($daysUntilDelivery <= 0 && $daysUntilDelivery > -1): ?>
                                 <p class="text-xs text-green-600 mt-1 font-semibold">
-                                    <i class="fas fa-check-circle mr-1"></i><?= e('Delivery Today') ?>
+                                    <i class="fas fa-check-circle me-1"></i><?= e(t('delivery_today')) ?>
                                 </p>
                             <?php else: ?>
                                 <p class="text-xs text-green-600 mt-1 font-semibold">
-                                    <i class="fas fa-check-circle mr-1"></i><?= e('Delivered') ?>
+                                    <i class="fas fa-check-circle me-1"></i><?= e(t('delivered')) ?>
                                 </p>
                             <?php endif; ?>
                         </div>
                         <?php endif; ?>
                         <div>
-                            <p class="text-luxury-textLight mb-2"><?= e('Payment Status') ?></p>
+                            <p class="text-luxury-textLight mb-2"><?= e(t('payment_status_label')) ?></p>
                             <span class="px-3 py-1 text-xs md:text-sm rounded-sm <?= $order['payment_status'] === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>">
-                                <?= e(ucfirst($order['payment_status'])) ?>
+                                <?= e(t($order['payment_status'])) ?>
                             </span>
                         </div>
                         <?php if (isset($order['payment_method']) && $order['payment_method']): ?>
@@ -171,19 +171,19 @@ $dir = getHtmlDir();
                             </div>
                             <?php if (isset($order['card_last_four']) && $order['card_last_four']): ?>
                                 <p class="text-sm text-luxury-textLight">
-                                    <i class="fas fa-credit-card mr-1"></i>
-                                    <?= e('Card ending in') ?> •••• <?= e($order['card_last_four']) ?>
+                                    <i class="fas fa-credit-card me-1"></i>
+                                    <?= e(t('card_ending_in')) ?> •••• <?= e($order['card_last_four']) ?>
                                 </p>
                             <?php endif; ?>
                             <?php if (isset($order['cardholder_name']) && $order['cardholder_name']): ?>
                                 <p class="text-sm text-luxury-textLight mt-1">
-                                    <i class="fas fa-user mr-1"></i>
+                                    <i class="fas fa-user me-1"></i>
                                     <?= e($order['cardholder_name']) ?>
                                 </p>
                             <?php endif; ?>
                             <?php if (isset($order['card_expiry_month']) && isset($order['card_expiry_year'])): ?>
                                 <p class="text-sm text-luxury-textLight mt-1">
-                                    <i class="fas fa-calendar mr-1"></i>
+                                    <i class="fas fa-calendar me-1"></i>
                                     <?= e(sprintf('%02d/%d', (int)$order['card_expiry_month'], (int)$order['card_expiry_year'])) ?>
                                 </p>
                             <?php endif; ?>
@@ -191,22 +191,22 @@ $dir = getHtmlDir();
                         <?php endif; ?>
                         <?php if (isset($order['order_status'])): ?>
                             <div>
-                                <p class="text-luxury-textLight mb-2"><?= e('Order Status') ?></p>
+                                <p class="text-luxury-textLight mb-2"><?= e(t('order_status_label')) ?></p>
                                 <span class="px-3 py-1 text-xs md:text-sm rounded-sm bg-blue-100 text-blue-800">
-                                    <?= e(ucfirst($order['order_status'])) ?>
+                                    <?= e(t($order['order_status'])) ?>
                                 </span>
                             </div>
                         <?php else: ?>
                             <div>
-                                <p class="text-luxury-textLight mb-2"><?= e('Order Status') ?></p>
+                                <p class="text-luxury-textLight mb-2"><?= e(t('order_status_label')) ?></p>
                                 <span class="px-3 py-1 text-xs md:text-sm rounded-sm bg-gray-100 text-gray-800">
-                                    <?= e('Pending') ?>
+                                    <?= e(t('pending')) ?>
                                 </span>
                             </div>
                         <?php endif; ?>
                         <?php if ($isAdmin): ?>
                             <div class="mt-6 pt-6 border-t border-luxury-border">
-                                <h3 class="text-lg font-semibold text-luxury-primary mb-4"><?= e('Admin Actions') ?></h3>
+                                <h3 class="text-lg font-semibold text-luxury-primary mb-4"><?= e(t('admin_actions')) ?></h3>
                                 
                                 <!-- Update Order Status Form -->
                                 <form method="POST" action="order_action.php" class="mb-4">
@@ -215,18 +215,18 @@ $dir = getHtmlDir();
                                     <input type="hidden" name="order_id" value="<?= e((string)$orderId) ?>">
                                     
                                     <div class="mb-3">
-                                        <label for="order_status" class="block text-sm font-medium text-luxury-text mb-2"><?= e('Update Order Status') ?></label>
+                                        <label for="order_status" class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('update_order_status')) ?></label>
                                         <select name="order_status" id="order_status" class="w-full px-3 py-2 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
-                                            <option value="pending" <?= (isset($order['order_status']) && $order['order_status'] === 'pending') ? 'selected' : '' ?>><?= e('Pending') ?></option>
-                                            <option value="processing" <?= (isset($order['order_status']) && $order['order_status'] === 'processing') ? 'selected' : '' ?>><?= e('Processing') ?></option>
-                                            <option value="shipped" <?= (isset($order['order_status']) && $order['order_status'] === 'shipped') ? 'selected' : '' ?>><?= e('Shipped') ?></option>
-                                            <option value="delivered" <?= (isset($order['order_status']) && $order['order_status'] === 'delivered') ? 'selected' : '' ?>><?= e('Delivered') ?></option>
-                                            <option value="cancelled" <?= (isset($order['order_status']) && $order['order_status'] === 'cancelled') ? 'selected' : '' ?>><?= e('Cancelled') ?></option>
+                                            <option value="pending" <?= (isset($order['order_status']) && $order['order_status'] === 'pending') ? 'selected' : '' ?>><?= e(t('pending')) ?></option>
+                                            <option value="processing" <?= (isset($order['order_status']) && $order['order_status'] === 'processing') ? 'selected' : '' ?>><?= e(t('processing')) ?></option>
+                                            <option value="shipped" <?= (isset($order['order_status']) && $order['order_status'] === 'shipped') ? 'selected' : '' ?>><?= e(t('shipped')) ?></option>
+                                            <option value="delivered" <?= (isset($order['order_status']) && $order['order_status'] === 'delivered') ? 'selected' : '' ?>><?= e(t('delivered')) ?></option>
+                                            <option value="cancelled" <?= (isset($order['order_status']) && $order['order_status'] === 'cancelled') ? 'selected' : '' ?>><?= e(t('cancelled')) ?></option>
                                         </select>
                                     </div>
                                     
                                     <button type="submit" class="w-full bg-luxury-accent text-white px-4 py-2 rounded-sm hover:bg-luxury-primary transition-colors font-medium">
-                                        <?= e('Update Order Status') ?>
+                                        <?= e(t('update_order_status')) ?>
                                     </button>
                                 </form>
                                 
@@ -237,15 +237,15 @@ $dir = getHtmlDir();
                                     <input type="hidden" name="order_id" value="<?= e((string)$orderId) ?>">
                                     
                                     <div class="mb-3">
-                                        <label for="payment_status" class="block text-sm font-medium text-luxury-text mb-2"><?= e('Update Payment Status') ?></label>
+                                        <label for="payment_status" class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('update_payment_status')) ?></label>
                                         <select name="payment_status" id="payment_status" class="w-full px-3 py-2 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
-                                            <option value="pending" <?= $order['payment_status'] === 'pending' ? 'selected' : '' ?>><?= e('Pending') ?></option>
-                                            <option value="paid" <?= $order['payment_status'] === 'paid' ? 'selected' : '' ?>><?= e('Paid') ?></option>
+                                            <option value="pending" <?= $order['payment_status'] === 'pending' ? 'selected' : '' ?>><?= e(t('pending')) ?></option>
+                                            <option value="paid" <?= $order['payment_status'] === 'paid' ? 'selected' : '' ?>><?= e(t('paid')) ?></option>
                                         </select>
                                     </div>
                                     
                                     <button type="submit" class="w-full bg-luxury-accent text-white px-4 py-2 rounded-sm hover:bg-luxury-primary transition-colors font-medium">
-                                        <?= e('Update Payment Status') ?>
+                                        <?= e(t('update_payment_status')) ?>
                                     </button>
                                 </form>
                                 
@@ -256,22 +256,22 @@ $dir = getHtmlDir();
                                     <input type="hidden" name="order_id" value="<?= e((string)$orderId) ?>">
                                     
                                     <div class="mb-3">
-                                        <label for="tracking_number" class="block text-sm font-medium text-luxury-text mb-2"><?= e('Tracking Number') ?></label>
+                                        <label for="tracking_number" class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('tracking_number')) ?></label>
                                         <input type="text" name="tracking_number" id="tracking_number" 
                                                value="<?= e($order['tracking_number'] ?? '') ?>" 
                                                class="w-full px-3 py-2 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent"
-                                               placeholder="<?= e('Enter tracking number') ?>">
+                                               placeholder="<?= e(t('enter_tracking_number')) ?>">
                                     </div>
                                     
                                     <button type="submit" class="w-full bg-luxury-accent text-white px-4 py-2 rounded-sm hover:bg-luxury-primary transition-colors font-medium">
-                                        <?= e('Update Tracking Number') ?>
+                                        <?= e(t('update_tracking_number')) ?>
                                     </button>
                                 </form>
                             </div>
                         <?php endif; ?>
                         <?php if (isset($order['tracking_number']) && $order['tracking_number']): ?>
                             <div>
-                                <p class="text-luxury-textLight mb-1"><?= e('Tracking Number') ?></p>
+                                <p class="text-luxury-textLight mb-1"><?= e(t('tracking_number')) ?></p>
                                 <p class="font-semibold text-luxury-primary"><?= e($order['tracking_number']) ?></p>
                             </div>
                         <?php endif; ?>
@@ -279,7 +279,7 @@ $dir = getHtmlDir();
                 </div>
                 
                 <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
-                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e('Shipping Address') ?></h2>
+                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('shipping_address')) ?></h2>
                     <p class="text-luxury-text whitespace-pre-line leading-relaxed"><?= e($order['shipping_address']) ?></p>
                 </div>
             </div>
