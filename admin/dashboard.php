@@ -16,6 +16,10 @@ requirePermission('view_dashboard');
 
 $pdo = getDB();
 
+$canManageProducts = hasPermission('manage_products');
+$canManageCategories = hasPermission('manage_categories');
+$canViewReports = hasPermission('view_reports');
+
 // Get order statistics
 $stats = [
     'pending' => $pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'pending'")->fetchColumn(),
@@ -86,31 +90,82 @@ $dir = getHtmlDir();
                         <span class="w-1 h-8 bg-purple-600 rounded-full mr-3"></span>
                         <?= e(t('quick_actions')) ?>
                     </h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                        <?php if ($canManageProducts): ?>
                         <a href="add_product.php" class="group bg-white border border-gray-100 rounded-2xl p-6 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                             <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-600 transition-colors duration-300">
                                 <i class="fas fa-plus text-2xl text-purple-600 group-hover:text-white transition-colors duration-300"></i>
                             </div>
                             <h3 class="font-bold text-gray-700 group-hover:text-purple-600 transition-colors"><?= e(t('admin_add_product')) ?></h3>
                         </a>
+                        <?php else: ?>
+                        <div class="group bg-white border border-gray-100 rounded-2xl p-6 text-center opacity-50 cursor-not-allowed">
+                            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4 relative">
+                                <i class="fas fa-plus text-2xl text-gray-400"></i>
+                                <div class="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm border border-gray-200">
+                                    <i class="fas fa-lock text-xs text-red-500"></i>
+                                </div>
+                            </div>
+                            <h3 class="font-bold text-gray-400"><?= e(t('admin_add_product')) ?></h3>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ($canManageProducts): ?>
                         <a href="products.php" class="group bg-white border border-gray-100 rounded-2xl p-6 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                             <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-600 transition-colors duration-300">
                                 <i class="fas fa-box text-2xl text-green-600 group-hover:text-white transition-colors duration-300"></i>
                             </div>
                             <h3 class="font-bold text-gray-700 group-hover:text-green-600 transition-colors"><?= e(t('manage_products')) ?></h3>
                         </a>
+                        <?php else: ?>
+                        <div class="group bg-white border border-gray-100 rounded-2xl p-6 text-center opacity-50 cursor-not-allowed">
+                            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4 relative">
+                                <i class="fas fa-box text-2xl text-gray-400"></i>
+                                <div class="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm border border-gray-200">
+                                    <i class="fas fa-lock text-xs text-red-500"></i>
+                                </div>
+                            </div>
+                            <h3 class="font-bold text-gray-400"><?= e(t('manage_products')) ?></h3>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ($canManageCategories): ?>
                         <a href="categories.php" class="group bg-white border border-gray-100 rounded-2xl p-6 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                             <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600 transition-colors duration-300">
                                 <i class="fas fa-list text-2xl text-blue-600 group-hover:text-white transition-colors duration-300"></i>
                             </div>
                             <h3 class="font-bold text-gray-700 group-hover:text-blue-600 transition-colors"><?= e(t('manage_categories')) ?></h3>
                         </a>
+                        <?php else: ?>
+                        <div class="group bg-white border border-gray-100 rounded-2xl p-6 text-center opacity-50 cursor-not-allowed">
+                            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4 relative">
+                                <i class="fas fa-list text-2xl text-gray-400"></i>
+                                <div class="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm border border-gray-200">
+                                    <i class="fas fa-lock text-xs text-red-500"></i>
+                                </div>
+                            </div>
+                            <h3 class="font-bold text-gray-400"><?= e(t('manage_categories')) ?></h3>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ($canViewReports): ?>
                         <a href="super_admin_reports.php" class="group bg-white border border-gray-100 rounded-2xl p-6 text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                             <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-600 transition-colors duration-300">
                                 <i class="fas fa-chart-bar text-2xl text-indigo-600 group-hover:text-white transition-colors duration-300"></i>
                             </div>
                             <h3 class="font-bold text-gray-700 group-hover:text-indigo-600 transition-colors"><?= e(t('view_reports')) ?></h3>
                         </a>
+                        <?php else: ?>
+                        <div class="group bg-white border border-gray-100 rounded-2xl p-6 text-center opacity-50 cursor-not-allowed">
+                            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4 relative">
+                                <i class="fas fa-chart-bar text-2xl text-gray-400"></i>
+                                <div class="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-sm border border-gray-200">
+                                    <i class="fas fa-lock text-xs text-red-500"></i>
+                                </div>
+                            </div>
+                            <h3 class="font-bold text-gray-400"><?= e(t('view_reports')) ?></h3>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
