@@ -21,7 +21,7 @@ $isSuperAdmin = isSuperAdmin();
             </div>
             <div>
                 <h2 class="font-luxury font-bold text-xl text-luxury-primary">Bloom & Vine</h2>
-                <p class="text-[10px] uppercase tracking-widest text-luxury-textLight">Admin Panel</p>
+                <p class="text-[10px] uppercase tracking-widest text-luxury-textLight"><?= e(t('admin_panel')) ?></p>
             </div>
         </a>
         <button onclick="toggleAdminSidebar()" class="lg:hidden text-luxury-text hover:text-red-600 transition-colors">
@@ -34,7 +34,7 @@ $isSuperAdmin = isSuperAdmin();
         
         <!-- General Section -->
         <div>
-            <h3 class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">General</h3>
+            <h3 class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2"><?= e(t('sidebar_general')) ?></h3>
             <ul class="space-y-1">
                 <li>
                     <a href="<?= url('admin/dashboard.php') ?>" 
@@ -59,7 +59,7 @@ $isSuperAdmin = isSuperAdmin();
 
         <!-- Management Section -->
         <div>
-            <h3 class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Management</h3>
+            <h3 class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2"><?= e(t('sidebar_management')) ?></h3>
             <ul class="space-y-1">
                 <?php if ($isSuperAdmin || hasPermission('manage_products')): ?>
                 <li>
@@ -92,7 +92,7 @@ $isSuperAdmin = isSuperAdmin();
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'orders.php' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-100 group-hover:text-blue-600' ?>">
                             <i class="fas fa-shopping-cart"></i>
                         </div>
-                        <span class="flex-1">Orders</span>
+                        <span class="flex-1"><?= e(t('orders')) ?></span>
                     </a>
                 </li>
                 <?php endif; ?>
@@ -102,7 +102,7 @@ $isSuperAdmin = isSuperAdmin();
         <?php if ($isSuperAdmin): ?>
         <!-- Super Admin Section -->
         <div>
-            <h3 class="px-4 text-xs font-bold text-red-400 uppercase tracking-wider mb-2">Super Admin</h3>
+            <h3 class="px-4 text-xs font-bold text-red-400 uppercase tracking-wider mb-2"><?= e(t('sidebar_super_admin')) ?></h3>
             <ul class="space-y-1">
                 <li>
                     <a href="<?= url('admin/super_admin_dashboard.php') ?>" 
@@ -110,7 +110,7 @@ $isSuperAdmin = isSuperAdmin();
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'super_admin_dashboard.php' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400 group-hover:bg-red-100 group-hover:text-red-600' ?>">
                             <i class="fas fa-crown"></i>
                         </div>
-                        <span class="flex-1">Overview</span>
+                        <span class="flex-1"><?= e(t('sidebar_overview')) ?></span>
                     </a>
                 </li>
                 <li>
@@ -119,7 +119,7 @@ $isSuperAdmin = isSuperAdmin();
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'super_admin_users.php' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400 group-hover:bg-red-100 group-hover:text-red-600' ?>">
                             <i class="fas fa-users"></i>
                         </div>
-                        <span class="flex-1">Users</span>
+                        <span class="flex-1"><?= e(t('users')) ?></span>
                     </a>
                 </li>
                 <li>
@@ -128,7 +128,7 @@ $isSuperAdmin = isSuperAdmin();
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'super_admin_admins.php' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400 group-hover:bg-red-100 group-hover:text-red-600' ?>">
                             <i class="fas fa-user-shield"></i>
                         </div>
-                        <span class="flex-1">Admins</span>
+                        <span class="flex-1"><?= e(t('sidebar_admins')) ?></span>
                     </a>
                 </li>
                 <li>
@@ -137,7 +137,7 @@ $isSuperAdmin = isSuperAdmin();
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'super_admin_reports.php' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400 group-hover:bg-red-100 group-hover:text-red-600' ?>">
                             <i class="fas fa-chart-line"></i>
                         </div>
-                        <span class="flex-1">Reports</span>
+                        <span class="flex-1"><?= e(t('reports')) ?></span>
                     </a>
                 </li>
                 <li>
@@ -146,7 +146,7 @@ $isSuperAdmin = isSuperAdmin();
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'super_admin_settings.php' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400 group-hover:bg-red-100 group-hover:text-red-600' ?>">
                             <i class="fas fa-cog"></i>
                         </div>
-                        <span class="flex-1">Settings</span>
+                        <span class="flex-1"><?= e(t('sidebar_settings')) ?></span>
                     </a>
                 </li>
             </ul>

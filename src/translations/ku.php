@@ -465,5 +465,23 @@ return [
     'privacy_policy' => 'سیاسەتی تایبەتمەندێتی',
     'terms_of_service' => 'مەرجەکانی خزمەتگوزاری',
     'cookie_policy' => 'سیاسەتی کووکی',
+    
+    // Sidebar
+    'admin_panel' => 'پەنێڵی بەڕێوەبردن',
+    'sidebar_general' => 'گشتی',
+    'sidebar_management' => 'بەڕێوەبردن',
+    'sidebar_super_admin' => 'بەڕێوەبەری باڵا',
+    'sidebar_overview' => 'پوختە',
+    'sidebar_admins' => 'بەڕێوەبەران',
+    'sidebar_settings' => 'ڕێکخستنەکان',
+    'dashboard' => 'داشبۆرد',
+    'products' => 'بەرهەمەکان',
+    'categories' => 'پۆلەکان',
+    'manage_categories' => 'بەڕێوەبردنی پۆلەکان',
+    'view_reports' => 'بینینی ڕاپۆرتەکان',
+    'details' => 'وردەکاری',
+    'date' => 'بەروار',
+    'action' => 'کردار',
+    'no_orders_found' => 'هیچ داواکاریەک نەدۆزرایەوە',
 ];
 

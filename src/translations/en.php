@@ -465,5 +465,23 @@ return [
     'privacy_policy' => 'Privacy Policy',
     'terms_of_service' => 'Terms of Service',
     'cookie_policy' => 'Cookie Policy',
+    
+    // Sidebar
+    'admin_panel' => 'Admin Panel',
+    'sidebar_general' => 'General',
+    'sidebar_management' => 'Management',
+    'sidebar_super_admin' => 'Super Admin',
+    'sidebar_overview' => 'Overview',
+    'sidebar_admins' => 'Admins',
+    'sidebar_settings' => 'Settings',
+    'dashboard' => 'Dashboard',
+    'products' => 'Products',
+    'categories' => 'Categories',
+    'manage_categories' => 'Manage Categories',
+    'view_reports' => 'View Reports',
+    'details' => 'Details',
+    'date' => 'Date',
+    'action' => 'Action',
+    'no_orders_found' => 'No orders found',
 ];
 
