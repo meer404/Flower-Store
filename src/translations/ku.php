@@ -67,8 +67,10 @@ return [
     
     // Admin Products
     'products_management' => 'بەڕێوەبردنی بەرهەمەکان',
+    'orders_management' => 'بەڕێوەبردنی داواکاریەکان',
     'add_new_product' => 'زیادکردنی بەرهەمی نوێ',
     'products_desc' => 'بەڕێوەبردنی هەموو کەتەلۆگی بەرهەمەکان',
+    'orders_desc' => 'بەڕێوەبردن و بەدواداچوونی داواکاری کڕیاران',
     'all_products' => 'هەموو بەرهەمەکان',
     'total_products_count' => 'کۆی گشتی: :count بەرهەم',
     'page_x_of_y' => 'پەڕەی :page لە :total',
@@ -396,6 +398,8 @@ return [
     'select_delivery_date' => 'بەرواری گەیاندن هەڵبژێرە',
     'delivery_date_required' => 'تکایە بەرواری گەیاندن هەڵبژێرە',
     'delivery_date_invalid' => 'بەرواری گەیاندن دەبێت لە داهاتوودا بێت',
+    'print' => 'چاپکردن',
+    'order_updated_success' => 'داواکاری بە سەرکەوتوویی نوێکرایەوە',
     
     // Wishlist
     'my_wishlist' => 'لیستی ئاواتەکانم',

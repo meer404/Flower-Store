@@ -67,8 +67,10 @@ return [
     
     // Admin Products
     'products_management' => 'Products Management',
+    'orders_management' => 'Orders Management',
     'add_new_product' => 'Add New Product',
     'products_desc' => 'Manage your entire product catalog',
+    'orders_desc' => 'Manage and track customer orders',
     'all_products' => 'All Products',
     'total_products_count' => 'Total: :count products',
     'page_x_of_y' => 'Page :page of :total',
@@ -396,6 +398,8 @@ return [
     'select_delivery_date' => 'Select Delivery Date',
     'delivery_date_required' => 'Please select a delivery date',
     'delivery_date_invalid' => 'Delivery date must be in the future',
+    'print' => 'Print',
+    'order_updated_success' => 'Order updated successfully',
     
     // Wishlist
     'my_wishlist' => 'My Wishlist',

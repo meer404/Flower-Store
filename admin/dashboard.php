@@ -33,6 +33,14 @@ $stats['revenue'] = $stats['revenue'] ?: 0;
 
 $totalSales = (float)$stats['revenue'];
 
+// Get recent orders
+$stmt = $pdo->query("SELECT o.*, u.full_name as user_name, u.email as user_email 
+                     FROM orders o 
+                     LEFT JOIN users u ON o.user_id = u.id 
+                     ORDER BY o.order_date DESC 
+                     LIMIT 5");
+$recentOrders = $stmt->fetchAll();
+
 $lang = getCurrentLang();
 $dir = getHtmlDir();
 ?>
@@ -231,14 +239,14 @@ $dir = getHtmlDir();
                                                     'completed' => 'bg-green-100 text-green-700',
                                                     'cancelled' => 'bg-red-100 text-red-700'
                                                 ];
-                                                $statusClass = $statusColors[$order['status']] ?? 'bg-gray-100 text-gray-700';
+                                                $statusClass = $statusColors[$order['order_status'] ?? 'pending'] ?? 'bg-gray-100 text-gray-700';
                                                 ?>
                                                 <span class="<?= $statusClass ?> px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
-                                                    <?= e(ucfirst($order['status'])) ?>
+                                                    <?= e(ucfirst($order['order_status'] ?? 'pending')) ?>
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 text-sm text-gray-500">
-                                                <?= e(date('M d, H:i', strtotime($order['created_at']))) ?>
+                                                <?= e(date('M d, H:i', strtotime($order['order_date']))) ?>
                                             </td>
                                             <td class="px-6 py-4">
                                                 <a href="order_details.php?id=<?= $order['id'] ?>" class="text-purple-600 hover:text-purple-800 transition-colors font-semibold text-sm">
