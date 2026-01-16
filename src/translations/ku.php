@@ -237,6 +237,8 @@ return [
     'permission_view_users' => 'بینینی بەشداربووان',
     'permission_manage_users' => 'سڕکردن/دەستکاری هەژماری بەشداربووان',
     'permission_system_settings' => 'ڕێکخستنەکانی سیستەم',
+    'permission_denied' => 'دەسەڵات نییە',
+    'no_permission' => 'دەسەڵات نییە',
     
     // Reports
     'reports' => 'ڕاپۆرتەکان',

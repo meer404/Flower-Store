@@ -237,6 +237,8 @@ return [
     'permission_view_users' => 'View Customer Users',
     'permission_manage_users' => 'Ban/Modify Customer Accounts',
     'permission_system_settings' => 'System Settings',
+    'permission_denied' => 'Permission denied',
+    'no_permission' => 'No permission',
     
     // Reports
     'reports' => 'Reports',

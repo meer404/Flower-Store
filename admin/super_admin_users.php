@@ -11,7 +11,12 @@ require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/design_config.php';
 require_once __DIR__ . '/../src/components.php';
 
-requireSuperAdmin();
+// Require admin role and check for user management permissions
+requireAdmin();
+if (!hasPermission('view_users') && !hasPermission('manage_users')) {
+    http_response_code(403);
+    die('Access denied. You need view_users or manage_users permission to access this page.');
+}
 
 $pdo = getDB();
 $lang = getCurrentLang();
@@ -27,6 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             switch ($action) {
                 case 'delete':
+                    // Only admins with manage_users permission can delete users
+                    if (!hasPermission('manage_users')) {
+                        redirect('super_admin_users.php', t('permission_denied'), 'error');
+                    }
                     $stmt = $pdo->prepare('DELETE FROM users WHERE id = :id AND role != "super_admin"');
                     $stmt->execute(['id' => $userId]);
                     logActivity('user_deleted', 'user', $userId, "Deleted user ID: {$userId}");
@@ -242,7 +251,7 @@ $csrfToken = generateCSRFToken();
                                             </td>
                                             <td class="px-6 py-4">
                                                 <div class="flex gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                                                    <?php if ($user['role'] !== 'super_admin'): ?>
+                                                    <?php if ($user['role'] !== 'super_admin' && hasPermission('manage_users')): ?>
                                                         <form method="POST" onsubmit="return confirm('<?= e(t('delete_user_confirm')) ?>');">
                                                             <input type="hidden" name="action" value="delete">
                                                             <input type="hidden" name="user_id" value="<?= e((string)$user['id']) ?>">
@@ -251,8 +260,10 @@ $csrfToken = generateCSRFToken();
                                                                 <i class="fas fa-trash-alt"></i>
                                                             </button>
                                                         </form>
-                                                    <?php else: ?>
+                                                    <?php elseif ($user['role'] === 'super_admin'): ?>
                                                         <span class="text-gray-300 text-xs italic">Protected</span>
+                                                    <?php else: ?>
+                                                        <span class="text-gray-400 text-xs italic"><?= e(t('no_permission')) ?></span>
                                                     <?php endif; ?>
                                                 </div>
                                             </td>
