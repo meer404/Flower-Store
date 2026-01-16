@@ -724,3 +724,48 @@ function getSalesReport(string $period = 'month'): array {
     }
 }
 
+/**
+ * Format time as "ago"
+ * 
+ * @param string|int|null $timestamp Timestamp string or integer
+ * @return string Formatted time string
+ */
+function time_ago($timestamp): string {
+    if (!$timestamp) {
+        return '';
+    }
+    
+    if (is_numeric($timestamp)) {
+        $timestamp = (int)$timestamp;
+    } else {
+        $timestamp = strtotime($timestamp);
+    }
+    
+    $current_time = time();
+    $time_difference = $current_time - $timestamp;
+    $seconds = $time_difference;
+    $minutes = round($seconds / 60);           // value 60 is seconds
+    $hours   = round($seconds / 3600);         // value 3600 is 60 minutes * 60 sec
+    $days    = round($seconds / 86400);        // value 86400 is 24 hours * 60 minutes * 60 sec
+    $weeks   = round($seconds / 604800);       // value 604800 is 7 days * 24 hours * 60 minutes * 60 sec
+    $months  = round($seconds / 2629440);      // value 2629440 is ((365+365+365+365+366)/5/12) days * 24 hours * 60 minutes * 60 sec
+    $years   = round($seconds / 31553280);     // value 31553280 is ((365+365+365+365+366)/5) days * 24 hours * 60 minutes * 60 sec
+
+    if ($seconds <= 60) {
+        return t('just_now');
+    } else if ($minutes <= 60) {
+        return $minutes == 1 ? t('one_minute_ago') : t('minutes_ago', ['count' => $minutes]);
+    } else if ($hours <= 24) {
+        return $hours == 1 ? t('an_hour_ago') : t('hours_ago', ['count' => $hours]);
+    } else if ($days <= 7) {
+        return $days == 1 ? t('yesterday') : t('days_ago', ['count' => $days]);
+    } else if ($weeks <= 4.3) {
+        return $weeks == 1 ? t('a_week_ago') : t('weeks_ago', ['count' => $weeks]);
+    } else if ($months <= 12) {
+        return $months == 1 ? t('a_month_ago') : t('months_ago', ['count' => $months]);
+    } else {
+        return $years == 1 ? t('one_year_ago') : t('years_ago', ['count' => $years]);
+    }
+}
+
+

@@ -91,89 +91,149 @@ $dir = getHtmlDir();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e(t('categories_management')) ?> - Bloom & Vine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
 </head>
-<body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <?php include __DIR__ . '/../src/header.php'; ?>
+<body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('categories_management')) ?></h1>
-        
-        <?php if ($error): ?>
-            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-sm mb-6">
-                <?= e($error) ?>
-            </div>
-        <?php endif; ?>
-        
-        <?php if ($success): ?>
-            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-sm mb-6">
-                <?= e($success) ?>
-            </div>
-        <?php endif; ?>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-            <!-- Add Category Form -->
-            <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
-                <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('add_new_category')) ?></h2>
-                <form method="POST" action="" class="space-y-5 md:space-y-6">
-                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                    <input type="hidden" name="action" value="add">
-                    
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+            <!-- Admin Header -->
+            <?php include __DIR__ . '/header.php'; ?>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-8">
+                <!-- Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('name_en')) ?></label>
-                        <input type="text" name="name_en" required
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+                        <h1 class="text-3xl font-luxury font-bold text-gray-800 flex items-center gap-3">
+                            <i class="fas fa-tags text-orange-600"></i>
+                            <?= e(t('categories_management')) ?>
+                        </h1>
+                        <p class="text-gray-500 mt-1">Manage product categories and organization</p>
+                    </div>
+                </div>
+                
+                <?php if ($error): ?>
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-3 shadow-sm">
+                        <i class="fas fa-exclamation-circle text-xl"></i>
+                        <?= e($error) ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if ($success): ?>
+                    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-3 shadow-sm">
+                        <i class="fas fa-check-circle text-xl"></i>
+                        <?= e($success) ?>
+                    </div>
+                <?php endif; ?>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                    <!-- Add Category Form -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                <i class="fas fa-plus-circle text-orange-600"></i>
+                                <?= e(t('add_new_category')) ?>
+                            </h2>
+                            <form method="POST" action="" class="space-y-5">
+                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                <input type="hidden" name="action" value="add">
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('name_en')) ?></label>
+                                    <input type="text" name="name_en" required
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('name_ku')) ?></label>
+                                    <input type="text" name="name_ku" required
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('slug')) ?></label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-400">/</span>
+                                        </div>
+                                        <input type="text" name="slug" required
+                                               placeholder="e.g., weddings"
+                                               class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">URL-friendly version of the name</p>
+                                </div>
+                                
+                                <button type="submit" 
+                                        class="w-full bg-orange-600 text-white py-3 px-4 rounded-xl hover:bg-orange-700 transition-all duration-300 font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                    <i class="fas fa-save me-2"></i><?= e(t('add_category_btn')) ?>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     
-                    <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('name_ku')) ?></label>
-                        <input type="text" name="name_ku" required
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('slug')) ?></label>
-                        <input type="text" name="slug" required
-                               placeholder="e.g., wedding"
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                    </div>
-                    
-                    <button type="submit" 
-                            class="w-full bg-luxury-accent text-white py-3 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                        <?= e(t('add_category_btn')) ?>
-                    </button>
-                </form>
-            </div>
-            
-            <!-- Categories List -->
-            <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
-                <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('all_categories')) ?></h2>
-                <div class="space-y-3 md:space-y-4">
-                    <?php foreach ($categories as $category): ?>
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-luxury-border pb-3 md:pb-4 last:border-0">
-                            <div>
-                                <p class="font-medium text-luxury-primary"><?= e($category['name_en']) ?> / <?= e($category['name_ku']) ?></p>
-                                <p class="text-sm text-luxury-textLight"><?= e(t('slug')) ?>: <?= e($category['slug']) ?> | 
-                                   <?= e((string)$category['product_count']) ?> <?= e(t('products')) ?></p>
+                    <!-- Categories List -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-list text-gray-500"></i>
+                                    <?= e(t('all_categories')) ?>
+                                </h2>
                             </div>
-                            <div class="flex gap-3">
-                                    <a href="?edit=<?= e((string)$category['id']) ?>" 
-                                       class="text-luxury-accent hover:text-luxury-primary transition-colors text-sm font-medium"><?= e(t('edit')) ?></a>
-                                <?php if ($category['product_count'] == 0): ?>
-                                    <a href="?delete=<?= e((string)$category['id']) ?>" 
-                                       onclick="return confirm('<?= e(t('delete_category_confirm')) ?>')"
-                                       class="text-red-600 hover:text-red-800 transition-colors text-sm font-medium"><?= e(t('delete')) ?></a>
-                                <?php endif; ?>
+                            <div class="divide-y divide-gray-100">
+                                <?php foreach ($categories as $category): ?>
+                                    <div class="p-6 hover:bg-orange-50/30 transition-colors group">
+                                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-3 mb-1">
+                                                    <h3 class="font-bold text-lg text-gray-800"><?= e($category['name_en']) ?></h3>
+                                                    <span class="text-gray-300">|</span>
+                                                    <span class="font-medium text-gray-600"><?= e($category['name_ku']) ?></span>
+                                                </div>
+                                                <div class="flex items-center gap-4 text-sm text-gray-500">
+                                                    <span class="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono text-gray-600">/<?= e($category['slug']) ?></span>
+                                                    <span class="flex items-center gap-1">
+                                                        <i class="fas fa-box text-xs"></i>
+                                                        <?= e((string)$category['product_count']) ?> <?= e(t('products')) ?>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="flex gap-2">
+                                                <a href="?edit=<?= e((string)$category['id']) ?>" 
+                                                   class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="<?= e(t('edit')) ?>">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <?php if ($category['product_count'] == 0): ?>
+                                                    <a href="?delete=<?= e((string)$category['id']) ?>" 
+                                                       onclick="return confirm('<?= e(t('delete_category_confirm')) ?>')"
+                                                       class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="<?= e(t('delete')) ?>">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span class="p-2 text-gray-300 cursor-not-allowed" title="Cannot delete category with products">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
                 </div>
-            </div>
+            </main>
+                        
+            <!-- Footer -->
+            <?php include __DIR__ . '/footer.php'; ?>
         </div>
     </div>
-
-    <?= modernFooter() ?>
 </body>
 </html>
-

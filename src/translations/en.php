@@ -309,6 +309,11 @@ return [
     'no_recent_activity' => 'No recent activity',
     'admin_panel_links' => 'Admin Panel Links',
     'view_all_orders' => 'View All Orders',
+    'dashboard_welcome' => 'Here\'s what\'s happening with your store today.',
+    'processing_orders' => 'Processing Orders',
+    'completed_orders' => 'Completed Orders',
+    'recent_orders' => 'Recent Orders',
+    'view_all' => 'View All',
     
     // Product Management
     'product_name_en' => 'Product Name (English)',

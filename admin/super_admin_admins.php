@@ -75,146 +75,148 @@ $csrfToken = generateCSRFToken();
     <?= getLuxuryTailwindConfig() ?>
 </head>
 <body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <?php include __DIR__ . '/../src/header.php'; ?>
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <div class="bg-gradient-to-r from-red-600 via-red-700 to-purple-800 text-white py-12">
-        <div class="container mx-auto px-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-4xl font-luxury font-bold mb-2">
-                        <i class="fas fa-user-shield me-4"></i><?= e(t('admin_management')) ?>
-                    </h1>
-                    <p class="text-red-200"><?= e(t('admin_management_desc')) ?></p>
-                </div>
-                <a href="super_admin_dashboard.php" class="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-xl transition-all">
-                    <i class="fas fa-arrow-left me-2 rtl:rotate-180"></i><?= e(t('back_to_dashboard')) ?>
-                </a>
-            </div>
-        </div>
-    </div>
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+            <!-- Admin Header -->
+            <?php include __DIR__ . '/header.php'; ?>
 
-    <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <?php
-        $flash = getFlashMessage();
-        if ($flash):
-            echo alert($flash['message'], $flash['type']);
-        endif;
-        ?>
+            <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-8">
+                <!-- Page Header -->
+                <div class="bg-gradient-to-r from-red-600 via-red-700 to-purple-800 text-white rounded-3xl p-8 mb-8 shadow-xl relative overflow-hidden">
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-luxury font-bold mb-2">
+                                <i class="fas fa-user-shield me-3"></i><?= e(t('admin_management')) ?>
+                            </h1>
+                            <p class="text-red-200"><?= e(t('admin_management_desc')) ?></p>
+                        </div>
+                    </div>
+                    <!-- Decorative Circles -->
+                    <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-black/10 blur-2xl"></div>
+                </div>
 
-        <!-- Create Admin Form -->
-        <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6 mb-6">
-            <h2 class="text-2xl font-bold text-luxury-primary mb-6">
-                <i class="fas fa-plus-circle me-2 text-green-600"></i><?= e(t('create_new_admin')) ?>
-            </h2>
-            <form method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="hidden" name="action" value="create_admin">
-                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                
-                <div>
-                    <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('full_name')) ?></label>
-                    <input type="text" name="full_name" required 
-                           class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('email')) ?></label>
-                    <input type="email" name="email" required 
-                           class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('password')) ?></label>
-                    <input type="password" name="password" required minlength="6"
-                           class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                </div>
-                
-                <div class="md:col-span-3">
-                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl transition-all font-semibold">
-                        <i class="fas fa-user-plus me-2"></i><?= e(t('create_admin_btn')) ?>
-                    </button>
-                </div>
-            </form>
-        </div>
+                <?php
+                $flash = getFlashMessage();
+                if ($flash):
+                    echo alert($flash['message'], $flash['type']);
+                endif;
+                ?>
 
-        <!-- Admins List -->
-        <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-4">
-                <h2 class="text-2xl font-bold">
-                    <i class="fas fa-table me-2"></i><?= e(t('administrators')) ?> (<?= e((string)count($admins)) ?>)
-                </h2>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="min-w-full">
-                    <thead class="bg-purple-50">
-                        <tr>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-purple-900 uppercase"><?= e(t('role_admin')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-purple-900 uppercase"><?= e(t('role')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-purple-900 uppercase"><?= e(t('order')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-purple-900 uppercase"><?= e(t('created_at')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-purple-900 uppercase"><?= e(t('actions')) ?></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-luxury-border">
-                        <?php if (empty($admins)): ?>
-                            <tr>
-                                <td colspan="5" class="px-6 py-12 text-center text-luxury-textLight">
-                                    <i class="fas fa-user-shield text-6xl text-gray-300 mb-4"></i>
-                                    <p class="text-xl"><?= e(t('no_admins_found')) ?></p>
-                                </td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($admins as $admin): ?>
-                                <tr class="hover:bg-purple-50 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center">
-                                            <div class="w-12 h-12 bg-gradient-to-br <?= $admin['role'] === 'super_admin' ? 'from-red-500 to-red-600' : 'from-purple-500 to-indigo-500' ?> rounded-full flex items-center justify-center text-white font-bold me-4">
-                                                <?= e(strtoupper(substr($admin['full_name'], 0, 1))) ?>
-                                            </div>
-                                            <div>
-                                                <p class="font-bold text-luxury-primary"><?= e($admin['full_name']) ?></p>
-                                                <p class="text-sm text-luxury-textLight"><?= e($admin['email']) ?></p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Create Admin Form -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24 border border-gray-100">
+                            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                <i class="fas fa-plus-circle text-green-600"></i><?= e(t('create_new_admin')) ?>
+                            </h2>
+                            <form method="POST" class="space-y-5">
+                                <input type="hidden" name="action" value="create_admin">
+                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('full_name')) ?></label>
+                                    <input type="text" name="full_name" required 
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white placeholder-gray-400">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('email')) ?></label>
+                                    <input type="email" name="email" required 
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white placeholder-gray-400">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('password')) ?></label>
+                                    <input type="password" name="password" required minlength="6"
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white placeholder-gray-400">
+                                </div>
+                                
+                                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                    <i class="fas fa-user-plus me-2"></i><?= e(t('create_admin_btn')) ?>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Admins List -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-list text-purple-500"></i>
+                                    <?= e(t('administrators')) ?> <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-sm"><?= e((string)count($admins)) ?></span>
+                                </h2>
+                            </div>
+                            
+                            <div class="divide-y divide-gray-100">
+                                <?php if (empty($admins)): ?>
+                                    <div class="p-8 text-center text-gray-400">
+                                        <i class="fas fa-user-shield text-5xl mb-4 text-gray-300"></i>
+                                        <p class="text-lg font-medium"><?= e(t('no_admins_found')) ?></p>
+                                    </div>
+                                <?php else: ?>
+                                    <?php foreach ($admins as $admin): ?>
+                                        <div class="p-6 hover:bg-gray-50 transition-colors group">
+                                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-12 h-12 bg-gradient-to-br <?= $admin['role'] === 'super_admin' ? 'from-red-500 to-red-600' : 'from-purple-500 to-indigo-500' ?> rounded-full flex items-center justify-center text-white font-bold shadow-sm">
+                                                        <?= e(strtoupper(substr($admin['full_name'], 0, 1))) ?>
+                                                    </div>
+                                                    <div>
+                                                        <div class="flex items-center gap-2 mb-1">
+                                                            <h3 class="font-bold text-gray-800 text-lg"><?= e($admin['full_name']) ?></h3>
+                                                            <?php if ($admin['role'] === 'super_admin'): ?>
+                                                                <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Super Admin</span>
+                                                            <?php else: ?>
+                                                                <span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Admin</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <p class="text-sm text-gray-500 flex items-center gap-2">
+                                                            <i class="fas fa-envelope text-xs opacity-50"></i>
+                                                            <?= e($admin['email']) ?>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="flex items-center gap-3">
+                                                    <div class="text-xs text-gray-400 font-medium">
+                                                        Created <?= e(date('M d, Y', strtotime($admin['created_at']))) ?>
+                                                    </div>
+                                                    
+                                                    <?php if ($admin['role'] === 'admin'): ?>
+                                                        <form method="POST" onsubmit="return confirm('<?= e(t('delete_admin_confirm')) ?>');">
+                                                            <input type="hidden" name="action" value="delete_admin">
+                                                            <input type="hidden" name="admin_id" value="<?= e((string)$admin['id']) ?>">
+                                                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                                            <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="<?= e(t('delete')) ?>">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </form>
+                                                    <?php else: ?>
+                                                        <span class="p-2 text-gray-300" title="<?= e(t('protected')) ?>">
+                                                            <i class="fas fa-lock"></i>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex px-3 py-1 text-xs font-bold rounded-full <?= 
-                                            $admin['role'] === 'super_admin' ? 'bg-red-100 text-red-800' : 'bg-purple-100 text-purple-800'
-                                        ?>">
-                                            <i class="fas fa-<?= $admin['role'] === 'super_admin' ? 'crown' : 'user-shield' ?> me-1"></i>
-                                            <?= e(ucfirst(str_replace('_', ' ', $admin['role']))) ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="font-semibold"><?= e((string)$admin['total_orders']) ?></span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-luxury-textLight">
-                                        <?= e(date('M d, Y', strtotime($admin['created_at']))) ?>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <?php if ($admin['role'] === 'admin'): ?>
-                                            <form method="POST" onsubmit="return confirm('<?= e(t('delete_admin_confirm')) ?>');" class="inline">
-                                                <input type="hidden" name="action" value="delete_admin">
-                                                <input type="hidden" name="admin_id" value="<?= e((string)$admin['id']) ?>">
-                                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all text-sm">
-                                                    <i class="fas fa-trash me-1"></i><?= e(t('delete')) ?>
-                                                </button>
-                                            </form>
-                                        <?php else: ?>
-                                            <span class="text-luxury-textLight text-sm"><?= e(t('protected')) ?></span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+                        
+            <!-- Footer -->
+            <?php include __DIR__ . '/footer.php'; ?>
         </div>
     </div>
-
-    <?= modernFooter() ?>
 </body>
 </html>
-

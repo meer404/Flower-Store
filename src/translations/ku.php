@@ -309,6 +309,11 @@ return [
     'no_recent_activity' => 'هیچ چالاکیەکی نوێ نییە',
     'admin_panel_links' => 'بەستەرەکانی پەنێڵی بەڕێوەبردن',
     'view_all_orders' => 'بینینی هەموو داواکاریەکان',
+    'dashboard_welcome' => 'ئەمە پوختەی کۆگاکەتە بۆ ئەمڕۆ.',
+    'processing_orders' => 'داواکاریەکان لە ژێر جێبەجێکردندان',
+    'completed_orders' => 'داواکاریە تەواوبووەکان',
+    'recent_orders' => 'داواکاریە نوێیەکان',
+    'view_all' => 'بینینی هەموو',
     
     // Product Management
     'product_name_en' => 'ناوی بەرهەم (ئینگلیزی)',

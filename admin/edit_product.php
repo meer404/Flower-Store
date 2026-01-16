@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 
-                redirect('dashboard.php', t('product_added'), 'success');
+                redirect('products.php', t('product_updated'), 'success');
             } catch (PDOException $e) {
                 error_log('Product update error: ' . $e->getMessage());
                 $error = t('product_error');
@@ -152,163 +152,238 @@ $dir = getHtmlDir();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e(t('edit_product')) ?> - Bloom & Vine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
 </head>
-<body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <?php include __DIR__ . '/../src/header.php'; ?>
+<body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('edit_product')) ?></h1>
-        
-        <?php if ($error): ?>
-            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-sm mb-6">
-                <?= e($error) ?>
-            </div>
-        <?php endif; ?>
-        
-        <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
-            <form method="POST" action="" enctype="multipart/form-data" class="space-y-6">
-                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="name_en" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('product_name_en')) ?>
-                        </label>
-                        <input type="text" id="name_en" name="name_en" required
-                               value="<?= e($product['name_en']) ?>"
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+            <!-- Admin Header -->
+            <?php include __DIR__ . '/header.php'; ?>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-8">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Page Header -->
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h1 class="text-3xl font-luxury font-bold text-gray-800 flex items-center gap-3">
+                                <i class="fas fa-edit text-blue-600"></i>
+                                <?= e(t('edit_product')) ?>
+                            </h1>
+                            <p class="text-gray-500 mt-1">Editing product #<?= e((string)$productId) ?></p>
+                        </div>
+                        <a href="products.php" class="text-gray-500 hover:text-gray-700 font-medium flex items-center gap-2 transition-colors">
+                            <i class="fas fa-arrow-left"></i> Back to Products
+                        </a>
                     </div>
                     
-                    <div>
-                        <label for="name_ku" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('product_name_ku')) ?>
-                        </label>
-                        <input type="text" id="name_ku" name="name_ku" required
-                               value="<?= e($product['name_ku']) ?>"
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="description_en" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('product_description_en')) ?>
-                        </label>
-                        <textarea id="description_en" name="description_en" rows="4" required
-                                  class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"><?= e($product['description_en']) ?></textarea>
-                    </div>
-                    
-                    <div>
-                        <label for="description_ku" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('product_description_ku')) ?>
-                        </label>
-                        <textarea id="description_ku" name="description_ku" rows="4" required
-                                  class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"><?= e($product['description_ku']) ?></textarea>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div>
-                        <label for="category_id" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('category')) ?>
-                        </label>
-                        <select id="category_id" name="category_id" required
-                                class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                            <?php foreach ($categories as $category): ?>
-                                <option value="<?= e((string)$category['id']) ?>" 
-                                        <?= $product['category_id'] == $category['id'] ? 'selected' : '' ?>>
-                                    <?= e($category['name_en']) ?> / <?= e($category['name_ku']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label for="price" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('price')) ?>
-                        </label>
-                        <input type="number" id="price" name="price" step="0.01" min="0" required
-                               value="<?= e((string)$product['price']) ?>"
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                    </div>
-                    
-                    <div>
-                        <label for="stock_qty" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('stock_quantity')) ?>
-                        </label>
-                        <input type="number" id="stock_qty" name="stock_qty" min="0" required
-                               value="<?= e((string)$product['stock_qty']) ?>"
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                    </div>
-                    
-                    <div>
-                        <label for="sku" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('sku')) ?>
-                        </label>
-                        <input type="text" id="sku" name="sku"
-                               value="<?= e($product['sku'] ?? '') ?>"
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                    </div>
-                </div>
-                
-                <div>
-                    <label for="image" class="block text-sm font-medium text-luxury-text mb-2">
-                        <?= e(t('product_image')) ?> (<?= e(t('leave_empty_hint')) ?>)
-                    </label>
-                    <?php if ($product['image_url']): ?>
-                        <img src="<?= e($product['image_url']) ?>" alt="<?= e(t('current_image')) ?>" class="w-32 h-32 object-cover rounded-sm mb-3 border border-luxury-border">
-                    <?php endif; ?>
-                    <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif,image/webp"
-                           class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                </div>
-                
-                <div>
-                    <label for="gallery_images" class="block text-sm font-medium text-luxury-text mb-2">
-                        <?= e(t('gallery_images')) ?>
-                    </label>
-                    <?php if (!empty($productImages)): ?>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                            <?php foreach ($productImages as $img): ?>
-                                <div class="relative group">
-                                    <img src="<?= e($img['image_url']) ?>" class="w-full h-20 md:h-24 object-cover rounded-sm border border-luxury-border">
-                                    <a href="delete_image.php?id=<?= e((string)$img['id']) ?>&product_id=<?= e((string)$productId) ?>" 
-                                       class="absolute top-1 end-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
-                                       onclick="return confirm('<?= e(t('delete_image_confirm')) ?>')">×</a>
-                                </div>
-                            <?php endforeach; ?>
+                    <?php if ($error): ?>
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-6 shadow-sm flex items-center gap-3">
+                            <i class="fas fa-exclamation-triangle text-xl"></i>
+                            <div><?= e($error) ?></div>
                         </div>
                     <?php endif; ?>
-                    <input type="file" id="gallery_images" name="gallery_images[]" multiple
-                           accept="image/jpeg,image/png,image/gif,image/webp"
-                           class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+                    
+                    <form method="POST" action="" enctype="multipart/form-data" class="space-y-6">
+                        <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left Column: Main Info -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <!-- Basic details -->
+                                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                                    <h2 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">Product Details</h2>
+                                    
+                                    <div class="grid grid-cols-1 gap-6">
+                                        <!-- English Name -->
+                                        <div>
+                                            <label for="name_en" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('product_name_en')) ?> <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="text" id="name_en" name="name_en" required
+                                                   value="<?= e($product['name_en']) ?>"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+                                        
+                                        <!-- Kurdish Name -->
+                                        <div>
+                                            <label for="name_ku" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('product_name_ku')) ?> <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="text" id="name_ku" name="name_ku" required
+                                                   value="<?= e($product['name_ku']) ?>"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+                                        
+                                        <!-- English Description -->
+                                        <div>
+                                            <label for="description_en" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('product_description_en')) ?> <span class="text-red-500">*</span>
+                                            </label>
+                                            <textarea id="description_en" name="description_en" rows="4" required
+                                                      class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"><?= e($product['description_en']) ?></textarea>
+                                        </div>
+                                        
+                                        <!-- Kurdish Description -->
+                                        <div>
+                                            <label for="description_ku" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('product_description_ku')) ?> <span class="text-red-500">*</span>
+                                            </label>
+                                            <textarea id="description_ku" name="description_ku" rows="4" required
+                                                      class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"><?= e($product['description_ku']) ?></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Pricing & Inventory -->
+                                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                                    <h2 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">Pricing & Inventory</h2>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label for="price" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('price')) ?> ($) <span class="text-red-500">*</span>
+                                            </label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span class="text-gray-500 font-bold">$</span>
+                                                </div>
+                                                <input type="number" id="price" name="price" step="0.01" min="0" required
+                                                       value="<?= e((string)$product['price']) ?>"
+                                                       class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="stock_qty" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('stock_quantity')) ?> <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="number" id="stock_qty" name="stock_qty" min="0" required
+                                                   value="<?= e((string)$product['stock_qty']) ?>"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+                                        
+                                        <div class="md:col-span-2">
+                                            <label for="sku" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('sku')) ?>
+                                            </label>
+                                            <input type="text" id="sku" name="sku"
+                                                   value="<?= e($product['sku'] ?? '') ?>"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Media & Organization -->
+                            <div class="lg:col-span-1 space-y-6">
+                                <!-- Organization -->
+                                <div class="bg-white rounded-2xl shadow-lg p-6">
+                                    <h2 class="text-lg font-bold text-gray-800 mb-4">Organization</h2>
+                                    
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="category_id" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('category')) ?> <span class="text-red-500">*</span>
+                                            </label>
+                                            <select id="category_id" name="category_id" required
+                                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                                <?php foreach ($categories as $category): ?>
+                                                    <option value="<?= e((string)$category['id']) ?>" 
+                                                            <?= $product['category_id'] == $category['id'] ? 'selected' : '' ?>>
+                                                        <?= e($category['name_en']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="pt-4 border-t border-gray-100">
+                                            <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                                                <div class="relative flex items-center">
+                                                    <input type="checkbox" name="is_featured" value="1" 
+                                                           <?= $product['is_featured'] ? 'checked' : '' ?>
+                                                           class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-blue-600 checked:bg-blue-600">
+                                                    <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                                    </div>
+                                                </div>
+                                                <span class="text-sm font-bold text-gray-700"><?= e(t('featured')) ?></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Image Upload -->
+                                <div class="bg-white rounded-2xl shadow-lg p-6">
+                                    <h2 class="text-lg font-bold text-gray-800 mb-4"><?= e(t('product_image')) ?></h2>
+                                    
+                                    <?php if ($product['image_url']): ?>
+                                        <div class="mb-4">
+                                            <img src="<?= e(url($product['image_url'])) ?>" alt="Current Image" class="w-full h-48 object-cover rounded-xl border border-gray-200">
+                                            <p class="text-xs text-gray-500 mt-2 text-center">Current Main Image</p>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-gray-50">
+                                        <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif,image/webp"
+                                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                        <div class="flex flex-col items-center">
+                                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                            <p class="text-sm font-medium text-gray-600">Change Image</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Gallery Images -->
+                                <div class="bg-white rounded-2xl shadow-lg p-6">
+                                    <h2 class="text-lg font-bold text-gray-800 mb-4"><?= e(t('gallery_images')) ?></h2>
+                                    
+                                    <?php if (!empty($productImages)): ?>
+                                        <div class="grid grid-cols-3 gap-2 mb-4">
+                                            <?php foreach ($productImages as $img): ?>
+                                                <div class="relative group aspect-square">
+                                                    <img src="<?= e(url($img['image_url'])) ?>" class="w-full h-full object-cover rounded-lg border border-gray-200">
+                                                    <a href="delete_image.php?id=<?= e((string)$img['id']) ?>&product_id=<?= e((string)$productId) ?>" 
+                                                       class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-sm"
+                                                       onclick="return confirm('<?= e(t('delete_image_confirm')) ?>')">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="relative border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 transition-colors bg-gray-50">
+                                        <input type="file" id="gallery_images" name="gallery_images[]" multiple
+                                               accept="image/jpeg,image/png,image/gif,image/webp"
+                                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                        <div class="flex flex-col items-center">
+                                            <i class="fas fa-images text-2xl text-gray-400 mb-2"></i>
+                                            <p class="text-xs font-medium text-gray-600">Add Gallery Images</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Submit Button -->
+                                <button type="submit" 
+                                        class="w-full bg-blue-600 text-white py-4 px-6 rounded-xl hover:bg-blue-700 transition-all duration-300 font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                    <i class="fas fa-save me-2"></i><?= e(t('update_product')) ?>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                
-                <div>
-                    <label class="flex items-center">
-                        <input type="checkbox" name="is_featured" value="1" 
-                               <?= $product['is_featured'] ? 'checked' : '' ?>
-                               class="me-2 h-4 w-4 text-luxury-accent focus:ring-luxury-accent border-luxury-border rounded-sm">
-                        <span class="text-sm font-medium text-luxury-text"><?= e(t('featured')) ?></span>
-                    </label>
-                </div>
-                
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <button type="submit" 
-                            class="flex-1 bg-luxury-accent text-white py-3 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                        <?= e(t('update_product')) ?>
-                    </button>
-                    <a href="products.php" 
-                       class="flex-1 border border-luxury-border text-luxury-text py-3 px-4 rounded-sm hover:bg-luxury-border transition-all duration-300 text-center font-medium">
-                        <?= e(t('cancel')) ?>
-                    </a>
-                </div>
-            </form>
+            </main>
+                        
+            <!-- Footer -->
+            <?php include __DIR__ . '/footer.php'; ?>
         </div>
     </div>
-    
-    <?= modernFooter() ?>
 </body>
 </html>
-

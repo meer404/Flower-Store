@@ -107,163 +107,195 @@ $csrfToken = generateCSRFToken();
     <?= getLuxuryTailwindConfig() ?>
 </head>
 <body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <?php include __DIR__ . '/../src/header.php'; ?>
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <div class="bg-gradient-to-r from-red-600 via-red-700 to-purple-800 text-white py-12">
-        <div class="container mx-auto px-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-4xl font-luxury font-bold mb-2">
-                        <i class="fas fa-users me-4"></i><?= e(t('user_management')) ?>
-                    </h1>
-                    <p class="text-red-200"><?= e(t('user_management_desc')) ?></p>
-                </div>
-                <a href="super_admin_dashboard.php" class="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-xl transition-all">
-                    <i class="fas fa-arrow-left me-2 rtl:rotate-180"></i><?= e(t('back_to_dashboard')) ?>
-                </a>
-            </div>
-        </div>
-    </div>
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+            <!-- Admin Header -->
+            <?php include __DIR__ . '/header.php'; ?>
 
-    <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <?php
-        $flash = getFlashMessage();
-        if ($flash):
-            echo alert($flash['message'], $flash['type']);
-        endif;
-        ?>
-
-        <!-- Filters -->
-        <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6 mb-6">
-            <form method="GET" class="flex flex-col md:flex-row gap-4">
-                <div class="flex-1">
-                    <input type="text" name="search" value="<?= e($search) ?>" 
-                           placeholder="<?= e(t('search_users_placeholder')) ?>" 
-                           class="w-full px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                </div>
-                <div>
-                    <select name="role" class="px-4 py-2 border border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600">
-                        <option value="all" <?= $roleFilter === 'all' ? 'selected' : '' ?>><?= e(t('all_roles')) ?></option>
-                        <option value="customer" <?= $roleFilter === 'customer' ? 'selected' : '' ?>><?= e(t('role_customer')) ?></option>
-                        <option value="admin" <?= $roleFilter === 'admin' ? 'selected' : '' ?>><?= e(t('role_admin')) ?></option>
-                    </select>
-                </div>
-                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition-all font-semibold">
-                    <i class="fas fa-search me-2"></i><?= e(t('search')) ?>
-                </button>
-                <a href="super_admin_users.php" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-xl transition-all font-semibold text-center">
-                    <i class="fas fa-redo me-2"></i><?= e(t('reset')) ?>
-                </a>
-            </form>
-        </div>
-
-        <!-- Users Table -->
-        <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4">
-                <h2 class="text-2xl font-bold">
-                    <i class="fas fa-table me-2"></i><?= e(t('users')) ?> (<?= e((string)$totalUsers) ?>)
-                </h2>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="min-w-full">
-                    <thead class="bg-blue-50">
-                        <tr>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('user')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('role')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('order')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('total')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('joined')) ?></th>
-                            <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('actions')) ?></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-luxury-border">
-                        <?php if (empty($users)): ?>
-                            <tr>
-                                <td colspan="6" class="px-6 py-12 text-center text-luxury-textLight">
-                                    <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
-                                    <p class="text-xl"><?= e(t('no_users_found')) ?></p>
-                                </td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($users as $user): ?>
-                                <tr class="hover:bg-blue-50 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center">
-                                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold me-4">
-                                                <?= e(strtoupper(substr($user['full_name'], 0, 1))) ?>
-                                            </div>
-                                            <div>
-                                                <p class="font-bold text-luxury-primary"><?= e($user['full_name']) ?></p>
-                                                <p class="text-sm text-luxury-textLight"><?= e($user['email']) ?></p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-flex px-3 py-1 text-xs font-bold rounded-full <?= 
-                                            $user['role'] === 'super_admin' ? 'bg-red-100 text-red-800' : 
-                                            ($user['role'] === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800')
-                                        ?>">
-                                            <i class="fas fa-<?= $user['role'] === 'super_admin' ? 'crown' : ($user['role'] === 'admin' ? 'user-shield' : 'user') ?> me-1"></i>
-                                            <?= e(ucfirst(str_replace('_', ' ', $user['role']))) ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="font-semibold"><?= e((string)$user['total_orders']) ?></span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="font-bold text-green-600"><?= e(formatPrice((float)$user['total_spent'])) ?></span>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-luxury-textLight">
-                                        <?= e(date('M d, Y', strtotime($user['created_at']))) ?>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex gap-2">
-                                            <?php if ($user['role'] !== 'super_admin'): ?>
-                                                <form method="POST" onsubmit="return confirm('<?= e(t('delete_user_confirm')) ?>');">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="user_id" value="<?= e((string)$user['id']) ?>">
-                                                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                                                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-all text-sm">
-                                                        <i class="fas fa-trash me-1"></i><?= e(t('delete')) ?>
-                                                    </button>
-                                                </form>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <?php if ($totalPages > 1): ?>
-                <div class="px-6 py-4 border-t border-luxury-border flex items-center justify-between">
-                    <p class="text-sm text-luxury-textLight">
-                        Showing <?= e((string)(($page - 1) * $perPage + 1)) ?> to <?= e((string)min($page * $perPage, $totalUsers)) ?> of <?= e((string)$totalUsers) ?> users
-                    </p>
-                    <div class="flex gap-2">
-                        <?php if ($page > 1): ?>
-                            <a href="?page=<?= e((string)($page - 1)) ?>&search=<?= e($search) ?>&role=<?= e($roleFilter) ?>" 
-                               class="px-4 py-2 border border-luxury-border rounded-lg hover:bg-gray-50 transition-all">
-                                <i class="fas fa-chevron-left rtl:rotate-180"></i> <?= e(t('previous')) ?>
-                            </a>
-                        <?php endif; ?>
-                        <?php if ($page < $totalPages): ?>
-                            <a href="?page=<?= e((string)($page + 1)) ?>&search=<?= e($search) ?>&role=<?= e($roleFilter) ?>" 
-                               class="px-4 py-2 border border-luxury-border rounded-lg hover:bg-gray-50 transition-all">
-                                <?= e(t('next')) ?> <i class="fas fa-chevron-right rtl:rotate-180"></i>
-                            </a>
-                        <?php endif; ?>
+            <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-8">
+                <!-- Page Header -->
+                <div class="bg-gradient-to-r from-red-600 via-red-700 to-purple-800 text-white rounded-3xl p-8 mb-8 shadow-xl relative overflow-hidden">
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-luxury font-bold mb-2">
+                                <i class="fas fa-users me-3"></i><?= e(t('user_management')) ?>
+                            </h1>
+                            <p class="text-red-200"><?= e(t('user_management_desc')) ?></p>
+                        </div>
                     </div>
+                    <!-- Decorative Circles -->
+                    <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-black/10 blur-2xl"></div>
                 </div>
-            <?php endif; ?>
+
+                <?php
+                $flash = getFlashMessage();
+                if ($flash):
+                    echo alert($flash['message'], $flash['type']);
+                endif;
+                ?>
+
+                <!-- Filters & Controls -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+                    <form method="GET" class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Search Users</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" name="search" value="<?= e($search) ?>" 
+                                       placeholder="<?= e(t('search_users_placeholder')) ?>" 
+                                       class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                            </div>
+                        </div>
+                        <div class="md:w-64">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Filter by Role</label>
+                            <select name="role" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white cursor-pointer appearance-none">
+                                <option value="all" <?= $roleFilter === 'all' ? 'selected' : '' ?>><?= e(t('all_roles')) ?></option>
+                                <option value="customer" <?= $roleFilter === 'customer' ? 'selected' : '' ?>><?= e(t('role_customer')) ?></option>
+                                <option value="admin" <?= $roleFilter === 'admin' ? 'selected' : '' ?>><?= e(t('role_admin')) ?></option>
+                            </select>
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl transition-all font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                <?= e(t('search')) ?>
+                            </button>
+                            <a href="super_admin_users.php" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl transition-all font-bold">
+                                <?= e(t('reset')) ?>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Users Table -->
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-list text-red-500"></i>
+                            <?= e(t('users')) ?> <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-sm"><?= e((string)$totalUsers) ?></span>
+                        </h2>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('user')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('role')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('order')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('total_spent')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('joined')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('actions')) ?></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <?php if (empty($users)): ?>
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fas fa-users-slash text-5xl mb-4 text-gray-300"></i>
+                                                <p class="text-lg font-medium"><?= e(t('no_users_found')) ?></p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($users as $user): ?>
+                                        <tr class="hover:bg-red-50/10 transition-colors group">
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center">
+                                                    <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold me-3 shadow-sm">
+                                                        <?= e(strtoupper(substr($user['full_name'], 0, 1))) ?>
+                                                    </div>
+                                                    <div>
+                                                        <p class="font-bold text-gray-800 group-hover:text-red-600 transition-colors"><?= e($user['full_name']) ?></p>
+                                                        <p class="text-sm text-gray-500"><?= e($user['email']) ?></p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full <?= 
+                                                    $user['role'] === 'super_admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 
+                                                    ($user['role'] === 'admin' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-700 border border-gray-200')
+                                                ?>">
+                                                    <i class="fas fa-<?= $user['role'] === 'super_admin' ? 'crown' : ($user['role'] === 'admin' ? 'shield-alt' : 'user') ?> text-[10px]"></i>
+                                                    <?= e(ucfirst(str_replace('_', ' ', $user['role']))) ?>
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                                        <?= e((string)$user['total_orders']) ?>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="font-bold text-green-600"><?= e(formatPrice((float)$user['total_spent'])) ?></span>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">
+                                                <?= e(date('M d, Y', strtotime($user['created_at']))) ?>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                    <?php if ($user['role'] !== 'super_admin'): ?>
+                                                        <form method="POST" onsubmit="return confirm('<?= e(t('delete_user_confirm')) ?>');">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="user_id" value="<?= e((string)$user['id']) ?>">
+                                                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                                            <button type="submit" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="<?= e(t('delete')) ?>">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </form>
+                                                    <?php else: ?>
+                                                        <span class="text-gray-300 text-xs italic">Protected</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <?php if ($totalPages > 1): ?>
+                        <div class="px-6 py-4 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50/30">
+                            <div class="text-xs text-gray-500 font-medium">
+                                <?= e(t('showing_results', [
+                                    'start' => ($page - 1) * $perPage + 1,
+                                    'end' => min($page * $perPage, $totalUsers),
+                                    'total' => $totalUsers
+                                ])) ?>
+                            </div>
+                            <div class="flex gap-2">
+                                <?php if ($page > 1): ?>
+                                    <a href="?page=<?= e((string)($page - 1)) ?>&search=<?= e($search) ?>&role=<?= e($roleFilter) ?>" 
+                                       class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-red-600 transition-all font-semibold text-sm shadow-sm">
+                                        <i class="fas fa-chevron-left rtl:rotate-180 me-1"></i><?= e(t('previous')) ?>
+                                    </a>
+                                <?php endif; ?>
+                                
+                                <?php if ($page < $totalPages): ?>
+                                    <a href="?page=<?= e((string)($page + 1)) ?>&search=<?= e($search) ?>&role=<?= e($roleFilter) ?>" 
+                                       class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-red-600 transition-all font-semibold text-sm shadow-sm">
+                                        <?= e(t('next')) ?><i class="fas fa-chevron-right rtl:rotate-180 ms-1"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </main>
+                        
+            <!-- Footer -->
+            <?php include __DIR__ . '/footer.php'; ?>
         </div>
     </div>
-
-    <?= modernFooter() ?>
 </body>
 </html>
-

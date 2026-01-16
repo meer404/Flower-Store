@@ -36,160 +36,185 @@ $report = getSalesReport($period);
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
-    <?php include __DIR__ . '/../src/header.php'; ?>
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <div class="bg-gradient-to-r from-red-600 via-red-700 to-purple-800 text-white py-12">
-        <div class="container mx-auto px-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-4xl font-luxury font-bold mb-2">
-                        <i class="fas fa-chart-line me-4"></i><?= e(t($period)) ?> <?= e(t('reports')) ?>
-                    </h1>
-                    <p class="text-red-200"><?= e(t('reports_desc')) ?></p>
-                </div>
-                <div class="flex gap-2">
-                    <a href="?period=day" class="px-4 py-2 rounded-lg <?= $period === 'day' ? 'bg-white text-red-600' : 'bg-white/20 hover:bg-white/30' ?> transition-all">
-                        <?= e(t('daily')) ?>
-                    </a>
-                    <a href="?period=week" class="px-4 py-2 rounded-lg <?= $period === 'week' ? 'bg-white text-red-600' : 'bg-white/20 hover:bg-white/30' ?> transition-all">
-                        <?= e(t('weekly')) ?>
-                    </a>
-                    <a href="?period=month" class="px-4 py-2 rounded-lg <?= $period === 'month' ? 'bg-white text-red-600' : 'bg-white/20 hover:bg-white/30' ?> transition-all">
-                        <?= e(t('monthly')) ?>
-                    </a>
-                    <a href="?period=year" class="px-4 py-2 rounded-lg <?= $period === 'year' ? 'bg-white text-red-600' : 'bg-white/20 hover:bg-white/30' ?> transition-all">
-                        <?= e(t('yearly')) ?>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+            <!-- Admin Header -->
+            <?php include __DIR__ . '/header.php'; ?>
 
-    <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <?php
-            $totalRevenue = array_sum(array_column($report['sales_data'], 'total_revenue'));
-            $totalOrders = array_sum(array_column($report['sales_data'], 'total_orders'));
-            $avgOrderValue = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
-            $paidRevenue = array_sum(array_column($report['sales_data'], 'paid_revenue'));
-            ?>
-            <?= statsCard(t('total_revenue'), formatPrice($totalRevenue), 'fas fa-dollar-sign text-3xl', 'green') ?>
-            <?= statsCard(t('total_orders'), (string)$totalOrders, 'fas fa-shopping-bag text-3xl', 'blue') ?>
-            <?= statsCard(t('paid_revenue'), formatPrice($paidRevenue), 'fas fa-check-circle text-3xl', 'purple') ?>
-            <?= statsCard(t('avg_order_value'), formatPrice($avgOrderValue), 'fas fa-chart-bar text-3xl', 'orange') ?>
-        </div>
-
-        <!-- Sales Chart -->
-        <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6 mb-8">
-            <h2 class="text-2xl font-bold text-luxury-primary mb-6">
-                <i class="fas fa-chart-line me-2 text-red-600"></i><?= e(t('sales_trend')) ?>
-            </h2>
-            <canvas id="salesChart" height="80"></canvas>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Sales Data Table -->
-            <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4">
-                    <h2 class="text-2xl font-bold"><i class="fas fa-table me-2"></i><?= e(t('sales_breakdown')) ?></h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-blue-50">
-                            <tr>
-                                <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('period')) ?></th>
-                                <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('orders')) ?></th>
-                                <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('revenue')) ?></th>
-                                <th class="px-6 py-4 text-start text-xs font-bold text-blue-900 uppercase"><?= e(t('avg_value')) ?></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-luxury-border">
-                            <?php if (empty($report['sales_data'])): ?>
-                                <tr>
-                                    <td colspan="4" class="px-6 py-8 text-center text-luxury-textLight"><?= e(t('no_data_available')) ?></td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($report['sales_data'] as $data): ?>
-                                    <tr class="hover:bg-blue-50">
-                                        <td class="px-6 py-4 font-semibold"><?= e($data['period']) ?></td>
-                                        <td class="px-6 py-4"><?= e((string)$data['total_orders']) ?></td>
-                                        <td class="px-6 py-4 font-bold text-green-600"><?= e(formatPrice((float)$data['total_revenue'])) ?></td>
-                                        <td class="px-6 py-4"><?= e(formatPrice((float)$data['avg_order_value'])) ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Top Products -->
-            <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl overflow-hidden">
-                <div class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-4">
-                    <h2 class="text-2xl font-bold"><i class="fas fa-star me-2"></i><?= e(t('top_products')) ?></h2>
-                </div>
-                <div class="p-6">
-                    <?php if (empty($report['top_products'])): ?>
-                        <p class="text-center text-luxury-textLight py-8"><?= e(t('no_product_data')) ?></p>
-                    <?php else: ?>
-                        <div class="space-y-4">
-                            <?php foreach ($report['top_products'] as $index => $product): ?>
-                                <div class="border-b border-luxury-border pb-4 last:border-0">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
-                                                <?= e((string)($index + 1)) ?>
-                                            </div>
-                                            <div>
-                                                <p class="font-bold text-luxury-primary"><?= e(getProductName($product)) ?></p>
-                                                <p class="text-sm text-luxury-textLight"><?= e(t('sold')) ?>: <?= e((string)$product['total_sold']) ?> <?= e(t('units')) ?></p>
-                                            </div>
-                                        </div>
-                                        <div class="text-end">
-                                            <p class="font-bold text-green-600"><?= e(formatPrice((float)$product['total_revenue'])) ?></p>
-                                        </div>
-                                    </div>
-                                </div>
+            <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-8">
+                <!-- Page Header -->
+                <div class="bg-gradient-to-r from-red-600 via-red-700 to-purple-800 text-white rounded-3xl p-8 mb-8 shadow-xl relative overflow-hidden">
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-luxury font-bold mb-2">
+                                <i class="fas fa-chart-line me-3"></i><?= e(t($period)) ?> <?= e(t('reports')) ?>
+                            </h1>
+                            <p class="text-red-200"><?= e(t('reports_desc')) ?></p>
+                        </div>
+                        <div class="bg-white/10 p-1 rounded-xl flex items-center backdrop-blur-sm">
+                            <?php foreach (['day' => 'Daily', 'week' => 'Weekly', 'month' => 'Monthly', 'year' => 'Yearly'] as $key => $label): ?>
+                                <a href="?period=<?= $key ?>" 
+                                   class="px-4 py-2 rounded-lg text-sm font-bold transition-all <?= $period === $key ? 'bg-white text-red-600 shadow-md transform scale-105' : 'text-white/80 hover:bg-white/10 hover:text-white' ?>">
+                                    <?= e(t($key)) ?>
+                                </a>
                             <?php endforeach; ?>
                         </div>
-                    <?php endif; ?>
+                    </div>
+                    
+                    <!-- Decorative Circles -->
+                    <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-black/10 blur-2xl"></div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Customer Statistics -->
-        <div class="bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6 mt-6">
-            <h2 class="text-2xl font-bold text-luxury-primary mb-6">
-                <i class="fas fa-users me-2 text-purple-600"></i><?= e(t('customer_statistics')) ?>
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="text-center p-6 bg-purple-50 rounded-xl">
-                    <i class="fas fa-users text-4xl text-purple-600 mb-4"></i>
-                    <p class="text-3xl font-bold text-luxury-primary"><?= e((string)$report['customer_stats']['total_customers']) ?></p>
-                    <p class="text-luxury-textLight"><?= e(t('total_customers')) ?></p>
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <?php
+                    $totalRevenue = array_sum(array_column($report['sales_data'], 'total_revenue'));
+                    $totalOrders = array_sum(array_column($report['sales_data'], 'total_orders'));
+                    $avgOrderValue = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
+                    $paidRevenue = array_sum(array_column($report['sales_data'], 'paid_revenue'));
+                    ?>
+                    <?= statsCard(t('total_revenue'), formatPrice($totalRevenue), 'fas fa-dollar-sign text-3xl', 'green') ?>
+                    <?= statsCard(t('total_orders'), (string)$totalOrders, 'fas fa-shopping-bag text-3xl', 'blue') ?>
+                    <?= statsCard(t('paid_revenue'), formatPrice($paidRevenue), 'fas fa-check-circle text-3xl', 'purple') ?>
+                    <?= statsCard(t('avg_order_value'), formatPrice($avgOrderValue), 'fas fa-chart-bar text-3xl', 'orange') ?>
                 </div>
-                <div class="text-center p-6 bg-blue-50 rounded-xl">
-                    <i class="fas fa-user-plus text-4xl text-blue-600 mb-4"></i>
-                    <p class="text-3xl font-bold text-luxury-primary"><?= e((string)$report['customer_stats']['new_customers']) ?></p>
-                    <p class="text-luxury-textLight"><?= e(t('new_customers')) ?></p>
-                </div>
-                <div class="text-center p-6 bg-green-50 rounded-xl">
-                    <i class="fas fa-shopping-cart text-4xl text-green-600 mb-4"></i>
-                    <p class="text-3xl font-bold text-luxury-primary"><?= e($totalOrders > 0 ? number_format($totalOrders / max($report['customer_stats']['total_customers'], 1), 2) : '0') ?></p>
-                    <p class="text-luxury-textLight"><?= e(t('avg_orders_per_customer')) ?></p>
-                </div>
-            </div>
-        </div>
 
-        <div class="mt-6 text-center">
-            <a href="super_admin_dashboard.php" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl transition-all font-semibold">
-                <i class="fas fa-arrow-left rtl:rotate-180"></i><?= e(t('back_to_dashboard')) ?>
-            </a>
+                <!-- Sales Chart -->
+                <div class="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                                <i class="fas fa-chart-area"></i>
+                            </span>
+                            <?= e(t('sales_trend')) ?>
+                        </h2>
+                    </div>
+                    <div class="h-80 w-full">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Sales Data Table -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-table text-blue-500"></i>
+                                <?= e(t('sales_breakdown')) ?>
+                            </h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('period')) ?></th>
+                                        <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('orders')) ?></th>
+                                        <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('revenue')) ?></th>
+                                        <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('avg_value')) ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <?php if (empty($report['sales_data'])): ?>
+                                        <tr>
+                                            <td colspan="4" class="px-6 py-8 text-center text-gray-400"><?= e(t('no_data_available')) ?></td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($report['sales_data'] as $data): ?>
+                                            <tr class="hover:bg-blue-50/10 transition-colors">
+                                                <td class="px-6 py-4 font-semibold text-gray-700"><?= e($data['period']) ?></td>
+                                                <td class="px-6 py-4">
+                                                    <span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold"><?= e((string)$data['total_orders']) ?></span>
+                                                </td>
+                                                <td class="px-6 py-4 font-bold text-green-600"><?= e(formatPrice((float)$data['total_revenue'])) ?></td>
+                                                <td class="px-6 py-4 text-sm text-gray-500"><?= e(formatPrice((float)$data['avg_order_value'])) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Top Products -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-crown text-amber-500"></i>
+                                <?= e(t('top_products')) ?>
+                            </h2>
+                        </div>
+                        <div class="p-0">
+                            <?php if (empty($report['top_products'])): ?>
+                                <p class="text-center text-gray-400 py-8"><?= e(t('no_product_data')) ?></p>
+                            <?php else: ?>
+                                <div class="divide-y divide-gray-100">
+                                    <?php foreach ($report['top_products'] as $index => $product): ?>
+                                        <div class="p-4 hover:bg-amber-50/10 transition-colors flex items-center justify-between group">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold shadow-sm text-lg">
+                                                    <?= e((string)($index + 1)) ?>
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-gray-800 group-hover:text-amber-600 transition-colors"><?= e(getProductName($product)) ?></p>
+                                                    <p class="text-xs text-gray-500 flex items-center gap-1">
+                                                        <i class="fas fa-tag"></i>
+                                                        <?= e(t('sold')) ?>: <strong><?= e((string)$product['total_sold']) ?></strong>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <p class="font-bold text-green-600"><?= e(formatPrice((float)$product['total_revenue'])) ?></p>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Statistics -->
+                <div class="bg-white rounded-2xl shadow-xl p-8 mt-8 border border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <i class="fas fa-users text-purple-600"></i><?= e(t('customer_statistics')) ?>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="text-center p-6 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-colors cursor-default">
+                            <div class="w-16 h-16 bg-purple-200 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-600 text-2xl">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <p class="text-4xl font-extrabold text-gray-800 mb-1"><?= e((string)$report['customer_stats']['total_customers']) ?></p>
+                            <p class="text-sm font-bold text-gray-500 uppercase tracking-wide"><?= e(t('total_customers')) ?></p>
+                        </div>
+                        <div class="text-center p-6 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors cursor-default">
+                            <div class="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 text-2xl">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <p class="text-4xl font-extrabold text-gray-800 mb-1"><?= e((string)$report['customer_stats']['new_customers']) ?></p>
+                            <p class="text-sm font-bold text-gray-500 uppercase tracking-wide"><?= e(t('new_customers')) ?></p>
+                        </div>
+                        <div class="text-center p-6 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors cursor-default">
+                            <div class="w-16 h-16 bg-green-200 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 text-2xl">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <p class="text-4xl font-extrabold text-gray-800 mb-1"><?= e($totalOrders > 0 ? number_format($totalOrders / max($report['customer_stats']['total_customers'], 1), 2) : '0') ?></p>
+                            <p class="text-sm font-bold text-gray-500 uppercase tracking-wide"><?= e(t('avg_orders_per_customer')) ?></p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+                        
+            <!-- Footer -->
+            <?php include __DIR__ . '/footer.php'; ?>
         </div>
     </div>
-
-    <?= modernFooter() ?>
 
     <script>
         // Sales Chart
@@ -204,14 +229,26 @@ $report = getSalesReport($period);
                     label: 'Revenue',
                     data: salesData.map(d => parseFloat(d.total_revenue)).reverse(),
                     borderColor: 'rgb(220, 38, 38)',
-                    backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                    backgroundColor: 'rgba(220, 38, 38, 0.05)',
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgb(220, 38, 38)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
                     tension: 0.4,
                     fill: true
                 }, {
                     label: 'Orders',
                     data: salesData.map(d => parseInt(d.total_orders)).reverse(),
                     borderColor: 'rgb(59, 130, 246)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                    borderWidth: 3,
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
                     tension: 0.4,
                     fill: true,
                     yAxisID: 'y1'
@@ -219,11 +256,63 @@ $report = getSalesReport($period);
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 20,
+                            font: {
+                                size: 12,
+                                family: "'Inter', sans-serif"
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            family: "'Inter', sans-serif"
+                        },
+                        bodyFont: {
+                            size: 13,
+                            family: "'Inter', sans-serif"
+                        },
+                        cornerRadius: 8,
+                        displayColors: true
+                    }
+                },
                 scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Inter', sans-serif"
+                            }
+                        }
+                    },
                     y: {
                         beginAtZero: true,
                         position: 'left',
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            },
+                            font: {
+                                family: "'Inter', sans-serif"
+                            }
+                        }
                     },
                     y1: {
                         type: 'linear',
@@ -231,12 +320,17 @@ $report = getSalesReport($period);
                         position: 'right',
                         grid: {
                             drawOnChartArea: false,
+                            drawBorder: false
                         },
+                        beginAtZero: true
                     }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
                 }
             }
         });
     </script>
 </body>
 </html>
-
