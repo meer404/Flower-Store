@@ -219,6 +219,22 @@ return [
     'no_admins_found' => 'هیچ بەڕێوەبەرێک نەدۆزرایەوە',
     'protected' => 'پارێزراوە',
     'delete_admin_confirm' => 'دڵنیای لە سڕینەوەی ئەم بەڕێوەبەرە؟',
+    'admin_permissions_updated_success' => 'دەسەڵاتەکانی بەڕێوەبەر بە سەرکەوتوویی نوێکرانەوە!',
+    'permissions_label' => 'دەسەڵاتەکان',
+    'edit_permissions' => 'دەستکاری دەسەڵاتەکان',
+    'save_permissions' => 'هەڵگرتنی دەسەڵاتەکان',
+    'no_permissions_assigned' => 'هیچ دەسەڵاتێک دیاری نەکراوە',
+
+    // Admin Permissions
+    'permission_view_dashboard' => 'بینینی داشبۆرد',
+    'permission_manage_products' => 'زیادکردن، دەستکاری و سڕینەوەی بەرهەمەکان',
+    'permission_manage_categories' => 'بەڕێوەبردنی هاوپۆلەکان',
+    'permission_view_orders' => 'بینینی داواکاری و وردەکاریەکان',
+    'permission_manage_orders' => 'نوێکردنەوەی دۆخی داواکاری',
+    'permission_view_reports' => 'دەسەڵاتی ڕاپۆرتەکان',
+    'permission_view_users' => 'بینینی بەشداربووان',
+    'permission_manage_users' => 'سڕکردن/دەستکاری هەژماری بەشداربووان',
+    'permission_system_settings' => 'ڕێکخستنەکانی سیستەم',
     
     // Reports
     'reports' => 'ڕاپۆرتەکان',

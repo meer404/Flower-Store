@@ -768,4 +768,157 @@ function time_ago($timestamp): string {
     }
 }
 
+/**
+ * Check if user has a specific permission
+ * Super admins have all permissions automatically
+ * 
+ * @param string $permission Permission to check
+ * @param int|null $userId User ID (uses current user if null)
+ * @return bool True if user has permission
+ */
+function hasPermission(string $permission, ?int $userId = null): bool {
+    if (!isset($_SESSION['user_id'])) {
+        return false;
+    }
+    
+    $userId = $userId ?? (int)$_SESSION['user_id'];
+    $pdo = getDB();
+    
+    // Super admins have all permissions
+    $userRole = $pdo->prepare('SELECT role FROM users WHERE id = :id');
+    $userRole->execute(['id' => $userId]);
+    $role = $userRole->fetchColumn();
+    
+    if ($role === 'super_admin') {
+        return true;
+    }
+    
+    if ($role !== 'admin') {
+        return false;
+    }
+    
+    // Check if admin has this specific permission
+    try {
+        $stmt = $pdo->prepare('SELECT id FROM admin_permissions WHERE admin_id = :admin_id AND permission = :permission');
+        $stmt->execute(['admin_id' => $userId, 'permission' => $permission]);
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        // Table doesn't exist yet, deny access
+        return false;
+    }
+}
+
+/**
+ * Get all permissions for an admin
+ * 
+ * @param int|null $adminId Admin ID (uses current user if null)
+ * @return array Array of permission strings
+ */
+function getAdminPermissions(?int $adminId = null): array {
+    if (!isset($_SESSION['user_id'])) {
+        return [];
+    }
+    
+    $adminId = $adminId ?? (int)$_SESSION['user_id'];
+    $pdo = getDB();
+    
+    // Super admins have all permissions
+    $userRole = $pdo->prepare('SELECT role FROM users WHERE id = :id');
+    $userRole->execute(['id' => $adminId]);
+    $role = $userRole->fetchColumn();
+    
+    if ($role === 'super_admin') {
+        return [
+            'view_dashboard',
+            'manage_products',
+            'manage_categories',
+            'view_orders',
+            'manage_orders',
+            'view_reports',
+            'manage_admins',
+            'view_users',
+            'manage_users',
+            'system_settings'
+        ];
+    }
+    
+    if ($role !== 'admin') {
+        return [];
+    }
+    
+    try {
+        $stmt = $pdo->prepare('SELECT permission FROM admin_permissions WHERE admin_id = :admin_id ORDER BY permission');
+        $stmt->execute(['admin_id' => $adminId]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    } catch (PDOException $e) {
+        // Table doesn't exist yet, return empty permissions
+        return [];
+    }
+}
+
+/**
+ * Assign permissions to an admin
+ * 
+ * @param int $adminId Admin ID
+ * @param array $permissions Array of permission strings
+ * @return bool True on success
+ */
+function setAdminPermissions(int $adminId, array $permissions): bool {
+    $pdo = getDB();
+    
+    try {
+        // Remove existing permissions
+        $stmt = $pdo->prepare('DELETE FROM admin_permissions WHERE admin_id = :admin_id');
+        $stmt->execute(['admin_id' => $adminId]);
+        
+        // Add new permissions
+        $stmt = $pdo->prepare('INSERT INTO admin_permissions (admin_id, permission) VALUES (:admin_id, :permission)');
+        
+        foreach ($permissions as $permission) {
+            $stmt->execute(['admin_id' => $adminId, 'permission' => $permission]);
+        }
+        
+        return true;
+    } catch (PDOException $e) {
+        error_log('Error setting admin permissions: ' . $e->getMessage());
+        // If table doesn't exist, silently fail but allow admin creation
+        if (strpos($e->getMessage(), 'admin_permissions') !== false) {
+            return true; // Allow operation even if table missing
+        }
+        return false;
+    }
+}
+
+/**
+ * Require specific permission or deny access
+ * 
+ * @param string $permission Permission to require
+ * @return void Exits with 403 if no permission
+ */
+function requirePermission(string $permission): void {
+    if (!hasPermission($permission)) {
+        http_response_code(403);
+        die('Access denied. You do not have permission to access this resource.');
+    }
+}
+
+/**
+ * Get available permissions list
+ * 
+ * @return array Array with permission keys and descriptions
+ */
+function getAvailablePermissions(): array {
+    return [
+        'view_dashboard' => 'View Dashboard',
+        'manage_products' => 'Add, Edit & Delete Products',
+        'manage_categories' => 'Manage Categories',
+        'view_orders' => 'View Orders & Details',
+        'manage_orders' => 'Update Order Status',
+        'view_reports' => 'Access Reports',
+        'view_users' => 'View Customer Users',
+        'manage_users' => 'Ban/Modify Customer Accounts',
+        'system_settings' => 'System Settings'
+    ];
+}
+
 

@@ -219,6 +219,22 @@ return [
     'no_admins_found' => 'No admins found',
     'protected' => 'Protected',
     'delete_admin_confirm' => 'Are you sure you want to delete this admin?',
+    'admin_permissions_updated_success' => 'Admin permissions updated successfully!',
+    'permissions_label' => 'Permissions',
+    'edit_permissions' => 'Edit Permissions',
+    'save_permissions' => 'Save Permissions',
+    'no_permissions_assigned' => 'No permissions assigned',
+    
+    // Admin Permissions
+    'permission_view_dashboard' => 'View Dashboard',
+    'permission_manage_products' => 'Add, Edit & Delete Products',
+    'permission_manage_categories' => 'Manage Categories',
+    'permission_view_orders' => 'View Orders & Details',
+    'permission_manage_orders' => 'Update Order Status',
+    'permission_view_reports' => 'Access Reports',
+    'permission_view_users' => 'View Customer Users',
+    'permission_manage_users' => 'Ban/Modify Customer Accounts',
+    'permission_system_settings' => 'System Settings',
     
     // Reports
     'reports' => 'Reports',
