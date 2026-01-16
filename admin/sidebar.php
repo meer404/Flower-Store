@@ -61,6 +61,7 @@ $isSuperAdmin = isSuperAdmin();
         <div>
             <h3 class="px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Management</h3>
             <ul class="space-y-1">
+                <?php if ($isSuperAdmin || hasPermission('manage_products')): ?>
                 <li>
                     <a href="<?= url('admin/products.php') ?>" 
                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= in_array($currentPage, ['products.php', 'add_product.php', 'edit_product.php']) ? 'bg-green-50 text-green-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-green-600' ?>">
@@ -70,6 +71,9 @@ $isSuperAdmin = isSuperAdmin();
                         <span class="flex-1"><?= e(t('products')) ?></span>
                     </a>
                 </li>
+                <?php endif; ?>
+                
+                <?php if ($isSuperAdmin || hasPermission('manage_categories')): ?>
                 <li>
                     <a href="<?= url('admin/categories.php') ?>" 
                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'categories.php' ? 'bg-orange-50 text-orange-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-orange-600' ?>">
@@ -79,6 +83,19 @@ $isSuperAdmin = isSuperAdmin();
                         <span class="flex-1"><?= e(t('categories')) ?></span>
                     </a>
                 </li>
+                <?php endif; ?>
+                
+                <?php if ($isSuperAdmin || hasPermission('view_orders')): ?>
+                <li>
+                    <a href="<?= url('admin/orders.php') ?>" 
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'orders.php' ? 'bg-blue-50 text-blue-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600' ?>">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'orders.php' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-100 group-hover:text-blue-600' ?>">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <span class="flex-1">Orders</span>
+                    </a>
+                </li>
+                <?php endif; ?>
             </ul>
         </div>
 

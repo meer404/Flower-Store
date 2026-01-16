@@ -12,6 +12,7 @@ require_once __DIR__ . '/../src/design_config.php';
 require_once __DIR__ . '/../src/components.php';
 
 requireAdmin();
+requirePermission('view_dashboard');
 
 $pdo = getDB();
 

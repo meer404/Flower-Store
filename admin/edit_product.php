@@ -12,6 +12,7 @@ require_once __DIR__ . '/../src/design_config.php';
 require_once __DIR__ . '/../src/components.php';
 
 requireAdmin();
+requirePermission('manage_products');
 
 $pdo = getDB();
 $productId = (int)sanitizeInput('id', 'GET', '0');
