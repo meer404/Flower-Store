@@ -46,8 +46,12 @@ $dir = getHtmlDir();
         <?php
         $flash = getFlashMessage();
         if ($flash):
+            $flashType = $flash['type'] === 'success' ? 'success' : ($flash['type'] === 'error' ? 'error' : 'info');
+            $bgColor = $flashType === 'success' ? 'bg-green-50' : ($flashType === 'error' ? 'bg-red-50' : 'bg-blue-50');
+            $borderColor = $flashType === 'success' ? 'border-green-200' : ($flashType === 'error' ? 'border-red-200' : 'border-blue-200');
+            $textColor = $flashType === 'success' ? 'text-green-700' : ($flashType === 'error' ? 'text-red-700' : 'text-blue-700');
         ?>
-            <div class="bg-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'error' ? 'red' : 'blue') ?>-50 border border-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'error' ? 'red' : 'blue') ?>-200 text-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'error' ? 'red' : 'blue') ?>-700 px-4 py-3 rounded-sm mb-6">
+            <div class="<?= $bgColor . ' ' . $borderColor . ' ' . $textColor ?> border px-4 py-3 rounded-sm mb-6">
                 <?= e($flash['message']) ?>
             </div>
         <?php endif; ?>
