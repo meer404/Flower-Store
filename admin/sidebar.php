@@ -99,11 +99,12 @@ $isSuperAdmin = isSuperAdmin();
             </ul>
         </div>
 
-        <?php if ($isSuperAdmin): ?>
-        <!-- Super Admin Section -->
+        <!-- Advanced Section (Super Admin + Permitted Admins) -->
+        <?php if ($isSuperAdmin || hasPermission('view_dashboard') || hasPermission('view_users') || hasPermission('manage_users') || hasPermission('view_reports') || hasPermission('system_settings')): ?>
         <div>
             <h3 class="px-4 text-xs font-bold text-red-400 uppercase tracking-wider mb-2"><?= e(t('sidebar_super_admin')) ?></h3>
             <ul class="space-y-1">
+                <?php if ($isSuperAdmin || hasPermission('view_reports')): ?>
                 <li>
                     <a href="<?= url('admin/super_admin_dashboard.php') ?>" 
                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'super_admin_dashboard.php' ? 'bg-red-50 text-red-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-red-600' ?>">
@@ -113,6 +114,9 @@ $isSuperAdmin = isSuperAdmin();
                         <span class="flex-1"><?= e(t('sidebar_overview')) ?></span>
                     </a>
                 </li>
+                <?php endif; ?>
+                
+                <?php if ($isSuperAdmin || hasPermission('view_users') || hasPermission('manage_users')): ?>
                 <li>
                     <a href="<?= url('admin/super_admin_users.php') ?>" 
                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'super_admin_users.php' ? 'bg-red-50 text-red-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-red-600' ?>">
@@ -122,6 +126,9 @@ $isSuperAdmin = isSuperAdmin();
                         <span class="flex-1"><?= e(t('users')) ?></span>
                     </a>
                 </li>
+                <?php endif; ?>
+                
+                <?php if ($isSuperAdmin): ?>
                 <li>
                     <a href="<?= url('admin/super_admin_admins.php') ?>" 
                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'super_admin_admins.php' ? 'bg-red-50 text-red-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-red-600' ?>">
@@ -131,6 +138,9 @@ $isSuperAdmin = isSuperAdmin();
                         <span class="flex-1"><?= e(t('sidebar_admins')) ?></span>
                     </a>
                 </li>
+                <?php endif; ?>
+                
+                <?php if ($isSuperAdmin || hasPermission('view_reports')): ?>
                 <li>
                     <a href="<?= url('admin/super_admin_reports.php') ?>" 
                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'super_admin_reports.php' ? 'bg-red-50 text-red-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-red-600' ?>">
@@ -140,6 +150,9 @@ $isSuperAdmin = isSuperAdmin();
                         <span class="flex-1"><?= e(t('reports')) ?></span>
                     </a>
                 </li>
+                <?php endif; ?>
+                
+                <?php if ($isSuperAdmin || hasPermission('system_settings')): ?>
                 <li>
                     <a href="<?= url('admin/super_admin_settings.php') ?>" 
                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'super_admin_settings.php' ? 'bg-red-50 text-red-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-red-600' ?>">
@@ -149,6 +162,7 @@ $isSuperAdmin = isSuperAdmin();
                         <span class="flex-1"><?= e(t('sidebar_settings')) ?></span>
                     </a>
                 </li>
+                <?php endif; ?>
             </ul>
         </div>
         <?php endif; ?>
