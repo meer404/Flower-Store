@@ -165,6 +165,96 @@ flower-store/
 - **uploads/**: Storage directory for product images with security protection
 - **Root files**: Customer-facing pages for shopping, authentication, and account management
 
+### Complete File Tree
+
+```
+flower-store/
+│
+├── 📁 admin/                                    (15 files)
+│   ├── add_product.php                         # Add new products with images
+│   ├── categories.php                          # Category CRUD operations
+│   ├── dashboard.php                           # Admin dashboard & statistics
+│   ├── edit_product.php                        # Edit products & galleries
+│   ├── footer.php                              # Admin footer component
+│   ├── header.php                              # Admin header component
+│   ├── order_details.php                       # Admin order details view
+│   ├── orders.php                              # Order management list
+│   ├── products.php                            # Product management list
+│   ├── sidebar.php                             # Admin sidebar navigation
+│   ├── super_admin_admins.php                  # Admin user management
+│   ├── super_admin_dashboard.php               # Super admin dashboard
+│   ├── super_admin_reports.php                 # Sales reports & analytics
+│   ├── super_admin_settings.php                # System settings management
+│   └── super_admin_users.php                   # Customer user management
+│
+├── 📁 database/                                 (11 files)
+│   ├── add_admin_permissions.sql               # Admin permissions table
+│   ├── add_delivery_date.sql                   # Delivery date migration
+│   ├── add_payment_method.sql                  # Payment method migration
+│   ├── fix_superadmin_password.sql             # Password fix script
+│   ├── notifications_schema.sql                # Notifications table
+│   ├── run_admin_permissions_migration.php     # Run permissions migration
+│   ├── run_delivery_date_migration.php         # Run delivery migration
+│   ├── run_payment_method_migration.php        # Run payment migration
+│   ├── schema.sql                              # Base database schema
+│   ├── schema_extended.sql                     # Extended features schema
+│   └── super_admin_migration.sql               # Super admin setup
+│
+├── 📁 src/                                      (7 files + 2 subdirs)
+│   ├── 📁 config/
+│   │   └── db.php                              # Database connection config
+│   │
+│   ├── 📁 translations/
+│   │   ├── en.php                              # English translations
+│   │   └── ku.php                              # Kurdish translations
+│   │
+│   ├── components.php                          # Reusable UI components
+│   ├── design_config.php                       # Design system config
+│   ├── functions.php                           # Helper functions
+│   ├── header.php                              # Customer header component
+│   └── language.php                            # Language handler
+│
+├── 📁 uploads/                                  (Product images)
+│   └── .htaccess                               # Upload security config
+│
+├── 📄 Customer Pages (13 files)
+│   ├── account.php                             # User account dashboard
+│   ├── cart.php                                # Shopping cart page
+│   ├── cart_action.php                         # Cart operations handler
+│   ├── checkout.php                            # Checkout process
+│   ├── index.php                               # Homepage
+│   ├── login.php                               # Login page
+│   ├── logout.php                              # Logout handler
+│   ├── notifications.php                       # User notifications
+│   ├── order_action.php                        # Order operations handler
+│   ├── order_details.php                       # Customer order details
+│   ├── product.php                             # Product detail page
+│   ├── register.php                            # Registration page
+│   ├── review.php                              # Product review submission
+│   ├── shop.php                                # Product catalog with filters
+│   ├── wishlist.php                            # User wishlist
+│   └── wishlist_action.php                     # Wishlist operations handler
+│
+├── 📄 Configuration Files
+│   ├── .htaccess                               # Apache configuration
+│   └── fix_superadmin_password.php             # Password reset utility
+│
+└── 📄 Documentation Files (30+ files)
+    ├── README.md                               # Original README
+    ├── READMEV2.md                             # This comprehensive README
+    ├── FEATURES.md                             # Detailed features documentation
+    ├── ADMIN_PERMISSIONS_INDEX.md              # Permissions documentation index
+    ├── ADMIN_PERMISSIONS_GUIDE.md              # Complete permissions guide
+    ├── ADMIN_PERMISSIONS_SETUP.md              # Quick setup guide
+    ├── ADMIN_PERMISSIONS_QUICK_REF.md          # Quick reference card
+    ├── ADMIN_PERMISSIONS_UI_GUIDE.md           # Visual UI guide
+    ├── ADMIN_PERMISSIONS_COMPLETE.md           # Full implementation summary
+    ├── PERMISSION_SYSTEM_READY.md              # Permission system overview
+    └── ... (additional documentation files)
+
+Total Files: 60+ PHP files, 11 SQL files, 30+ documentation files
+```
+
 ## Installation & Setup
 
 ### Requirements
