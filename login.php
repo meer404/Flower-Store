@@ -86,6 +86,7 @@ $dir = getHtmlDir();
 </head>
 <body class="bg-white min-h-screen flex items-center justify-center" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
     <div class="w-full max-w-md p-8">
+    <?php include __DIR__ . '/src/pwa_head.php'; ?>
         <div class="bg-white border border-luxury-border shadow-luxury p-10">
             <h1 class="text-4xl font-luxury font-bold text-luxury-primary mb-8 text-center tracking-wide"><?= e(t('login_title')) ?></h1>
             

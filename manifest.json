@@ -1,0 +1,65 @@
+{
+    "name": "Bloom & Vine Flower Store",
+    "short_name": "Bloom & Vine",
+    "id": "bloom-vine-pwa",
+    "start_url": "index.php?source=pwa",
+    "scope": "./",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui", "browser"],
+    "description": "Premium flowers, curated gifts, and luxury arrangements with fast delivery.",
+    "lang": "en",
+    "dir": "ltr",
+    "theme_color": "#1f2937",
+    "background_color": "#fdf7f1",
+    "orientation": "any",
+    "categories": ["shopping", "lifestyle"],
+    "icons": [
+        {
+            "src": "https://www.pwabuilder.com/assets/icons/icon_192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "https://www.pwabuilder.com/assets/icons/icon_512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "https://www.pwabuilder.com/assets/screenshots/screen1.png",
+            "sizes": "2880x1800",
+            "type": "image/png",
+            "description": "Home and featured products"
+        }
+    ],
+    "prefer_related_applications": false,
+    "shortcuts": [
+        {
+            "name": "Shop",
+            "short_name": "Shop",
+            "description": "Browse all bouquets",
+            "url": "shop.php?source=shortcut"
+        },
+        {
+            "name": "Cart",
+            "short_name": "Cart",
+            "description": "View your cart",
+            "url": "cart.php?source=shortcut"
+        },
+        {
+            "name": "Wishlist",
+            "short_name": "Wishlist",
+            "description": "Saved favorites",
+            "url": "wishlist.php?source=shortcut"
+        },
+        {
+            "name": "Account",
+            "short_name": "Account",
+            "description": "Orders and profile",
+            "url": "account.php?source=shortcut"
+        }
+    ]
+}

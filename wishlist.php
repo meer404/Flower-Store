@@ -39,6 +39,7 @@ $dir = getHtmlDir();
 </head>
 <body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
     <?php include __DIR__ . '/src/header.php'; ?>
+    <?php include __DIR__ . '/src/pwa_head.php'; ?>
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
         <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('my_wishlist')) ?></h1>
