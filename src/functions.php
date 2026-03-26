@@ -304,12 +304,43 @@ function haversineDistanceKm(float $lat1, float $lng1, float $lat2, float $lng2)
  * @return array<int, array{max: float, fee: float}>
  */
 function getDeliveryFeeTiers(): array {
-    return [
+    $defaultTiers = [
         ['max' => 5.0, 'fee' => 1.0],
         ['max' => 10.0, 'fee' => 3.0],
         ['max' => 15.0, 'fee' => 6.0],
         ['max' => 20.0, 'fee' => 9.0],
     ];
+
+    $storedTiers = getSystemSetting('delivery_fee_tiers', null);
+    if (!is_array($storedTiers)) {
+        return $defaultTiers;
+    }
+
+    $normalized = [];
+    foreach ($storedTiers as $tier) {
+        if (!is_array($tier)) {
+            continue;
+        }
+
+        $max = isset($tier['max']) ? (float)$tier['max'] : 0.0;
+        $fee = isset($tier['fee']) ? (float)$tier['fee'] : -1.0;
+
+        if ($max <= 0 || $fee < 0) {
+            continue;
+        }
+
+        $normalized[] = ['max' => $max, 'fee' => $fee];
+    }
+
+    if (empty($normalized)) {
+        return $defaultTiers;
+    }
+
+    usort($normalized, static function (array $a, array $b): int {
+        return $a['max'] <=> $b['max'];
+    });
+
+    return $normalized;
 }
 
 /**
