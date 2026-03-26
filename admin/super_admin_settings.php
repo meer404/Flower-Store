@@ -23,6 +23,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = sanitizeInput('csrf_token', 'POST');
     
     if (verifyCSRFToken($csrfToken)) {
+        $tierMaxes = $_POST['delivery_tier_max'] ?? [];
+        $tierFees = $_POST['delivery_tier_fee'] ?? [];
+        $deliveryTiers = [];
+        $tierCount = max(count((array)$tierMaxes), count((array)$tierFees));
+        for ($i = 0; $i < $tierCount; $i++) {
+            $maxRaw = trim((string)($tierMaxes[$i] ?? ''));
+            $feeRaw = trim((string)($tierFees[$i] ?? ''));
+
+            if ($maxRaw === '' || $feeRaw === '') {
+                continue;
+            }
+
+            if (!is_numeric($maxRaw) || !is_numeric($feeRaw)) {
+                continue;
+            }
+
+            $maxVal = (float)$maxRaw;
+            $feeVal = (float)$feeRaw;
+
+            if ($maxVal <= 0 || $feeVal < 0) {
+                continue;
+            }
+
+            $deliveryTiers[] = ['max' => $maxVal, 'fee' => $feeVal];
+        }
+
         $settings = [
             'site_name' => sanitizeInput('site_name', 'POST'),
             'site_email' => sanitizeInput('site_email', 'POST'),
@@ -43,6 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 setSystemSetting($key, $value, $type);
             }
+
+            if (empty($deliveryTiers)) {
+                $deliveryTiers = getDeliveryFeeTiers();
+            }
+            setSystemSetting('delivery_fee_tiers', $deliveryTiers, 'json');
             
             logActivity('system_settings_updated', 'system', null, t('settings_updated_log'));
             redirect('super_admin_settings.php', t('settings_updated_success'), 'success');
@@ -60,9 +91,18 @@ $currentSettings = [
     'currency' => getSystemSetting('currency', '$'),
     'tax_rate' => getSystemSetting('tax_rate', 0),
     'shipping_cost' => getSystemSetting('shipping_cost', 0),
+    'delivery_fee_tiers' => getSystemSetting('delivery_fee_tiers', getDeliveryFeeTiers()),
     'maintenance_mode' => getSystemSetting('maintenance_mode', false),
     'max_upload_size' => getSystemSetting('max_upload_size', 5242880)
 ];
+
+$deliveryTiers = $currentSettings['delivery_fee_tiers'];
+if (!is_array($deliveryTiers)) {
+    $deliveryTiers = getDeliveryFeeTiers();
+}
+while (count($deliveryTiers) < 4) {
+    $deliveryTiers[] = ['max' => 0, 'fee' => 0];
+}
 
 $csrfToken = generateCSRFToken();
 ?>
@@ -160,6 +200,25 @@ $csrfToken = generateCSRFToken();
                                     <input type="number" name="shipping_cost" value="<?= e((string)$currentSettings['shipping_cost']) ?>" min="0" step="0.01"
                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                     <p class="text-xs text-gray-500 mt-1"><?= e(t('shipping_cost_hint')) ?></p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('delivery_pricing')) ?></label>
+                                    <p class="text-xs text-gray-500 mb-3"><?= e(t('delivery_pricing_hint')) ?></p>
+                                    <div class="grid grid-cols-3 gap-3 text-xs font-semibold text-gray-500 mb-2">
+                                        <span class="col-span-2"><?= e(t('distance_up_to_km')) ?></span>
+                                        <span><?= e(t('delivery_fee_amount')) ?></span>
+                                    </div>
+                                    <div class="space-y-3">
+                                        <?php foreach ($deliveryTiers as $tier): ?>
+                                            <div class="grid grid-cols-3 gap-3">
+                                                <input type="number" name="delivery_tier_max[]" value="<?= e((string)$tier['max']) ?>" min="0" step="0.1"
+                                                       class="col-span-2 w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                                <input type="number" name="delivery_tier_fee[]" value="<?= e((string)$tier['fee']) ?>" min="0" step="0.01"
+                                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
