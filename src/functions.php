@@ -263,6 +263,72 @@ function formatPrice(float $price, string $currency = '$'): string {
 }
 
 /**
+ * Get store coordinates for delivery calculations
+ *
+ * @return array{lat: float, lng: float}
+ */
+function getStoreCoordinates(): array {
+    return ['lat' => 35.57675, 'lng' => 45.4344167];
+}
+
+/**
+ * Calculate distance between two points using Haversine formula
+ *
+ * @param float $lat1
+ * @param float $lng1
+ * @param float $lat2
+ * @param float $lng2
+ * @return float Distance in kilometers
+ */
+function haversineDistanceKm(float $lat1, float $lng1, float $lat2, float $lng2): float {
+    $earthRadius = 6371.0;
+    $latFrom = deg2rad($lat1);
+    $lngFrom = deg2rad($lng1);
+    $latTo = deg2rad($lat2);
+    $lngTo = deg2rad($lng2);
+
+    $latDelta = $latTo - $latFrom;
+    $lngDelta = $lngTo - $lngFrom;
+
+    $angle = 2 * asin(sqrt(
+        pow(sin($latDelta / 2), 2) +
+        cos($latFrom) * cos($latTo) * pow(sin($lngDelta / 2), 2)
+    ));
+
+    return $earthRadius * $angle;
+}
+
+/**
+ * Get delivery fee tiers for client and server use
+ *
+ * @return array<int, array{max: float, fee: float}>
+ */
+function getDeliveryFeeTiers(): array {
+    return [
+        ['max' => 5.0, 'fee' => 1.0],
+        ['max' => 10.0, 'fee' => 3.0],
+        ['max' => 15.0, 'fee' => 6.0],
+        ['max' => 20.0, 'fee' => 9.0],
+    ];
+}
+
+/**
+ * Get delivery fee based on distance in kilometers
+ *
+ * @param float $distanceKm
+ * @return float|null Fee in currency units, or null if out of range
+ */
+function getDeliveryFeeByDistance(float $distanceKm): ?float {
+    foreach (getDeliveryFeeTiers() as $tier) {
+        if ($distanceKm <= $tier['max']) {
+            return (float)$tier['fee'];
+        }
+    }
+
+    return null;
+}
+
+/**
  * Get product name in current language
  * 
  * @param array $product Product array with name_en and name_ku

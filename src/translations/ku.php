@@ -361,6 +361,16 @@ return [
     
     // Checkout
     'shipping_address_required' => 'ناونیشانی گەیاندن پێویستە',
+    'delivery_fee' => 'Delivery Fee',
+    'delivery_distance' => 'Distance',
+    'delivery_fee_estimate' => 'Delivery Fee Estimate',
+    'use_my_location' => 'Use my location',
+    'delivery_out_of_range' => 'Out of delivery range',
+    'delivery_location_required' => 'Please allow location access to calculate delivery fee',
+    'delivery_geolocation_unsupported' => 'Geolocation is not supported in this browser',
+    'delivery_location_denied' => 'Location permission denied',
+    'delivery_calculating' => 'Calculating delivery fee...',
+    'delivery_total' => 'Total (with delivery)',
     'visa_start_4' => 'کارتی ڤیزا دەبێت بە ٤ دەستپێبکات',
     'mastercard_start_5' => 'ماستەرکارد دەبێت بە ٥١-٥٥ دەستپێبکات',
     'insufficient_stock' => 'بڕی پێویست لە کۆگا نییە بۆ یەکێک یان زیاتر لە بەرهەمەکان',

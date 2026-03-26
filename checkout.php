@@ -19,6 +19,7 @@ $error = '';
 // Get cart items
 $cartItems = [];
 $cartTotal = 0.0;
+$currency = (string)getSystemSetting('currency', '$');
 
 if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION['cart'])) {
     $productIds = array_keys($_SESSION['cart']);
@@ -60,6 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = sanitizeInput('csrf_token', 'POST');
     $shippingAddress = sanitizeInput('shipping_address', 'POST');
     $deliveryDate = sanitizeInput('delivery_date', 'POST');
+    $customerLat = sanitizeInput('customer_lat', 'POST');
+    $customerLng = sanitizeInput('customer_lng', 'POST');
     $paymentMethod = sanitizeInput('payment_method', 'POST');
     $cardNumber = sanitizeInput('card_number', 'POST');
     $cardholderName = sanitizeInput('cardholder_name', 'POST');
@@ -75,6 +78,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = t('delivery_date_required');
     } elseif (!strtotime($deliveryDate) || strtotime($deliveryDate) < strtotime('tomorrow')) {
         $error = t('delivery_date_invalid');
+    } elseif ($customerLat === '' || $customerLng === '') {
+        $error = t('delivery_location_required');
+    } elseif (!is_numeric($customerLat) || !is_numeric($customerLng)) {
+        $error = t('delivery_location_required');
     } elseif (empty($paymentMethod) || !in_array($paymentMethod, ['visa', 'mastercard'], true)) {
         $error = t('payment_method_required');
     } elseif (empty($cardNumber)) {
@@ -106,82 +113,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (!preg_match('/^\d{3,4}$/', $cvv)) {
                 $error = t('cvv_invalid');
             } else {
-                // Extract last 4 digits for storage
-                $cardLastFour = substr($cardNumberClean, -4);
-                
-                try {
-                    $pdo->beginTransaction();
+                $storeCoords = getStoreCoordinates();
+                $distanceKm = haversineDistanceKm((float)$customerLat, (float)$customerLng, $storeCoords['lat'], $storeCoords['lng']);
+                $deliveryFee = getDeliveryFeeByDistance($distanceKm);
+
+                if ($deliveryFee === null) {
+                    $error = t('delivery_out_of_range');
+                } else {
+                    $grandTotal = $cartTotal + $deliveryFee;
+                    // Extract last 4 digits for storage
+                    $cardLastFour = substr($cardNumberClean, -4);
                     
-                    // Verify stock availability before creating order
-                    $stockOk = true;
-                    foreach ($cartItems as $item) {
-                        $stmt = $pdo->prepare('SELECT stock_qty FROM products WHERE id = :id FOR UPDATE');
-                        $stmt->execute(['id' => $item['id']]);
-                        $product = $stmt->fetch();
+                    try {
+                        $pdo->beginTransaction();
                         
-                        if (!$product || (int)$product['stock_qty'] < $item['cart_quantity']) {
-                            $stockOk = false;
-                            break;
-                        }
-                    }
-                    
-                    if (!$stockOk) {
-                        $pdo->rollBack();
-                        $error = t('order_error') . ' - ' . t('insufficient_stock');
-                    } else {
-                        // Create order with payment details
-                        $stmt = $pdo->prepare('
-                            INSERT INTO orders (user_id, grand_total, payment_status, shipping_address, delivery_date, payment_method, card_last_four, cardholder_name, card_expiry_month, card_expiry_year)
-                            VALUES (:user_id, :grand_total, :payment_status, :shipping_address, :delivery_date, :payment_method, :card_last_four, :cardholder_name, :card_expiry_month, :card_expiry_year)
-                        ');
-                        $stmt->execute([
-                            'user_id' => $userId,
-                            'grand_total' => $cartTotal,
-                            'payment_status' => 'paid', // Mark as paid when card details provided
-                            'shipping_address' => $shippingAddress,
-                            'delivery_date' => $deliveryDate,
-                            'payment_method' => $paymentMethod,
-                            'card_last_four' => $cardLastFour,
-                            'cardholder_name' => $cardholderName,
-                            'card_expiry_month' => $expiryMonthInt,
-                            'card_expiry_year' => $expiryYearInt
-                        ]);
-                        
-                        $orderId = (int)$pdo->lastInsertId();
-                        
-                        // Create order items and update stock
+                        // Verify stock availability before creating order
+                        $stockOk = true;
                         foreach ($cartItems as $item) {
-                            // Insert order item
+                            $stmt = $pdo->prepare('SELECT stock_qty FROM products WHERE id = :id FOR UPDATE');
+                            $stmt->execute(['id' => $item['id']]);
+                            $product = $stmt->fetch();
+                            
+                            if (!$product || (int)$product['stock_qty'] < $item['cart_quantity']) {
+                                $stockOk = false;
+                                break;
+                            }
+                        }
+                        
+                        if (!$stockOk) {
+                            $pdo->rollBack();
+                            $error = t('order_error') . ' - ' . t('insufficient_stock');
+                        } else {
+                            // Create order with payment details
                             $stmt = $pdo->prepare('
-                                INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-                                VALUES (:order_id, :product_id, :quantity, :unit_price)
+                                INSERT INTO orders (user_id, grand_total, payment_status, shipping_address, delivery_date, payment_method, card_last_four, cardholder_name, card_expiry_month, card_expiry_year)
+                                VALUES (:user_id, :grand_total, :payment_status, :shipping_address, :delivery_date, :payment_method, :card_last_four, :cardholder_name, :card_expiry_month, :card_expiry_year)
                             ');
                             $stmt->execute([
-                                'order_id' => $orderId,
-                                'product_id' => $item['id'],
-                                'quantity' => $item['cart_quantity'],
-                                'unit_price' => $item['price']
+                                'user_id' => $userId,
+                                'grand_total' => $grandTotal,
+                                'payment_status' => 'paid', // Mark as paid when card details provided
+                                'shipping_address' => $shippingAddress,
+                                'delivery_date' => $deliveryDate,
+                                'payment_method' => $paymentMethod,
+                                'card_last_four' => $cardLastFour,
+                                'cardholder_name' => $cardholderName,
+                                'card_expiry_month' => $expiryMonthInt,
+                                'card_expiry_year' => $expiryYearInt
                             ]);
                             
-                            // Update product stock
-                            $stmt = $pdo->prepare('UPDATE products SET stock_qty = stock_qty - :quantity WHERE id = :id');
-                            $stmt->execute([
-                                'quantity' => $item['cart_quantity'],
-                                'id' => $item['id']
-                            ]);
+                            $orderId = (int)$pdo->lastInsertId();
+                            
+                            // Create order items and update stock
+                            foreach ($cartItems as $item) {
+                                // Insert order item
+                                $stmt = $pdo->prepare('
+                                    INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+                                    VALUES (:order_id, :product_id, :quantity, :unit_price)
+                                ');
+                                $stmt->execute([
+                                    'order_id' => $orderId,
+                                    'product_id' => $item['id'],
+                                    'quantity' => $item['cart_quantity'],
+                                    'unit_price' => $item['price']
+                                ]);
+                                
+                                // Update product stock
+                                $stmt = $pdo->prepare('UPDATE products SET stock_qty = stock_qty - :quantity WHERE id = :id');
+                                $stmt->execute([
+                                    'quantity' => $item['cart_quantity'],
+                                    'id' => $item['id']
+                                ]);
+                            }
+                            
+                            $pdo->commit();
+                            
+                            // Clear cart
+                            $_SESSION['cart'] = [];
+                            
+                            redirect('index.php', t('order_placed'), 'success');
                         }
-                        
-                        $pdo->commit();
-                        
-                        // Clear cart
-                        $_SESSION['cart'] = [];
-                        
-                        redirect('index.php', t('order_placed'), 'success');
+                    } catch (PDOException $e) {
+                        $pdo->rollBack();
+                        error_log('Checkout error: ' . $e->getMessage());
+                        $error = t('order_error');
                     }
-                } catch (PDOException $e) {
-                    $pdo->rollBack();
-                    error_log('Checkout error: ' . $e->getMessage());
-                    $error = t('order_error');
                 }
             }
         }
@@ -223,17 +239,29 @@ $dir = getHtmlDir();
                         <div class="flex justify-between items-start border-b border-luxury-border pb-4">
                             <div class="flex-1">
                                 <p class="font-medium text-luxury-primary mb-1"><?= e(getProductName($item)) ?></p>
-                                <p class="text-sm text-luxury-textLight"><?= e((string)$item['cart_quantity']) ?> x <?= e(formatPrice((float)$item['price'])) ?></p>
+                                <p class="text-sm text-luxury-textLight"><?= e((string)$item['cart_quantity']) ?> x <?= e(formatPrice((float)$item['price'], $currency)) ?></p>
                             </div>
-                            <p class="font-semibold text-luxury-accent ms-4"><?= e(formatPrice($item['subtotal'])) ?></p>
+                            <p class="font-semibold text-luxury-accent ms-4"><?= e(formatPrice($item['subtotal'], $currency)) ?></p>
                         </div>
                     <?php endforeach; ?>
                 </div>
                 
-                <div class="border-t border-luxury-border pt-4">
-                    <div class="flex justify-between items-center">
+                <div class="border-t border-luxury-border pt-4 space-y-2">
+                    <div class="flex justify-between items-center text-sm text-luxury-textLight">
+                        <span><?= e(t('delivery_fee')) ?></span>
+                        <span id="delivery-fee-amount">—</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm text-luxury-textLight">
+                        <span><?= e(t('delivery_distance')) ?></span>
+                        <span id="delivery-distance">—</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
                         <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('total')) ?>:</span>
-                        <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal)) ?></span>
+                        <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="subtotal-amount" data-base-total="<?= e((string)$cartTotal) ?>"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('delivery_total')) ?>:</span>
+                        <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="grand-total-amount">—</span>
                     </div>
                 </div>
             </div>
@@ -249,6 +277,10 @@ $dir = getHtmlDir();
                 
                 <form method="POST" action="" class="space-y-6">
                     <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                    <input type="hidden" name="customer_lat" id="customer_lat" value="<?= e(sanitizeInput('customer_lat', 'POST', '')) ?>">
+                    <input type="hidden" name="customer_lng" id="customer_lng" value="<?= e(sanitizeInput('customer_lng', 'POST', '')) ?>">
+                    <input type="hidden" name="delivery_distance_km" id="delivery_distance_km" value="<?= e(sanitizeInput('delivery_distance_km', 'POST', '')) ?>">
+                    <input type="hidden" name="delivery_fee" id="delivery_fee" value="<?= e(sanitizeInput('delivery_fee', 'POST', '')) ?>">
                     
                     <div>
                         <label for="shipping_address" class="block text-sm font-medium text-luxury-text mb-2">
@@ -257,6 +289,13 @@ $dir = getHtmlDir();
                         <textarea id="shipping_address" name="shipping_address" rows="4" required
                                   class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"
                                   placeholder="<?= e(t('enter_shipping_address')) ?>"><?= e(sanitizeInput('shipping_address', 'POST', '')) ?></textarea>
+                        <div class="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                            <button type="button" id="use-location" class="inline-flex items-center justify-center gap-2 border-2 border-luxury-accent text-luxury-accent px-4 py-2 rounded-sm hover:bg-luxury-accent hover:text-white transition-all duration-300 font-medium">
+                                <i class="fas fa-location-crosshairs"></i>
+                                <?= e(t('use_my_location')) ?>
+                            </button>
+                            <span class="text-xs text-luxury-textLight" id="delivery-status"></span>
+                        </div>
                     </div>
                     
                     <div>
@@ -369,7 +408,7 @@ $dir = getHtmlDir();
                         </div>
                     </div>
                     
-                    <button type="submit" 
+                    <button type="submit" id="place-order-btn"
                             class="w-full bg-luxury-accent text-white py-3 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
                         <?= e(t('place_order')) ?>
                     </button>
@@ -386,6 +425,124 @@ $dir = getHtmlDir();
     <?= modernFooter() ?>
     
     <script>
+    const deliveryConfig = <?= json_encode([
+        'store' => getStoreCoordinates(),
+        'tiers' => getDeliveryFeeTiers(),
+        'currency' => $currency
+    ], JSON_UNESCAPED_SLASHES) ?>;
+
+    const deliveryMessages = {
+        calculating: <?= json_encode(t('delivery_calculating')) ?>,
+        outOfRange: <?= json_encode(t('delivery_out_of_range')) ?>,
+        denied: <?= json_encode(t('delivery_location_denied')) ?>,
+        unsupported: <?= json_encode(t('delivery_geolocation_unsupported')) ?>
+    };
+
+    const deliveryUi = {
+        fee: document.getElementById('delivery-fee-amount'),
+        distance: document.getElementById('delivery-distance'),
+        status: document.getElementById('delivery-status'),
+        grandTotal: document.getElementById('grand-total-amount'),
+        baseTotal: document.getElementById('subtotal-amount'),
+        lat: document.getElementById('customer_lat'),
+        lng: document.getElementById('customer_lng'),
+        distanceInput: document.getElementById('delivery_distance_km'),
+        feeInput: document.getElementById('delivery_fee'),
+        button: document.getElementById('place-order-btn')
+    };
+
+    function formatMoney(amount) {
+        return `${deliveryConfig.currency}${amount.toFixed(2)}`;
+    }
+
+    function haversineKm(lat1, lng1, lat2, lng2) {
+        const earthRadius = 6371;
+        const toRad = (value) => (value * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return 2 * earthRadius * Math.asin(Math.sqrt(a));
+    }
+
+    function getFeeForDistance(distanceKm) {
+        for (const tier of deliveryConfig.tiers) {
+            if (distanceKm <= tier.max) {
+                return tier.fee;
+            }
+        }
+        return null;
+    }
+
+    function updateDeliveryUi(distanceKm, fee) {
+        if (!deliveryUi.baseTotal) {
+            return;
+        }
+
+        const baseTotal = parseFloat(deliveryUi.baseTotal.dataset.baseTotal || '0');
+        if (fee === null) {
+            deliveryUi.fee.textContent = deliveryMessages.outOfRange;
+            deliveryUi.distance.textContent = `${distanceKm.toFixed(1)} km`;
+            deliveryUi.grandTotal.textContent = '—';
+            deliveryUi.status.textContent = deliveryMessages.outOfRange;
+            if (deliveryUi.button) {
+                deliveryUi.button.disabled = true;
+                deliveryUi.button.classList.add('opacity-60', 'cursor-not-allowed');
+            }
+            return;
+        }
+
+        const grandTotal = baseTotal + fee;
+        deliveryUi.fee.textContent = formatMoney(fee);
+        deliveryUi.distance.textContent = `${distanceKm.toFixed(1)} km`;
+        deliveryUi.grandTotal.textContent = formatMoney(grandTotal);
+        deliveryUi.status.textContent = '';
+
+        if (deliveryUi.button) {
+            deliveryUi.button.disabled = false;
+            deliveryUi.button.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
+    function setDeliveryInputs(lat, lng, distanceKm, fee) {
+        deliveryUi.lat.value = lat.toFixed(6);
+        deliveryUi.lng.value = lng.toFixed(6);
+        deliveryUi.distanceInput.value = distanceKm.toFixed(2);
+        deliveryUi.feeInput.value = fee === null ? '' : fee.toFixed(2);
+    }
+
+    function handleLocation(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const distanceKm = haversineKm(lat, lng, deliveryConfig.store.lat, deliveryConfig.store.lng);
+        const fee = getFeeForDistance(distanceKm);
+
+        updateDeliveryUi(distanceKm, fee);
+        setDeliveryInputs(lat, lng, distanceKm, fee);
+    }
+
+    function handleLocationError(error) {
+        if (deliveryUi.status) {
+            if (error.code === 1) {
+                deliveryUi.status.textContent = deliveryMessages.denied;
+            } else {
+                deliveryUi.status.textContent = deliveryMessages.unsupported;
+            }
+        }
+    }
+
+    document.getElementById('use-location')?.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            deliveryUi.status.textContent = deliveryMessages.unsupported;
+            return;
+        }
+
+        deliveryUi.status.textContent = deliveryMessages.calculating;
+        navigator.geolocation.getCurrentPosition(handleLocation, handleLocationError, {
+            enableHighAccuracy: true,
+            timeout: 10000
+        });
+    });
     // Card number formatting
     document.getElementById('card_number')?.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\s+/g, '');
