@@ -16,6 +16,7 @@ requireLogin();
 $pdo = getDB();
 $cartItems = [];
 $cartTotal = 0.0;
+$currency = (string)getSystemSetting('currency', '$');
 
 // Get cart items with product details
 if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION['cart'])) {
@@ -140,7 +141,7 @@ $dir = getHtmlDir();
                                         </div>
                                     </td>
                                     <td class="px-6 py-6">
-                                        <span class="text-lg font-bold text-luxury-accent"><?= e(formatPrice((float)$item['price'])) ?></span>
+                                        <span class="text-lg font-bold text-luxury-accent"><?= e(formatPrice((float)$item['price'], $currency)) ?></span>
                                     </td>
                                     <td class="px-6 py-6">
                                         <form method="POST" action="cart_action.php" class="inline">
@@ -159,7 +160,7 @@ $dir = getHtmlDir();
                                         </form>
                                     </td>
                                     <td class="px-6 py-6">
-                                        <span class="text-xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($item['subtotal'])) ?></span>
+                                        <span class="text-xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($item['subtotal'], $currency)) ?></span>
                                     </td>
                                     <td class="px-6 py-6">
                                         <form method="POST" action="cart_action.php" class="inline">
@@ -181,7 +182,7 @@ $dir = getHtmlDir();
                                     <i class="fas fa-calculator me-2"></i><?= e(t('total')) ?>:
                                 </td>
                                 <td colspan="2" class="px-6 py-6">
-                                    <span class="text-3xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal)) ?></span>
+                                    <span class="text-3xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
                                 </td>
                             </tr>
                         </tfoot>
@@ -202,7 +203,7 @@ $dir = getHtmlDir();
                             <div class="flex-1">
                                 <h3 class="text-lg font-bold text-luxury-primary mb-1"><?= e(getProductName($item)) ?></h3>
                                 <p class="text-sm text-luxury-textLight mb-2"><i class="fas fa-tag me-1"></i><?= e(getCategoryName($item)) ?></p>
-                                <p class="text-xl font-bold text-luxury-accent"><?= e(formatPrice((float)$item['price'])) ?></p>
+                                <p class="text-xl font-bold text-luxury-accent"><?= e(formatPrice((float)$item['price'], $currency)) ?></p>
                             </div>
                         </div>
                         <div class="flex items-center justify-between p-4 border-t-2 border-luxury-border">
@@ -220,7 +221,7 @@ $dir = getHtmlDir();
                             </form>
                             <div class="text-end">
                                 <p class="text-xs text-luxury-textLight uppercase tracking-wider"><?= e(t('subtotal')) ?></p>
-                                <p class="text-2xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($item['subtotal'])) ?></p>
+                                <p class="text-2xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($item['subtotal'], $currency)) ?></p>
                             </div>
                         </div>
                         <form method="POST" action="cart_action.php" class="p-4 bg-red-50">
@@ -239,8 +240,27 @@ $dir = getHtmlDir();
                 <div class="bg-gradient-to-r from-luxury-accent to-yellow-500 text-white p-6 rounded-2xl shadow-xl">
                     <div class="flex justify-between items-center">
                         <span class="text-xl font-bold"><i class="fas fa-calculator me-2"></i><?= e(t('total')) ?>:</span>
-                        <span class="text-3xl font-bold font-luxury"><?= e(formatPrice($cartTotal)) ?></span>
+                        <span class="text-3xl font-bold font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
                     </div>
+                </div>
+            </div>
+
+            <div class="mt-8 bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-luxury-primary mb-1"><?= e(t('delivery_fee_estimate')) ?></h3>
+                        <p class="text-sm text-luxury-textLight">
+                            <?= e(t('delivery_fee')) ?>: <span id="cart-delivery-fee">—</span>
+                            <span class="mx-2">•</span>
+                            <?= e(t('delivery_distance')) ?>: <span id="cart-delivery-distance">—</span>
+                        </p>
+                        <p class="text-xs text-luxury-textLight mt-1" id="cart-delivery-status"></p>
+                    </div>
+                    <button type="button" id="cart-use-location"
+                            class="inline-flex items-center gap-2 border-2 border-luxury-accent text-luxury-accent px-4 py-2 rounded-full hover:bg-luxury-accent hover:text-white transition-all duration-300 font-bold">
+                        <i class="fas fa-location-crosshairs"></i>
+                        <?= e(t('use_my_location')) ?>
+                    </button>
                 </div>
             </div>
             
@@ -262,6 +282,95 @@ $dir = getHtmlDir();
     </div>
 
     <?= modernFooter() ?>
+
+    <script>
+    const cartDeliveryConfig = <?= json_encode([
+        'store' => getStoreCoordinates(),
+        'tiers' => getDeliveryFeeTiers(),
+        'currency' => $currency
+    ], JSON_UNESCAPED_SLASHES) ?>;
+
+    const cartDeliveryMessages = {
+        calculating: <?= json_encode(t('delivery_calculating')) ?>,
+        outOfRange: <?= json_encode(t('delivery_out_of_range')) ?>,
+        denied: <?= json_encode(t('delivery_location_denied')) ?>,
+        unsupported: <?= json_encode(t('delivery_geolocation_unsupported')) ?>
+    };
+
+    const cartDeliveryUi = {
+        fee: document.getElementById('cart-delivery-fee'),
+        distance: document.getElementById('cart-delivery-distance'),
+        status: document.getElementById('cart-delivery-status')
+    };
+
+    function cartFormatMoney(amount) {
+        return `${cartDeliveryConfig.currency}${amount.toFixed(2)}`;
+    }
+
+    function cartHaversineKm(lat1, lng1, lat2, lng2) {
+        const earthRadius = 6371;
+        const toRad = (value) => (value * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return 2 * earthRadius * Math.asin(Math.sqrt(a));
+    }
+
+    function cartGetFeeForDistance(distanceKm) {
+        for (const tier of cartDeliveryConfig.tiers) {
+            if (distanceKm <= tier.max) {
+                return tier.fee;
+            }
+        }
+        return null;
+    }
+
+    function cartUpdateDelivery(distanceKm, fee) {
+        if (fee === null) {
+            cartDeliveryUi.fee.textContent = cartDeliveryMessages.outOfRange;
+            cartDeliveryUi.distance.textContent = `${distanceKm.toFixed(1)} km`;
+            cartDeliveryUi.status.textContent = cartDeliveryMessages.outOfRange;
+            return;
+        }
+
+        cartDeliveryUi.fee.textContent = cartFormatMoney(fee);
+        cartDeliveryUi.distance.textContent = `${distanceKm.toFixed(1)} km`;
+        cartDeliveryUi.status.textContent = '';
+    }
+
+    function cartHandleLocation(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const distanceKm = cartHaversineKm(lat, lng, cartDeliveryConfig.store.lat, cartDeliveryConfig.store.lng);
+        const fee = cartGetFeeForDistance(distanceKm);
+        cartUpdateDelivery(distanceKm, fee);
+    }
+
+    function cartHandleError(error) {
+        if (!cartDeliveryUi.status) {
+            return;
+        }
+        if (error.code === 1) {
+            cartDeliveryUi.status.textContent = cartDeliveryMessages.denied;
+        } else {
+            cartDeliveryUi.status.textContent = cartDeliveryMessages.unsupported;
+        }
+    }
+
+    document.getElementById('cart-use-location')?.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            cartDeliveryUi.status.textContent = cartDeliveryMessages.unsupported;
+            return;
+        }
+
+        cartDeliveryUi.status.textContent = cartDeliveryMessages.calculating;
+        navigator.geolocation.getCurrentPosition(cartHandleLocation, cartHandleError, {
+            enableHighAccuracy: true,
+            timeout: 10000
+        });
+    });
+    </script>
 </body>
 </html>
 
