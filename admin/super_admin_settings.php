@@ -100,7 +100,9 @@ $deliveryTiers = $currentSettings['delivery_fee_tiers'];
 if (!is_array($deliveryTiers)) {
     $deliveryTiers = getDeliveryFeeTiers();
 }
-while (count($deliveryTiers) < 4) {
+$deliveryTiers = array_values($deliveryTiers);
+$deliveryTiers = array_slice($deliveryTiers, 0, 5);
+while (count($deliveryTiers) < 5) {
     $deliveryTiers[] = ['max' => 0, 'fee' => 0];
 }
 
@@ -114,6 +116,7 @@ $csrfToken = generateCSRFToken();
     <title><?= e(t('system_settings')) ?> - Super Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <?= getLuxuryTailwindConfig() ?>
 </head>
 <body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
@@ -210,15 +213,22 @@ $csrfToken = generateCSRFToken();
                                         <span><?= e(t('delivery_fee_amount')) ?></span>
                                     </div>
                                     <div class="space-y-3">
-                                        <?php foreach ($deliveryTiers as $tier): ?>
-                                            <div class="grid grid-cols-3 gap-3">
+                                        <?php foreach ($deliveryTiers as $index => $tier): ?>
+                                            <div class="grid grid-cols-3 gap-3 delivery-tier-row" data-tier-index="<?= e((string)$index) ?>">
                                                 <input type="number" name="delivery_tier_max[]" value="<?= e((string)$tier['max']) ?>" min="0" step="0.1"
-                                                       class="col-span-2 w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                                       class="col-span-2 w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white delivery-tier-max">
                                                 <input type="number" name="delivery_tier_fee[]" value="<?= e((string)$tier['fee']) ?>" min="0" step="0.01"
-                                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white delivery-tier-fee">
                                             </div>
                                         <?php endforeach; ?>
                                     </div>
+                                </div>
+
+                                <div class="mt-6">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('delivery_map_title')) ?></label>
+                                    <p class="text-xs text-gray-500 mb-3"><?= e(t('delivery_map_hint')) ?></p>
+                                    <div id="delivery-map" class="w-full h-72 rounded-2xl border border-gray-200"></div>
+                                    <p class="text-xs text-gray-500 mt-2"><?= e(t('delivery_map_drag_hint')) ?></p>
                                 </div>
                             </div>
                         </div>
@@ -293,5 +303,120 @@ $csrfToken = generateCSRFToken();
             <?php include __DIR__ . '/footer.php'; ?>
         </div>
     </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+    const deliveryMapConfig = <?= json_encode([
+        'store' => getStoreCoordinates(),
+        'tiers' => $deliveryTiers,
+        'currency' => $currentSettings['currency']
+    ], JSON_UNESCAPED_SLASHES) ?>;
+
+    const deliveryMapLabels = {
+        distanceKm: <?= json_encode(t('delivery_map_radius_km')) ?>,
+        fee: <?= json_encode(t('delivery_map_fee_label')) ?>
+    };
+
+    const deliveryTierRows = Array.from(document.querySelectorAll('.delivery-tier-row'));
+    const mapContainer = document.getElementById('delivery-map');
+
+    if (mapContainer && deliveryTierRows.length) {
+        const storeLatLng = L.latLng(deliveryMapConfig.store.lat, deliveryMapConfig.store.lng);
+        const map = L.map(mapContainer, {
+            scrollWheelZoom: false
+        }).setView(storeLatLng, 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker(storeLatLng).addTo(map);
+
+        const tierColors = ['#f97316', '#ef4444', '#8b5cf6', '#14b8a6', '#0ea5e9'];
+        const tierState = [];
+
+        function kmToRadiusMeters(km) {
+            return Math.max(km, 0) * 1000;
+        }
+
+        function radiusToKm(radiusMeters) {
+            return Math.max(radiusMeters, 0) / 1000;
+        }
+
+        function handlePositionFromRadius(center, radiusMeters) {
+            const latRad = center.lat * Math.PI / 180;
+            const deltaLng = (radiusMeters / 1000) / (111.32 * Math.cos(latRad));
+            return L.latLng(center.lat, center.lng + deltaLng);
+        }
+
+        function updateRowFromRadius(index, radiusMeters) {
+            const row = tierState[index]?.row;
+            if (!row) {
+                return;
+            }
+            const kmValue = radiusToKm(radiusMeters);
+            row.maxInput.value = kmValue.toFixed(1);
+        }
+
+        function syncHandle(index) {
+            const state = tierState[index];
+            if (!state) {
+                return;
+            }
+            const radiusMeters = state.circle.getRadius();
+            const newLatLng = handlePositionFromRadius(storeLatLng, radiusMeters);
+            state.handle.setLatLng(newLatLng);
+        }
+
+        deliveryTierRows.forEach((row, index) => {
+            const maxInput = row.querySelector('.delivery-tier-max');
+            const feeInput = row.querySelector('.delivery-tier-fee');
+            const maxKm = parseFloat(maxInput?.value || '0');
+
+            const circle = L.circle(storeLatLng, {
+                radius: kmToRadiusMeters(maxKm),
+                color: tierColors[index % tierColors.length],
+                weight: 2,
+                fillOpacity: 0.08
+            }).addTo(map);
+
+            const handle = L.marker(handlePositionFromRadius(storeLatLng, kmToRadiusMeters(maxKm)), {
+                draggable: true
+            }).addTo(map);
+
+            handle.bindTooltip(`${deliveryMapLabels.distanceKm} ${maxKm.toFixed(1)} km\n${deliveryMapLabels.fee} ${deliveryMapConfig.currency}${parseFloat(feeInput?.value || '0').toFixed(2)}`,
+                {direction: 'top', offset: [0, -8]});
+
+            handle.on('drag', () => {
+                const distanceMeters = map.distance(storeLatLng, handle.getLatLng());
+                circle.setRadius(distanceMeters);
+                updateRowFromRadius(index, distanceMeters);
+                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${radiusToKm(distanceMeters).toFixed(1)} km\n${deliveryMapLabels.fee} ${deliveryMapConfig.currency}${parseFloat(feeInput?.value || '0').toFixed(2)}`);
+            });
+
+            maxInput?.addEventListener('input', () => {
+                const value = parseFloat(maxInput.value || '0');
+                const radius = kmToRadiusMeters(value);
+                circle.setRadius(radius);
+                syncHandle(index);
+                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${value.toFixed(1)} km\n${deliveryMapLabels.fee} ${deliveryMapConfig.currency}${parseFloat(feeInput?.value || '0').toFixed(2)}`);
+            });
+
+            feeInput?.addEventListener('input', () => {
+                const currentRadius = radiusToKm(circle.getRadius());
+                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${currentRadius.toFixed(1)} km\n${deliveryMapLabels.fee} ${deliveryMapConfig.currency}${parseFloat(feeInput.value || '0').toFixed(2)}`);
+            });
+
+            tierState[index] = { row: { maxInput, feeInput }, circle, handle };
+        });
+
+        map.on('zoomend', () => {
+            tierState.forEach((_, index) => syncHandle(index));
+        });
+
+        setTimeout(() => map.invalidateSize(), 200);
+    }
+    </script>
 </body>
 </html>
