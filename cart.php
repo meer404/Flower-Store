@@ -287,12 +287,14 @@ $dir = getHtmlDir();
     const cartDeliveryConfig = <?= json_encode([
         'store' => getStoreCoordinates(),
         'tiers' => getDeliveryFeeTiers(),
+        'outerFee' => getOuterZoneDeliveryFee(),
         'currency' => $currency
     ], JSON_UNESCAPED_SLASHES) ?>;
 
     const cartDeliveryMessages = {
         calculating: <?= json_encode(t('delivery_calculating')) ?>,
         outOfRange: <?= json_encode(t('delivery_out_of_range')) ?>,
+        outerZone: <?= json_encode(t('delivery_outer_zone')) ?>,
         denied: <?= json_encode(t('delivery_location_denied')) ?>,
         unsupported: <?= json_encode(t('delivery_geolocation_unsupported')) ?>
     };
@@ -323,6 +325,9 @@ $dir = getHtmlDir();
                 return tier.fee;
             }
         }
+        if (typeof cartDeliveryConfig.outerFee === 'number') {
+            return cartDeliveryConfig.outerFee;
+        }
         return null;
     }
 
@@ -336,7 +341,9 @@ $dir = getHtmlDir();
 
         cartDeliveryUi.fee.textContent = cartFormatMoney(fee);
         cartDeliveryUi.distance.textContent = `${distanceKm.toFixed(1)} km`;
-        cartDeliveryUi.status.textContent = '';
+        cartDeliveryUi.status.textContent = distanceKm > cartDeliveryConfig.tiers[cartDeliveryConfig.tiers.length - 1]?.max
+            ? cartDeliveryMessages.outerZone
+            : '';
     }
 
     function cartHandleLocation(position) {
