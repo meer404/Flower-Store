@@ -428,12 +428,14 @@ $dir = getHtmlDir();
     const deliveryConfig = <?= json_encode([
         'store' => getStoreCoordinates(),
         'tiers' => getDeliveryFeeTiers(),
+        'outerFee' => getOuterZoneDeliveryFee(),
         'currency' => $currency
     ], JSON_UNESCAPED_SLASHES) ?>;
 
     const deliveryMessages = {
         calculating: <?= json_encode(t('delivery_calculating')) ?>,
         outOfRange: <?= json_encode(t('delivery_out_of_range')) ?>,
+        outerZone: <?= json_encode(t('delivery_outer_zone')) ?>,
         denied: <?= json_encode(t('delivery_location_denied')) ?>,
         unsupported: <?= json_encode(t('delivery_geolocation_unsupported')) ?>
     };
@@ -471,6 +473,9 @@ $dir = getHtmlDir();
                 return tier.fee;
             }
         }
+        if (typeof deliveryConfig.outerFee === 'number') {
+            return deliveryConfig.outerFee;
+        }
         return null;
     }
 
@@ -496,7 +501,9 @@ $dir = getHtmlDir();
         deliveryUi.fee.textContent = formatMoney(fee);
         deliveryUi.distance.textContent = `${distanceKm.toFixed(1)} km`;
         deliveryUi.grandTotal.textContent = formatMoney(grandTotal);
-        deliveryUi.status.textContent = '';
+        deliveryUi.status.textContent = distanceKm > deliveryConfig.tiers[deliveryConfig.tiers.length - 1]?.max
+            ? deliveryMessages.outerZone
+            : '';
 
         if (deliveryUi.button) {
             deliveryUi.button.disabled = false;

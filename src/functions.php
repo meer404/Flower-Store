@@ -356,7 +356,26 @@ function getDeliveryFeeByDistance(float $distanceKm): ?float {
         }
     }
 
-    return null;
+    return getOuterZoneDeliveryFee();
+}
+
+/**
+ * Get default delivery fee when distance is outside defined tiers
+ *
+ * @return float|null Default fee, or null if not configured
+ */
+function getOuterZoneDeliveryFee(): ?float {
+    $fee = getSystemSetting('delivery_outer_fee', null);
+    if ($fee === null || $fee === '') {
+        return null;
+    }
+
+    if (!is_numeric($fee)) {
+        return null;
+    }
+
+    $feeValue = (float)$fee;
+    return $feeValue >= 0 ? $feeValue : null;
 }
 
 /**

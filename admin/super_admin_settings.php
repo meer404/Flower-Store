@@ -55,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'currency' => sanitizeInput('currency', 'POST'),
             'tax_rate' => sanitizeInput('tax_rate', 'POST'),
             'shipping_cost' => sanitizeInput('shipping_cost', 'POST'),
+            'delivery_outer_fee' => sanitizeInput('delivery_outer_fee', 'POST'),
             'maintenance_mode' => sanitizeInput('maintenance_mode', 'POST', '0'),
             'max_upload_size' => sanitizeInput('max_upload_size', 'POST')
         ];
@@ -62,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             foreach ($settings as $key => $value) {
                 $type = 'string';
-                if (in_array($key, ['tax_rate', 'shipping_cost', 'max_upload_size'])) {
+                if (in_array($key, ['tax_rate', 'shipping_cost', 'delivery_outer_fee', 'max_upload_size'])) {
                     $type = 'number';
                 } elseif ($key === 'maintenance_mode') {
                     $type = 'boolean';
@@ -91,6 +92,7 @@ $currentSettings = [
     'currency' => getSystemSetting('currency', '$'),
     'tax_rate' => getSystemSetting('tax_rate', 0),
     'shipping_cost' => getSystemSetting('shipping_cost', 0),
+    'delivery_outer_fee' => getSystemSetting('delivery_outer_fee', 0),
     'delivery_fee_tiers' => getSystemSetting('delivery_fee_tiers', getDeliveryFeeTiers()),
     'maintenance_mode' => getSystemSetting('maintenance_mode', false),
     'max_upload_size' => getSystemSetting('max_upload_size', 5242880)
@@ -203,6 +205,13 @@ $csrfToken = generateCSRFToken();
                                     <input type="number" name="shipping_cost" value="<?= e((string)$currentSettings['shipping_cost']) ?>" min="0" step="0.01"
                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                     <p class="text-xs text-gray-500 mt-1"><?= e(t('shipping_cost_hint')) ?></p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('delivery_outer_fee')) ?> (<?= e($currentSettings['currency']) ?>)</label>
+                                    <input type="number" name="delivery_outer_fee" value="<?= e((string)$currentSettings['delivery_outer_fee']) ?>" min="0" step="0.01"
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                    <p class="text-xs text-gray-500 mt-1"><?= e(t('delivery_outer_fee_hint')) ?></p>
                                 </div>
 
                                 <div>
