@@ -3,8 +3,21 @@
 
 RewriteEngine On
 
+# Adjust this if the folder name in the URL is different
+RewriteBase /Flower-Store/
+
 # Prevent directory listing
-Options -Indexes
+Options -Indexes -MultiViews
+
+# Clean URLs: redirect .php to extensionless
+RewriteCond %{THE_REQUEST} \s/+(.+)\.php(?:[?\s]|$) [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# Map extensionless URLs to .php files
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L]
 
 # Security: Prevent access to sensitive files
 <FilesMatch "^(\.htaccess|\.git|composer\.json|package\.json)$">
