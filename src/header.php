@@ -7,6 +7,7 @@
 $lang = getCurrentLang();
 $dir = getHtmlDir();
 $currentPage = basename($_SERVER['PHP_SELF']);
+$csrfToken = generateCSRFToken();
 ?>
 
 <!-- Font Awesome for Icons -->
@@ -256,9 +257,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                                 <i class="fas fa-heart mr-2"></i><?= e(t('my_wishlist')) ?>
                             </a>
                             <div class="border-t border-luxury-border my-1"></div>
-                            <a href="<?= url('logout.php') ?>">
-                                <i class="fas fa-sign-out-alt mr-2"></i><?= e(t('nav_logout')) ?>
-                            </a>
+                            <form method="POST" action="<?= url('logout.php') ?>">
+                                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                                <button type="submit" class="block w-full text-left px-4 py-3 text-luxury-text hover:bg-luxury-accentLight">
+                                    <i class="fas fa-sign-out-alt mr-2"></i><?= e(t('nav_logout')) ?>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 <?php else: ?>
@@ -342,9 +346,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         <i class="fas fa-box mr-3"></i><?= e(t('my_orders')) ?>
                     </a>
                     <div class="border-t border-luxury-border my-2"></div>
-                    <a href="<?= url('logout.php') ?>" class="block py-2 px-4 text-red-600 hover:bg-red-50 rounded-lg">
-                        <i class="fas fa-sign-out-alt mr-3"></i><?= e(t('nav_logout')) ?>
-                    </a>
+                    <form method="POST" action="<?= url('logout.php') ?>" class="block">
+                        <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                        <button type="submit" class="block w-full text-left py-2 px-4 text-red-600 hover:bg-red-50 rounded-lg">
+                            <i class="fas fa-sign-out-alt mr-3"></i><?= e(t('nav_logout')) ?>
+                        </button>
+                    </form>
                 <?php else: ?>
                     <a href="<?= url('login.php') ?>" class="block py-2 px-4 text-luxury-text hover:bg-luxury-accentLight rounded-lg">
                         <i class="fas fa-sign-in-alt mr-3"></i><?= e(t('nav_login')) ?>

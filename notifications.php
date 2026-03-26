@@ -15,9 +15,14 @@ requireLogin();
 
 $pdo = getDB();
 $userId = (int)$_SESSION['user_id'];
+$csrfToken = generateCSRFToken();
 
 // Handle mark as read action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_read'])) {
+    $token = sanitizeInput('csrf_token', 'POST');
+    if (!verifyCSRFToken($token)) {
+        redirect('notifications.php', t('error'), 'error');
+    }
     $notificationId = (int)sanitizeInput('notification_id', 'POST', '0');
     if ($notificationId > 0) {
         markNotificationAsRead($notificationId);
@@ -61,7 +66,7 @@ $dir = getHtmlDir();
             <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary tracking-wide"><?= e(t('notifications')) ?></h1>
             <?php if (!empty($notifications)): ?>
                 <form method="POST" action="" class="inline">
-                    <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
+                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                     <input type="hidden" name="mark_all_read" value="1">
                     <button type="submit" class="text-sm text-luxury-accent hover:text-luxury-primary transition-colors font-medium">
                         <?= e(t('mark_all_read')) ?>
@@ -109,6 +114,7 @@ $dir = getHtmlDir();
                             </div>
                             <?php if (!$notification['is_read']): ?>
                                 <form method="POST" action="" class="inline">
+                                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                     <input type="hidden" name="notification_id" value="<?= e((string)$notification['id']) ?>">
                                     <input type="hidden" name="mark_read" value="1">
                                     <button type="submit" class="text-xs text-luxury-textLight hover:text-luxury-accent transition-colors">

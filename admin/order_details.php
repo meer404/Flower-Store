@@ -18,6 +18,7 @@ if (!isSuperAdmin() && !hasPermission('view_orders')) {
 }
 
 $pdo = getDB();
+$csrfToken = generateCSRFToken();
 $id = (int)sanitizeInput('id', 'GET', '0');
 
 if ($id <= 0) {
@@ -26,12 +27,21 @@ if ($id <= 0) {
 
 // Handle Status Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isSuperAdmin() || hasPermission('manage_orders'))) {
-    // Generate CSRF token if not exists (should implement properly in forms)
-    // For now assuming simple POST check
-    
+    $token = sanitizeInput('csrf_token', 'POST');
+    if (!verifyCSRFToken($token)) {
+        redirect("order_details.php?id={$id}", t('error'), 'error');
+    }
+
     $newStatus = sanitizeInput('order_status');
     $newPaymentStatus = sanitizeInput('payment_status');
     $trackingNumber = sanitizeInput('tracking_number');
+
+    $allowedStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    $allowedPaymentStatuses = ['pending', 'paid'];
+
+    if (!in_array($newStatus, $allowedStatuses, true) || !in_array($newPaymentStatus, $allowedPaymentStatuses, true)) {
+        redirect("order_details.php?id={$id}", t('error'), 'error');
+    }
     
     // Update order
     $updateStmt = $pdo->prepare('UPDATE orders SET order_status = :status, payment_status = :payment_status, tracking_number = :tracking_number WHERE id = :id');
@@ -51,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isSuperAdmin() || hasPermission('m
         // Notify user if status changed
         // We'd need to fetch user_id first, doing it below in fetch
         
-        $message = t('order_updated_success', [], 'Order updated successfully');
+        $message = t('order_updated_success');
         $_SESSION['flash_message'] = $message;
         $_SESSION['flash_type'] = 'success';
         
@@ -240,6 +250,7 @@ $dir = getHtmlDir();
                             </div>
                             <div class="p-6">
                                 <form method="POST" class="space-y-4">
+                                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1"><?= e(t('order_status_label')) ?></label>
                                         <select name="order_status" class="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
@@ -254,7 +265,7 @@ $dir = getHtmlDir();
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1"><?= e(t('payment_status_label')) ?></label>
                                         <select name="payment_status" class="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
-                                            <?php foreach (['paid', 'unpaid', 'refunded'] as $status): ?>
+                                            <?php foreach (['pending', 'paid'] as $status): ?>
                                                 <option value="<?= $status ?>" <?= strtolower($order['payment_status']) === $status ? 'selected' : '' ?>>
                                                     <?= e(ucfirst($status)) ?>
                                                 </option>

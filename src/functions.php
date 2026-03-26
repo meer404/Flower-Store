@@ -49,6 +49,30 @@ function sanitizeInput(string $key, string $method = 'POST', string $default = '
 }
 
 /**
+ * Validate a redirect target to avoid open redirects and header injection.
+ *
+ * @param string $target Requested redirect target
+ * @param string $default Fallback target if invalid
+ * @return string Safe redirect target
+ */
+function safeRedirectTarget(string $target, string $default = 'index.php'): string {
+    $target = trim($target);
+    if ($target === '') {
+        return $default;
+    }
+
+    // Disallow absolute URLs and protocol-relative URLs
+    if (preg_match('/^(https?:)?\/\//i', $target) || strpos($target, '://') !== false) {
+        return $default;
+    }
+
+    // Prevent header injection
+    $target = str_replace(["\r", "\n"], '', $target);
+
+    return $target;
+}
+
+/**
  * Generate a URL relative to the current script execution context.
  * Useful for handling links when files are in different directories (e.g., /admin/ vs /).
  * 

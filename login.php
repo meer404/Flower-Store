@@ -13,7 +13,7 @@ require_once __DIR__ . '/src/components.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
-    $redirect = $_GET['redirect'] ?? 'index.php';
+    $redirect = safeRedirectTarget((string)($_GET['redirect'] ?? ''), 'index.php');
     header("Location: {$redirect}");
     exit;
 }
@@ -53,9 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     // Redirect super admin to super admin dashboard
                     if ($user['role'] === 'super_admin') {
-                        $redirect = $_GET['redirect'] ?? 'admin/super_admin_dashboard.php';
+                        $redirect = safeRedirectTarget((string)($_GET['redirect'] ?? ''), 'admin/super_admin_dashboard.php');
                     } else {
-                        $redirect = $_GET['redirect'] ?? 'index.php';
+                        $redirect = safeRedirectTarget((string)($_GET['redirect'] ?? ''), 'index.php');
                     }
                     
                     logActivity('user_login', 'user', $user['id'], "User logged in: {$user['email']}");
