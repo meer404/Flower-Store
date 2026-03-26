@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Bloom & Vine</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #fff7ed, #fef3c7);
+            color: #1f2937;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            max-width: 560px;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 20px 50px rgba(31, 41, 55, 0.2);
+        }
+        h1 {
+            margin: 0 0 12px;
+            font-size: 28px;
+        }
+        p {
+            margin: 0 0 16px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        a {
+            text-decoration: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-weight: 600;
+        }
+        .primary {
+            background: linear-gradient(90deg, #d4af37, #f59e0b);
+            color: #111827;
+        }
+        .secondary {
+            border: 1px solid #d1d5db;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>You are offline</h1>
+        <p>It looks like your connection dropped. You can still browse recently viewed pages, but checkout and account actions will need you to reconnect.</p>
+        <div class="actions">
+            <a class="primary" href="index.php">Go to Home</a>
+            <a class="secondary" href="shop.php">Browse Products</a>
+        </div>
+    </div>
+</body>
+</html>

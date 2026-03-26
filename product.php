@@ -82,6 +82,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php include __DIR__ . '/src/pwa_head.php'; ?>
     <title><?= e(getProductName($product)) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>

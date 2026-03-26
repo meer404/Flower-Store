@@ -213,6 +213,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php include __DIR__ . '/src/pwa_head.php'; ?>
     <title><?= e(t('checkout')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
@@ -450,7 +451,8 @@ $dir = getHtmlDir();
         lng: document.getElementById('customer_lng'),
         distanceInput: document.getElementById('delivery_distance_km'),
         feeInput: document.getElementById('delivery_fee'),
-        button: document.getElementById('place-order-btn')
+        button: document.getElementById('place-order-btn'),
+        form: document.querySelector('form')
     };
 
     function formatMoney(amount) {
@@ -518,6 +520,17 @@ $dir = getHtmlDir();
         deliveryUi.feeInput.value = fee === null ? '' : fee.toFixed(2);
     }
 
+    function lockCheckout(message) {
+        deliveryUi.fee.textContent = '—';
+        deliveryUi.distance.textContent = '—';
+        deliveryUi.grandTotal.textContent = '—';
+        deliveryUi.status.textContent = message;
+        if (deliveryUi.button) {
+            deliveryUi.button.disabled = true;
+            deliveryUi.button.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
     function handleLocation(position) {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
@@ -529,18 +542,16 @@ $dir = getHtmlDir();
     }
 
     function handleLocationError(error) {
-        if (deliveryUi.status) {
-            if (error.code === 1) {
-                deliveryUi.status.textContent = deliveryMessages.denied;
-            } else {
-                deliveryUi.status.textContent = deliveryMessages.unsupported;
-            }
+        if (error.code === 1) {
+            lockCheckout(deliveryMessages.denied);
+        } else {
+            lockCheckout(deliveryMessages.unsupported);
         }
     }
 
-    document.getElementById('use-location')?.addEventListener('click', () => {
+    function requestLocation() {
         if (!navigator.geolocation) {
-            deliveryUi.status.textContent = deliveryMessages.unsupported;
+            lockCheckout(deliveryMessages.unsupported);
             return;
         }
 
@@ -549,6 +560,22 @@ $dir = getHtmlDir();
             enableHighAccuracy: true,
             timeout: 10000
         });
+    }
+
+    document.getElementById('use-location')?.addEventListener('click', () => {
+        requestLocation();
+    });
+
+    if (deliveryUi.button) {
+        lockCheckout(deliveryMessages.calculating);
+    }
+    requestLocation();
+
+    deliveryUi.form?.addEventListener('submit', (event) => {
+        if (!deliveryUi.lat.value || !deliveryUi.lng.value) {
+            event.preventDefault();
+            lockCheckout(deliveryMessages.denied);
+        }
     });
     // Card number formatting
     document.getElementById('card_number')?.addEventListener('input', function(e) {

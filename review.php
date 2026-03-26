@@ -82,6 +82,7 @@ $dir = getHtmlDir();
 </head>
 <body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
     <?php include __DIR__ . '/src/header.php'; ?>
+    <?php include __DIR__ . '/src/pwa_head.php'; ?>
 
     <div class="container mx-auto px-4 py-8 max-w-2xl">
         <h1 class="text-3xl font-bold text-primary mb-4"><?= e('Write a Review') ?></h1>
