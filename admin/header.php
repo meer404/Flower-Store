@@ -5,6 +5,7 @@
  */
 
 $lang = getCurrentLang();
+$csrfToken = generateCSRFToken();
 ?>
 
 <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
@@ -78,9 +79,12 @@ $lang = getCurrentLang();
                         <a href="../account.php" class="block px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-colors">
                             <i class="fas fa-user-circle w-5"></i> <?= e(t('my_profile')) ?>
                         </a>
-                        <a href="../logout.php" class="block px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors">
-                            <i class="fas fa-sign-out-alt w-5"></i> <?= e(t('nav_logout')) ?>
-                        </a>
+                        <form method="POST" action="../logout.php">
+                            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                            <button type="submit" class="block w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                <i class="fas fa-sign-out-alt w-5"></i> <?= e(t('nav_logout')) ?>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

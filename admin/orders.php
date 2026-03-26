@@ -146,11 +146,12 @@ $dir = getHtmlDir();
                                                     <?= e(ucfirst($orderStatus)) ?>
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-4">
-                                                 <span class="<?= ($order['payment_status'] ?? 'unpaid') === 'paid' ? 'text-green-600' : 'text-red-500' ?> font-semibold text-sm">
-                                                    <?= e(ucfirst($order['payment_status'] ?? 'unpaid')) ?>
-                                                 </span>
-                                            </td>
+                                                          <td class="px-6 py-4">
+                                                                 <?php $paymentStatus = strtolower($order['payment_status'] ?? 'pending'); ?>
+                                                                 <span class="<?= $paymentStatus === 'paid' ? 'text-green-600' : 'text-red-500' ?> font-semibold text-sm">
+                                                                     <?= e(ucfirst($paymentStatus)) ?>
+                                                                 </span>
+                                                          </td>
                                             <td class="px-6 py-4 text-sm text-gray-500">
                                                 <?= e(date('M d, H:i', strtotime($order['order_date']))) ?>
                                             </td>

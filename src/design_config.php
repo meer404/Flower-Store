@@ -134,6 +134,7 @@ function getLuxuryTailwindConfig(): string {
  */
 function getLuxuryNavbar(string $currentPage = ''): string {
     $lang = getCurrentLang();
+    $csrfToken = generateCSRFToken();
     $nav = '<nav class="bg-white border-b border-luxury-border shadow-sm">
         <div class="container mx-auto px-6 py-4">
             <div class="flex justify-between items-center gap-4">
@@ -150,7 +151,10 @@ function getLuxuryNavbar(string $currentPage = ''): string {
                  <a href="cart.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium">
                      ' . e(t('nav_cart')) . ' <span class="bg-luxury-accent text-white px-2 py-0.5 rounded-full text-xs">' . e((string)getCartCount()) . '</span>
                  </a>
-                 <a href="logout.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium">' . e(t('nav_logout')) . '</a>';
+                 <form method="POST" action="logout.php" class="inline">
+                     <input type="hidden" name="csrf_token" value="' . e($csrfToken) . '">
+                     <button type="submit" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium">' . e(t('nav_logout')) . '</button>
+                 </form>';
     } else {
         $nav .= '<a href="login.php" class="text-luxury-text hover:text-luxury-accent transition-colors font-medium">' . e(t('nav_login')) . '</a>
                  <a href="register.php" class="bg-luxury-primary text-white px-6 py-2 rounded-sm hover:bg-opacity-90 transition-all font-medium">' . e(t('nav_register')) . '</a>';

@@ -12,6 +12,10 @@ require_once __DIR__ . '/src/functions.php';
 
 requireAdmin();
 
+if (!isSuperAdmin() && !hasPermission('manage_orders')) {
+    redirect('admin/dashboard.php', t('no_permission'), 'error');
+}
+
 $pdo = getDB();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

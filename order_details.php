@@ -209,7 +209,7 @@ $dir = getHtmlDir();
                                 </span>
                             </div>
                         <?php endif; ?>
-                        <?php if ($isAdmin): ?>
+                        <?php if (isSuperAdmin() || hasPermission('manage_orders')): ?>
                             <div class="mt-6 pt-6 border-t border-luxury-border">
                                 <h3 class="text-lg font-semibold text-luxury-primary mb-4"><?= e(t('admin_actions')) ?></h3>
                                 

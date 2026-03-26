@@ -6,6 +6,7 @@
 
 $currentPage = basename($_SERVER['PHP_SELF']);
 $isSuperAdmin = isSuperAdmin();
+$csrfToken = generateCSRFToken();
 ?>
 
 <!-- Mobile Sidebar Overlay -->
@@ -178,9 +179,12 @@ $isSuperAdmin = isSuperAdmin();
                 <p class="text-sm font-bold text-gray-900 truncate"><?= e($_SESSION['full_name'] ?? 'Admin') ?></p>
                 <p class="text-xs text-gray-500 truncate"><?= e($_SESSION['email'] ?? '') ?></p>
             </div>
-            <a href="<?= url('logout.php') ?>" class="text-gray-400 hover:text-red-600 transition-colors" title="<?= e(t('nav_logout')) ?>">
-                <i class="fas fa-sign-out-alt"></i>
-            </a>
+            <form method="POST" action="<?= url('logout.php') ?>">
+                <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors" title="<?= e(t('nav_logout')) ?>">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </form>
         </div>
     </div>
 </aside>
