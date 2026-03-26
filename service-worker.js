@@ -1,4 +1,4 @@
-const CACHE_VERSION = '2026-03-26-1';
+const CACHE_VERSION = '2026-03-27-1';
 const CORE_CACHE = `core-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `runtime-${CACHE_VERSION}`;
 const OFFLINE_PATH = 'offline.html';
@@ -9,16 +9,6 @@ const QUEUE_STORE = 'requests';
 const CORE_ASSETS = [
     'index.php',
     'shop.php',
-    'product.php',
-    'cart.php',
-    'wishlist.php',
-    'account.php',
-    'checkout.php',
-    'login.php',
-    'register.php',
-    'notifications.php',
-    'review.php',
-    'order_details.php',
     'manifest.json',
     'pwa.js',
     'service-worker.js',
