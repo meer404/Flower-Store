@@ -76,6 +76,12 @@ $dir = getHtmlDir();
     </div>
 
     <div class="container mx-auto px-6 py-12">
+        <?php
+        $flash = getFlashMessage();
+        if ($flash):
+            echo alert($flash['message'], $flash['type']);
+        endif;
+        ?>
         <div class="flex flex-col lg:flex-row gap-8">
             <!-- Sidebar Filters -->
             <aside class="lg:w-80">
@@ -209,6 +215,10 @@ $dir = getHtmlDir();
             })
             .then(response => response.json())
             .then(data => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
                 if (data.success) {
                     location.reload();
                 }

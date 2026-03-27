@@ -174,20 +174,13 @@ function productCard(array $product): string {
     </a>';
     
     if ($inStock) {
-        if (isLoggedIn()) {
-            $html .= '<form method="POST" action="cart_action.php" class="w-full">
-                <input type="hidden" name="action" value="add">
-                <input type="hidden" name="product_id" value="' . $productId . '">
-                <input type="hidden" name="csrf_token" value="' . e(generateCSRFToken()) . '">
-                <button type="submit" class="w-full bg-gradient-to-r from-luxury-accent to-yellow-500 text-white py-3 px-4 rounded-full hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                    <i class="fas fa-shopping-cart me-2"></i>' . e(t('add_to_cart')) . '
-                </button>
-            </form>';
-        } else {
-            $html .= '<a href="login.php" class="block w-full text-center bg-gradient-to-r from-luxury-accent to-yellow-500 text-white py-3 px-4 rounded-full hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-semibold shadow-lg">
-                <i class="fas fa-shopping-cart me-2"></i>' . e(t('login_to_purchase')) . '
-            </a>';
-        }
+        $html .= '<form method="POST" action="cart_action.php" class="w-full">
+            <input type="hidden" name="action" value="add">
+            <input type="hidden" name="product_id" value="' . $productId . '">
+            <button type="submit" class="w-full bg-gradient-to-r from-luxury-accent to-yellow-500 text-white py-3 px-4 rounded-full hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                <i class="fas fa-shopping-cart me-2"></i>' . e(t('add_to_cart')) . '
+            </button>
+        </form>';
     } else {
         $html .= '<button disabled class="w-full bg-gray-300 text-gray-500 py-3 px-4 rounded-full cursor-not-allowed">
             <i class="fas fa-times me-2"></i>' . e(t('out_of_stock')) . '

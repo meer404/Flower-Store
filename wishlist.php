@@ -95,19 +95,16 @@ $dir = getHtmlDir();
                                 <?php if ($item['stock_qty'] > 0): ?>
                                     <form method="POST" action="cart_action.php" class="inline w-full">
                                         <input type="hidden" name="action" value="add">
-                                        <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
-                                        <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
-                                        <button type="submit" 
-                                                class="w-full bg-luxury-accent text-white py-2.5 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                                            <?= e(t('add_to_cart')) ?>
+                                        <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
+                                        <button type="submit" class="w-full bg-luxury-accent text-white py-2.5 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
+                                            <?= t('add_to_cart') ?>
                                         </button>
                                     </form>
                                 <?php endif; ?>
                                 
-                                <form method="POST" action="wishlist_action.php" class="inline w-full">
+                                <form method="POST" action="<?= url('wishlist_action.php') ?>" class="inline w-full">
                                     <input type="hidden" name="action" value="remove">
-                                    <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
-                                    <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
+                                    <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">\n                                    <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                                     <button type="submit" 
                                             class="w-full border border-red-300 text-red-600 py-2.5 px-4 rounded-sm hover:bg-red-50 transition-all duration-300 font-medium">
                                         <?= e(t('remove_from_wishlist')) ?>

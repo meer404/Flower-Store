@@ -257,6 +257,10 @@ $dir = getHtmlDir();
             })
             .then(response => response.json())
             .then(data => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
                 if (data.success) {
                     location.reload();
                 }

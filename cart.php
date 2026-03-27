@@ -147,11 +147,10 @@ $dir = getHtmlDir();
                                     <td class="px-6 py-6">
                                         <form method="POST" action="cart_action.php" class="inline">
                                             <input type="hidden" name="action" value="update">
-                                            <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
-                                            <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
+                                            <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
                                             <div class="flex items-center gap-2">
-                                                <input type="number" name="quantity" value="<?= e((string)$item['cart_quantity']) ?>" 
-                                                       min="1" max="<?= e((string)$item['stock_qty']) ?>"
+                                                <input type="number" name="quantity" value="<?= $item['cart_quantity'] ?>" 
+                                                       min="1" max="<?= $item['stock_qty'] ?>"
                                                        class="w-24 px-4 py-2.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent text-center font-bold"
                                                        onchange="this.form.submit()">
                                                 <button type="submit" class="text-luxury-accent hover:text-luxury-primary">
@@ -164,7 +163,7 @@ $dir = getHtmlDir();
                                         <span class="text-xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($item['subtotal'], $currency)) ?></span>
                                     </td>
                                     <td class="px-6 py-6">
-                                        <form method="POST" action="cart_action.php" class="inline">
+                                        <form method="POST" action="<?= url('cart_action.php') ?>" class="inline">
                                             <input type="hidden" name="action" value="remove">
                                             <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
                                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
@@ -208,7 +207,7 @@ $dir = getHtmlDir();
                             </div>
                         </div>
                         <div class="flex items-center justify-between p-4 border-t-2 border-luxury-border">
-                            <form method="POST" action="cart_action.php" class="flex items-center gap-2">
+                            <form method="POST" action="<?= url('cart_action.php') ?>" class="flex items-center gap-2">
                                 <input type="hidden" name="action" value="update">
                                 <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
                                 <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
@@ -225,7 +224,7 @@ $dir = getHtmlDir();
                                 <p class="text-2xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($item['subtotal'], $currency)) ?></p>
                             </div>
                         </div>
-                        <form method="POST" action="cart_action.php" class="p-4 bg-red-50">
+                        <form method="POST" action="<?= url('cart_action.php') ?>" class="p-4 bg-red-50">
                             <input type="hidden" name="action" value="remove">
                             <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
