@@ -1,5 +1,6 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1)
+;
 
 /**
  * Kurdish Translations (Sorani)
@@ -24,7 +25,7 @@ return [
     'my_wishlist' => 'لیستی ئاواتەکانم',
     'notifications' => 'ئاگانامەکان',
     'free_shipping_notice' => 'گەیاندنی خۆڕایی بۆ داواکاری سەرووی ٥٠ دۆلار',
-    
+
     // Hero Section
     'hero_title' => 'بەخێربێیت بۆ بلوم & ڤاین',
     'hero_subtitle' => 'گوڵی جوان بۆ هەموو بۆنەیەک',
@@ -54,7 +55,7 @@ return [
     'email_placeholder' => 'ئیمەیڵەکەت بنووسە',
     'subscribe_button' => 'بەشداری کردن',
     'privacy_notice' => 'ڕێز لە تایبەتمەندێتیت دەگرین. هەر کاتێک ویستت دەتوانیت بەشداری هەڵبوەشێنیتەوە.',
-    
+
     // Common
     'welcome' => 'بەخێربێیت',
     'search' => 'گەڕان',
@@ -64,7 +65,7 @@ return [
     'delete' => 'سڕینەوە',
     'view' => 'بینین',
     'actions' => 'کردارەکان',
-    
+
     // Admin Products
     'products_management' => 'بەڕێوەبردنی بەرهەمەکان',
     'orders_management' => 'بەڕێوەبردنی داواکاریەکان',
@@ -98,7 +99,7 @@ return [
     'cart_table_product' => 'بەرهەم',
     'cart_table_action' => 'کردار',
     'cart_items_title' => 'کاڵاکانی سەبەتە',
-    
+
     // Authentication
     'login_title' => 'چوونەژوورەوە',
     'register_title' => 'تۆمارکردن',
@@ -139,7 +140,7 @@ return [
     'passwords_mismatch' => 'وشە نهێنییە نوێیەکان وەک یەک نین',
     'password_min_length' => 'وشەی نهێنی دەبێت لایەنی کەم ٨ پیت بێت',
     'password_changed' => 'وشەی نهێنی بە سەرکەوتوویی گۆڕدرا!',
-    
+
     // Shop
     'shop_subtitle' => 'تەواوی کۆمەڵە گوڵە نایابەکانمان ببینە',
     'filters' => 'فیلتەرەکان',
@@ -150,7 +151,7 @@ return [
     'found_products' => ':count بەرهەم دۆزرایەوە',
     'no_products_found' => 'هیچ بەرهەمێک نەدۆزرایەوە',
     'no_products_subtitle' => 'تکایە هەوڵی گۆڕینی گەڕانەکەت یان فیلتەرەکان بدە',
-    
+
     // Admin
     'admin_dashboard' => 'داشبۆردی بەڕێوەبردن',
     'admin_products' => 'بەرهەمەکان',
@@ -178,7 +179,7 @@ return [
     'update_product' => 'نوێکردنەوەی بەرهەم',
     'cancel' => 'پاشگەزبوونەوە',
     'current_image' => 'وێنەی ئێستا',
-    
+
     // Categories
     'category_added_success' => 'هاوپۆل بە سەرکەوتوویی زیادکرا!',
     'category_updated_success' => 'هاوپۆل بە سەرکەوتوویی نوێکرایەوە!',
@@ -190,7 +191,7 @@ return [
     'name_ku' => 'ناو (کوردی)',
     'add_category_btn' => 'زیادکردنی هاوپۆل',
     'delete_category_confirm' => 'ئەم هاوپۆلە بسڕدرێتەوە؟',
-    
+
     // Super Admin Users
     'user_management' => 'بەڕێوەبردنی بەشداربووان',
     'user_management_desc' => 'بەڕێوەبردنی هەموو بەشداربووانی سیستەم',
@@ -206,7 +207,7 @@ return [
     'user_deleted_success' => 'بەشداربوو بە سەرکەوتوویی سڕایەوە',
     'back_to_dashboard' => 'گەڕانەوە بۆ داشبۆرد',
     'reset' => 'ڕیسێت',
-    
+
     // Super Admin Admins
     'admin_created_success' => 'بەڕێوەبەر بە سەرکەوتوویی دروستکرا',
     'fill_all_fields_error' => 'تکایە هەموو خانەکان پڕبکەرەوە',
@@ -239,7 +240,7 @@ return [
     'permission_system_settings' => 'ڕێکخستنەکانی سیستەم',
     'permission_denied' => 'دەسەڵات نییە',
     'no_permission' => 'دەسەڵات نییە',
-    
+
     // Reports
     'reports' => 'ڕاپۆرتەکان',
     'reports_desc' => 'شیكاری و فرۆشتنی گشتگیر',
@@ -264,7 +265,7 @@ return [
     'total_customers' => 'کۆی بەشداربووان',
     'new_customers' => 'بەشداربووانی نوێ',
     'avg_orders_per_customer' => 'تێکڕای داواکاری بۆ هەر بەشداربوویەک',
-    
+
     // Settings
     'system_settings' => 'ڕێکخستنەکانی سیستەم',
     'system_settings_desc' => 'پێکدەهێنانی ڕێکخستنەکانی سیستەم',
@@ -319,7 +320,7 @@ return [
     'not_set' => 'دیاری نەکراوە',
     'total_products' => 'کۆی بەرهەمەکان',
     'total_customers' => 'کۆی کڕیارەکان',
-    
+
     // Super Admin
     'super_admin_dashboard' => 'داشبۆردی بەڕێوەبەری باڵا',
     'system_control' => 'کۆنتڕۆڵی تەواوی سیستەم و شیکاری',
@@ -346,7 +347,7 @@ return [
     'completed_orders' => 'داواکاریە تەواوبووەکان',
     'recent_orders' => 'داواکاریە نوێیەکان',
     'view_all' => 'بینینی هەموو',
-    
+
     // Product Management
     'product_name_en' => 'ناوی بەرهەم (ئینگلیزی)',
     'product_name_ku' => 'ناوی بەرهەم (کوردی)',
@@ -370,7 +371,7 @@ return [
     'write_review' => 'نووسینی پێداچوونەوە',
     'no_reviews_yet' => 'هیچ پێداچوونەوەیەک نییە. یەکەم کەس بە پێداچوونەوە بنووسە!',
     'related_products' => 'بەرهەمە پەیوەندیدارەکان',
-    
+
     // Checkout
     'shipping_address_required' => 'ناونیشانی گەیاندن پێویستە',
     'delivery_fee' => 'Delivery Fee',
@@ -396,7 +397,7 @@ return [
     'customer_info' => 'زانیاری کڕیار',
     'name' => 'ناو',
     'shipping_address' => 'ناونیشانی گەیاندن',
-    
+
     // Order Details
     'invalid_order' => 'داواکاری هەڵەیە',
     'order_not_found' => 'داواکاری نەدۆزرایەوە',
@@ -424,7 +425,7 @@ return [
     'delivery_date_invalid' => 'بەرواری گەیاندن دەبێت لە داهاتوودا بێت',
     'print' => 'چاپکردن',
     'order_updated_success' => 'داواکاری بە سەرکەوتوویی نوێکرایەوە',
-    
+
     // Wishlist
     'my_wishlist' => 'لیستی ئاواتەکانم',
     'wishlist_empty' => 'لیستی ئاواتەکانت بەتاڵە.',
@@ -451,7 +452,7 @@ return [
     'place_order' => 'داشکاندنی داواکاری',
     'order_placed' => 'داواکاری بە سەرکەوتوویی دەستنیشانکرا!',
     'order_error' => 'هەڵە لە داشکاندنی داواکاریدا. تکایە دووبارە هەوڵ بدە.',
-    
+
     // Notifications
     'mark_all_read' => 'هەموویان وەک خوێندراوە نیشان بکە',
     'mark_read' => 'وەک خوێندراوە نیشان بکە',
@@ -462,12 +463,12 @@ return [
     'order_status_msg' => 'دۆخی داواکاری #:order_id نوێکرایەوە لە ":old_status" بۆ ":new_status".',
     'tracking_added_title' => 'ژمارەی بەدواداچوون زیادکرا',
     'tracking_added_msg' => 'ژمارەی بەدواداچوون زیادکرا بۆ داواکاری #:order_id: :tracking_number',
-    
+
     // Messages
     'success' => 'سەرکەوتوو',
     'error' => 'هەڵە',
     'info' => 'زانیاری',
-    
+
     // Components
     'featured' => 'هەڵبژێردراو',
     'out_of_stock' => 'لە کۆگا نەماوە',
@@ -487,7 +488,7 @@ return [
     'privacy_policy' => 'سیاسەتی تایبەتمەندێتی',
     'terms_of_service' => 'مەرجەکانی خزمەتگوزاری',
     'cookie_policy' => 'سیاسەتی کووکی',
-    
+
     // Sidebar
     'admin_panel' => 'پەنێڵی بەڕێوەبردن',
     'sidebar_general' => 'گشتی',
@@ -505,5 +506,11 @@ return [
     'date' => 'بەروار',
     'action' => 'کردار',
     'no_orders_found' => 'هیچ داواکاریەک نەدۆزرایەوە',
-];
 
+    // Customer Location
+    'customer_location' => 'شوێنی کڕیار',
+    'latitude' => 'هێڵی پانی',
+    'longitude' => 'هێڵی درێژی',
+    'open_in_google_maps' => 'کردنەوە لە گووگڵ نەخشە',
+    'view_on_map' => 'بینین لەسەر نەخشە',
+];

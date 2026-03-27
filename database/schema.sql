@@ -75,6 +75,8 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `payment_status` ENUM('pending', 'paid') NOT NULL DEFAULT 'pending',
   `order_status` ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') NOT NULL DEFAULT 'pending',
   `shipping_address` TEXT NOT NULL,
+  `customer_lat` DECIMAL(10,7) DEFAULT NULL,
+  `customer_lng` DECIMAL(10,7) DEFAULT NULL,
   `delivery_date` DATE DEFAULT NULL,
   `payment_method` ENUM('visa', 'mastercard') DEFAULT NULL,
   `card_last_four` VARCHAR(4) DEFAULT NULL,

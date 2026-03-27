@@ -239,6 +239,21 @@ $dir = getHtmlDir();
                                         <?= nl2br(e($order['shipping_address'] ?? 'No address provided')) ?>
                                     </p>
                                 </div>
+                                <?php if (!empty($order['customer_lat']) && !empty($order['customer_lng'])): ?>
+                                    <?php $mapUrl = 'https://www.google.com/maps?q=' . rawurlencode($order['customer_lat'] . ',' . $order['customer_lng']); ?>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1"><?= e(t('customer_location')) ?></h4>
+                                        <p class="font-medium text-gray-800 mb-1">
+                                            <?= e(t('latitude')) ?>: <?= e((string)$order['customer_lat']) ?>
+                                        </p>
+                                        <p class="font-medium text-gray-800 mb-2">
+                                            <?= e(t('longitude')) ?>: <?= e((string)$order['customer_lng']) ?>
+                                        </p>
+                                        <a href="<?= e($mapUrl) ?>" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm font-semibold">
+                                            <i class="fas fa-map-marker-alt"></i><?= e(t('open_in_google_maps')) ?>
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 

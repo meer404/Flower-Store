@@ -1,5 +1,6 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1)
+;
 
 /**
  * English Translations
@@ -24,7 +25,7 @@ return [
     'my_wishlist' => 'My Wishlist',
     'notifications' => 'Notifications',
     'free_shipping_notice' => 'Free shipping on orders over $50',
-    
+
     // Hero Section
     'hero_title' => 'Welcome to Bloom & Vine',
     'hero_subtitle' => 'Beautiful flowers for every occasion',
@@ -54,7 +55,7 @@ return [
     'email_placeholder' => 'Enter your email address',
     'subscribe_button' => 'Subscribe',
     'privacy_notice' => 'We respect your privacy. Unsubscribe anytime.',
-    
+
     // Common
     'welcome' => 'Welcome',
     'search' => 'Search',
@@ -64,7 +65,7 @@ return [
     'delete' => 'Delete',
     'view' => 'View',
     'actions' => 'Actions',
-    
+
     // Admin Products
     'products_management' => 'Products Management',
     'orders_management' => 'Orders Management',
@@ -98,7 +99,7 @@ return [
     'cart_table_product' => 'Product',
     'cart_table_action' => 'Action',
     'cart_items_title' => 'Cart Items',
-    
+
     // Authentication
     'login_title' => 'Login',
     'register_title' => 'Register',
@@ -139,7 +140,7 @@ return [
     'passwords_mismatch' => 'New passwords do not match',
     'password_min_length' => 'Password must be at least 8 characters',
     'password_changed' => 'Password changed successfully!',
-    
+
     // Shop
     'shop_subtitle' => 'Discover our complete collection of premium flowers',
     'filters' => 'Filters',
@@ -150,7 +151,7 @@ return [
     'found_products' => 'Found :count products',
     'no_products_found' => 'No Products Found',
     'no_products_subtitle' => 'Try adjusting your search or filters',
-    
+
     // Admin
     'admin_dashboard' => 'Admin Dashboard',
     'admin_products' => 'Products',
@@ -178,7 +179,7 @@ return [
     'update_product' => 'Update Product',
     'cancel' => 'Cancel',
     'current_image' => 'Current Image',
-    
+
     // Categories
     'category_added_success' => 'Category added successfully!',
     'category_updated_success' => 'Category updated successfully!',
@@ -190,7 +191,7 @@ return [
     'name_ku' => 'Name (Kurdish)',
     'add_category_btn' => 'Add Category',
     'delete_category_confirm' => 'Delete this category?',
-    
+
     // Super Admin Users
     'user_management' => 'User Management',
     'user_management_desc' => 'Manage all users in the system',
@@ -206,7 +207,7 @@ return [
     'user_deleted_success' => 'User deleted successfully',
     'back_to_dashboard' => 'Back to Dashboard',
     'reset' => 'Reset',
-    
+
     // Super Admin Admins
     'admin_created_success' => 'Admin created successfully',
     'fill_all_fields_error' => 'Please fill all fields',
@@ -226,7 +227,7 @@ return [
     'edit_permissions' => 'Edit Permissions',
     'save_permissions' => 'Save Permissions',
     'no_permissions_assigned' => 'No permissions assigned',
-    
+
     // Admin Permissions
     'permission_view_dashboard' => 'View Dashboard',
     'permission_manage_products' => 'Add, Edit & Delete Products',
@@ -239,7 +240,7 @@ return [
     'permission_system_settings' => 'System Settings',
     'permission_denied' => 'Permission denied',
     'no_permission' => 'No permission',
-    
+
     // Reports
     'reports' => 'Reports',
     'reports_desc' => 'Comprehensive sales and analytics',
@@ -264,7 +265,7 @@ return [
     'total_customers' => 'Total Customers',
     'new_customers' => 'New Customers',
     'avg_orders_per_customer' => 'Avg Orders per Customer',
-    
+
     // Settings
     'system_settings' => 'System Settings',
     'system_settings_desc' => 'Configure system-wide settings',
@@ -319,7 +320,7 @@ return [
     'not_set' => 'Not set',
     'total_products' => 'Total Products',
     'total_customers' => 'Total Customers',
-    
+
     // Super Admin
     'super_admin_dashboard' => 'Super Admin Dashboard',
     'system_control' => 'Full System Control & Analytics',
@@ -346,7 +347,7 @@ return [
     'completed_orders' => 'Completed Orders',
     'recent_orders' => 'Recent Orders',
     'view_all' => 'View All',
-    
+
     // Product Management
     'product_name_en' => 'Product Name (English)',
     'product_name_ku' => 'Product Name (Kurdish)',
@@ -370,7 +371,7 @@ return [
     'write_review' => 'Write a Review',
     'no_reviews_yet' => 'No reviews yet. Be the first to review!',
     'related_products' => 'Related Products',
-    
+
     // Checkout
     'shipping_address_required' => 'Shipping address is required',
     'delivery_fee' => 'Delivery Fee',
@@ -396,7 +397,7 @@ return [
     'customer_info' => 'Customer Information',
     'name' => 'Name',
     'shipping_address' => 'Shipping Address',
-    
+
     // Order Details
     'invalid_order' => 'Invalid order',
     'order_not_found' => 'Order not found',
@@ -424,7 +425,7 @@ return [
     'delivery_date_invalid' => 'Delivery date must be in the future',
     'print' => 'Print',
     'order_updated_success' => 'Order updated successfully',
-    
+
     // Wishlist
     'my_wishlist' => 'My Wishlist',
     'wishlist_empty' => 'Your wishlist is empty.',
@@ -451,7 +452,7 @@ return [
     'place_order' => 'Place Order',
     'order_placed' => 'Order placed successfully!',
     'order_error' => 'Error placing order. Please try again.',
-    
+
     // Notifications
     'mark_all_read' => 'Mark All as Read',
     'mark_read' => 'Mark as read',
@@ -462,12 +463,12 @@ return [
     'order_status_msg' => 'Your order #:order_id status has been updated from ":old_status" to ":new_status".',
     'tracking_added_title' => 'Tracking Number Added',
     'tracking_added_msg' => 'A tracking number has been added to your order #:order_id: :tracking_number',
-    
+
     // Messages
     'success' => 'Success',
     'error' => 'Error',
     'info' => 'Info',
-    
+
     // Components
     'featured' => 'Featured',
     'out_of_stock' => 'Out of Stock',
@@ -487,7 +488,7 @@ return [
     'privacy_policy' => 'Privacy Policy',
     'terms_of_service' => 'Terms of Service',
     'cookie_policy' => 'Cookie Policy',
-    
+
     // Sidebar
     'admin_panel' => 'Admin Panel',
     'sidebar_general' => 'General',
@@ -505,5 +506,11 @@ return [
     'date' => 'Date',
     'action' => 'Action',
     'no_orders_found' => 'No orders found',
-];
 
+    // Customer Location
+    'customer_location' => 'Customer Location',
+    'latitude' => 'Latitude',
+    'longitude' => 'Longitude',
+    'open_in_google_maps' => 'Open in Google Maps',
+    'view_on_map' => 'View on Map',
+];
