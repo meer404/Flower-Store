@@ -289,7 +289,10 @@ $dir = getHtmlDir();
                 </div>
 
                 <?php if ((isAdmin() || isSuperAdmin()) && !empty($order['customer_lat']) && !empty($order['customer_lng'])): ?>
-                    <?php $mapUrl = 'https://www.google.com/maps?q=' . rawurlencode($order['customer_lat'] . ',' . $order['customer_lng']); ?>
+                    <?php
+                    $mapUrl = 'https://www.google.com/maps?q=' . rawurlencode($order['customer_lat'] . ',' . $order['customer_lng']);
+                    $mapEmbedUrl = $mapUrl . '&output=embed';
+                    ?>
                     <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
                         <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('customer_location')) ?></h2>
                         <div class="space-y-2 text-luxury-text">
@@ -298,6 +301,15 @@ $dir = getHtmlDir();
                             <a href="<?= e($mapUrl) ?>" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-luxury-accent hover:text-luxury-primary transition-colors font-medium mt-2">
                                 <i class="fas fa-map-marker-alt"></i><?= e(t('open_in_google_maps')) ?>
                             </a>
+                        </div>
+                        <div class="mt-4 border border-luxury-border rounded-sm overflow-hidden">
+                            <iframe
+                                src="<?= e($mapEmbedUrl) ?>"
+                                class="w-full h-64"
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                aria-label="<?= e(t('customer_location')) ?>"
+                            ></iframe>
                         </div>
                     </div>
                 <?php endif; ?>
