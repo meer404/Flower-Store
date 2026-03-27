@@ -287,6 +287,20 @@ $dir = getHtmlDir();
                     <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('shipping_address')) ?></h2>
                     <p class="text-luxury-text whitespace-pre-line leading-relaxed"><?= e($order['shipping_address']) ?></p>
                 </div>
+
+                <?php if ((isAdmin() || isSuperAdmin()) && !empty($order['customer_lat']) && !empty($order['customer_lng'])): ?>
+                    <?php $mapUrl = 'https://www.google.com/maps?q=' . rawurlencode($order['customer_lat'] . ',' . $order['customer_lng']); ?>
+                    <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8">
+                        <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('customer_location')) ?></h2>
+                        <div class="space-y-2 text-luxury-text">
+                            <p><span class="text-luxury-textLight"><?= e(t('latitude')) ?>:</span> <?= e((string)$order['customer_lat']) ?></p>
+                            <p><span class="text-luxury-textLight"><?= e(t('longitude')) ?>:</span> <?= e((string)$order['customer_lng']) ?></p>
+                            <a href="<?= e($mapUrl) ?>" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-luxury-accent hover:text-luxury-primary transition-colors font-medium mt-2">
+                                <i class="fas fa-map-marker-alt"></i><?= e(t('open_in_google_maps')) ?>
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

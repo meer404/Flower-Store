@@ -121,6 +121,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = t('delivery_out_of_range');
                 } else {
                     $grandTotal = $cartTotal + $deliveryFee;
+                    $customerLatValue = (float)$customerLat;
+                    $customerLngValue = (float)$customerLng;
                     // Extract last 4 digits for storage
                     $cardLastFour = substr($cardNumberClean, -4);
                     
@@ -146,14 +148,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         } else {
                             // Create order with payment details
                             $stmt = $pdo->prepare('
-                                INSERT INTO orders (user_id, grand_total, payment_status, shipping_address, delivery_date, payment_method, card_last_four, cardholder_name, card_expiry_month, card_expiry_year)
-                                VALUES (:user_id, :grand_total, :payment_status, :shipping_address, :delivery_date, :payment_method, :card_last_four, :cardholder_name, :card_expiry_month, :card_expiry_year)
+                                INSERT INTO orders (user_id, grand_total, payment_status, shipping_address, customer_lat, customer_lng, delivery_date, payment_method, card_last_four, cardholder_name, card_expiry_month, card_expiry_year)
+                                VALUES (:user_id, :grand_total, :payment_status, :shipping_address, :customer_lat, :customer_lng, :delivery_date, :payment_method, :card_last_four, :cardholder_name, :card_expiry_month, :card_expiry_year)
                             ');
                             $stmt->execute([
                                 'user_id' => $userId,
                                 'grand_total' => $grandTotal,
                                 'payment_status' => 'paid', // Mark as paid when card details provided
                                 'shipping_address' => $shippingAddress,
+                                'customer_lat' => $customerLatValue,
+                                'customer_lng' => $customerLngValue,
                                 'delivery_date' => $deliveryDate,
                                 'payment_method' => $paymentMethod,
                                 'card_last_four' => $cardLastFour,
