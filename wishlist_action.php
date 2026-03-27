@@ -78,11 +78,11 @@ try {
             $stmt = $pdo->prepare('INSERT INTO wishlist (user_id, product_id) VALUES (:user_id, :product_id)');
             $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
         }
-        redirect('wishlist.php', e('Added to wishlist'), 'success');
+        redirect('wishlist.php', t('wishlist_added'), 'success');
     } elseif ($action === 'remove') {
         $stmt = $pdo->prepare('DELETE FROM wishlist WHERE user_id = :user_id AND product_id = :product_id');
         $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
-        redirect('wishlist.php', e('Removed from wishlist'), 'success');
+        redirect('wishlist.php', t('wishlist_removed'), 'success');
     }
 } catch (PDOException $e) {
     error_log('Wishlist error: ' . $e->getMessage());

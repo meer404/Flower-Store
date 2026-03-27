@@ -146,6 +146,7 @@ $dir = getHtmlDir();
                                         <form method="POST" action="cart_action.php" class="inline">
                                             <input type="hidden" name="action" value="update">
                                             <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
+                                            <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                                             <div class="flex items-center gap-2">
                                                 <input type="number" name="quantity" value="<?= $item['cart_quantity'] ?>" 
                                                        min="1" max="<?= $item['stock_qty'] ?>"
