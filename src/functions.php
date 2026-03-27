@@ -166,7 +166,9 @@ function requireAdmin(): void {
  */
 function requireLogin(): void {
     if (!isLoggedIn()) {
-        header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+        // Build redirect URL - use REQUEST_URI if available, otherwise fallback to calling script
+        $currentUri = $_SERVER['REQUEST_URI'] ?? $_SERVER['SCRIPT_NAME'] ?? 'index.php';
+        header('Location: login.php?redirect=' . urlencode($currentUri));
         exit;
     }
 }
