@@ -11,8 +11,6 @@ require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';
 require_once __DIR__ . '/src/components.php';
 
-requireLogin();
-
 $pdo = getDB();
 $cartItems = [];
 $cartTotal = 0.0;
