@@ -240,7 +240,10 @@ $dir = getHtmlDir();
                                     </p>
                                 </div>
                                 <?php if (!empty($order['customer_lat']) && !empty($order['customer_lng'])): ?>
-                                    <?php $mapUrl = 'https://www.google.com/maps?q=' . rawurlencode($order['customer_lat'] . ',' . $order['customer_lng']); ?>
+                                    <?php
+                                    $mapUrl = 'https://www.google.com/maps?q=' . rawurlencode($order['customer_lat'] . ',' . $order['customer_lng']);
+                                    $mapEmbedUrl = $mapUrl . '&output=embed';
+                                    ?>
                                     <div>
                                         <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1"><?= e(t('customer_location')) ?></h4>
                                         <p class="font-medium text-gray-800 mb-1">
@@ -252,6 +255,15 @@ $dir = getHtmlDir();
                                         <a href="<?= e($mapUrl) ?>" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm font-semibold">
                                             <i class="fas fa-map-marker-alt"></i><?= e(t('open_in_google_maps')) ?>
                                         </a>
+                                        <div class="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+                                            <iframe
+                                                src="<?= e($mapEmbedUrl) ?>"
+                                                class="w-full h-56"
+                                                loading="lazy"
+                                                referrerpolicy="no-referrer-when-downgrade"
+                                                aria-label="<?= e(t('customer_location')) ?>"
+                                            ></iframe>
+                                        </div>
                                     </div>
                                 <?php endif; ?>
                             </div>
