@@ -19,7 +19,7 @@ if (!isSuperAdmin() && !hasPermission('manage_orders')) {
 $pdo = getDB();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirect('admin/dashboard.php', e('Invalid request'), 'error');
+    redirect('admin/dashboard.php', t('invalid_request'), 'error');
 }
 
 $action = sanitizeInput('action', 'POST');
@@ -27,11 +27,11 @@ $orderId = (int)sanitizeInput('order_id', 'POST', '0');
 $csrfToken = sanitizeInput('csrf_token', 'POST');
 
 if (!verifyCSRFToken($csrfToken)) {
-    redirect('admin/dashboard.php', e('Invalid security token'), 'error');
+    redirect('admin/dashboard.php', t('invalid_security_token'), 'error');
 }
 
 if ($orderId <= 0) {
-    redirect('admin/dashboard.php', e('Invalid order ID'), 'error');
+    redirect('admin/dashboard.php', t('invalid_request'), 'error');
 }
 
 try {
@@ -40,7 +40,7 @@ try {
         $validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
         
         if (!in_array($newStatus, $validStatuses, true)) {
-            redirect('order_details.php?id=' . $orderId, e('Invalid order status'), 'error');
+            redirect('order_details.php?id=' . $orderId, t('invalid_order_status'), 'error');
         }
         
         // Check if order exists and get user_id
@@ -84,7 +84,7 @@ try {
             );
         }
         
-        redirect('order_details.php?id=' . $orderId, e('Order status updated successfully'), 'success');
+        redirect('order_details.php?id=' . $orderId, t('order_status_updated'), 'success');
         
     } elseif ($action === 'update_tracking') {
         $trackingNumber = sanitizeInput('tracking_number', 'POST');
@@ -95,7 +95,7 @@ try {
         $order = $stmt->fetch();
         
         if (!$order) {
-            redirect('admin/dashboard.php', e('Order not found'), 'error');
+            redirect('admin/dashboard.php', t('order_not_found'), 'error');
         }
         
         // Update tracking number
@@ -119,14 +119,14 @@ try {
             );
         }
         
-        redirect('order_details.php?id=' . $orderId, e('Tracking number updated successfully'), 'success');
+        redirect('order_details.php?id=' . $orderId, t('tracking_number_updated'), 'success');
         
     } elseif ($action === 'update_payment_status') {
         $paymentStatus = sanitizeInput('payment_status', 'POST');
         $validStatuses = ['pending', 'paid'];
         
         if (!in_array($paymentStatus, $validStatuses, true)) {
-            redirect('order_details.php?id=' . $orderId, e('Invalid payment status'), 'error');
+            redirect('order_details.php?id=' . $orderId, t('invalid_request'), 'error');
         }
         
         // Check if order exists
@@ -135,19 +135,19 @@ try {
         $order = $stmt->fetch();
         
         if (!$order) {
-            redirect('admin/dashboard.php', e('Order not found'), 'error');
+            redirect('admin/dashboard.php', t('order_not_found'), 'error');
         }
         
         // Update payment status
         $stmt = $pdo->prepare('UPDATE orders SET payment_status = :status WHERE id = :id');
         $stmt->execute(['status' => $paymentStatus, 'id' => $orderId]);
         
-        redirect('order_details.php?id=' . $orderId, e('Payment status updated successfully'), 'success');
+        redirect('order_details.php?id=' . $orderId, t('payment_status_updated'), 'success');
         
     } else {
-        redirect('admin/dashboard.php', e('Invalid action'), 'error');
+        redirect('admin/dashboard.php', t('invalid_action'), 'error');
     }
 } catch (PDOException $e) {
-    redirect('admin/dashboard.php', e('An error occurred while updating the order'), 'error');
+    redirect('admin/dashboard.php', t('order_update_error'), 'error');
 }
 

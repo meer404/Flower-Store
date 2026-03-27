@@ -18,14 +18,14 @@ $productId = (int)sanitizeInput('product_id', 'GET', '0');
 $userId = (int)$_SESSION['user_id'];
 
 if ($productId <= 0) {
-    redirect('shop.php', e('Invalid product'), 'error');
+    redirect('shop.php', t('invalid_product'), 'error');
 }
 
 // Check if user already reviewed this product
 $stmt = $pdo->prepare('SELECT id FROM reviews WHERE user_id = :user_id AND product_id = :product_id');
 $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
 if ($stmt->fetch()) {
-    redirect('product.php?id=' . $productId, e('You have already reviewed this product'), 'error');
+    redirect('product.php?id=' . $productId, t('review_duplicate'), 'error');
 }
 
 // Get product info
@@ -34,7 +34,7 @@ $stmt->execute(['id' => $productId]);
 $product = $stmt->fetch();
 
 if (!$product) {
-    redirect('shop.php', e('Product not found'), 'error');
+    redirect('shop.php', t('product_not_found'), 'error');
 }
 
 $error = '';
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCSRFToken($csrfToken)) {
         $error = t('error');
     } elseif ($rating < 1 || $rating > 5) {
-        $error = e('Please select a rating');
+        $error = t('please_select_rating');
     } else {
         try {
             $stmt = $pdo->prepare('INSERT INTO reviews (product_id, user_id, rating, comment) VALUES (:product_id, :user_id, :rating, :comment)');
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'comment' => $comment
             ]);
             
-            redirect('product.php?id=' . $productId, e('Review submitted successfully!'), 'success');
+            redirect('product.php?id=' . $productId, t('review_success'), 'success');
         } catch (PDOException $e) {
             error_log('Review error: ' . $e->getMessage());
             $error = t('error');
@@ -76,7 +76,7 @@ $dir = getHtmlDir();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e('Write a Review') ?> - Bloom & Vine</title>
+    <title><?= e(t('write_review')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
 </head>
@@ -85,7 +85,7 @@ $dir = getHtmlDir();
     <?php include __DIR__ . '/src/pwa_head.php'; ?>
 
     <div class="container mx-auto px-4 py-8 max-w-2xl">
-        <h1 class="text-3xl font-bold text-primary mb-4"><?= e('Write a Review') ?></h1>
+        <h1 class="text-3xl font-bold text-primary mb-4"><?= e(t('write_review')) ?></h1>
         
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
             <p class="text-gray-600 mb-2"><?= e('Product') ?>:</p>
@@ -103,7 +103,7 @@ $dir = getHtmlDir();
                 <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
                 
                 <div>
-                    <label class="block text-sm font-medium text-primary mb-2"><?= e('Rating') ?> *</label>
+                    <label class="block text-sm font-medium text-primary mb-2"><?= e(t('rating')) ?> *</label>
                     <div class="flex space-x-2" id="ratingStars">
                         <?php for ($i = 1; $i <= 5; $i++): ?>
                             <button type="button" onclick="setRating(<?= e((string)$i) ?>)" 
@@ -115,20 +115,20 @@ $dir = getHtmlDir();
                 </div>
                 
                 <div>
-                    <label for="comment" class="block text-sm font-medium text-primary mb-2"><?= e('Your Review') ?></label>
+                    <label for="comment" class="block text-sm font-medium text-primary mb-2"><?= e(t('your_review')) ?></label>
                     <textarea id="comment" name="comment" rows="6" 
                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                              placeholder="<?= e('Share your experience with this product...') ?>"></textarea>
+                              placeholder="<?= e(t('review_placeholder')) ?>"></textarea>
                 </div>
                 
                 <div class="flex gap-4">
                     <button type="submit" 
                             class="flex-1 bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition duration-200">
-                        <?= e('Submit Review') ?>
+                        <?= e(t('submit_review')) ?>
                     </button>
                     <a href="product.php?id=<?= e((string)$productId) ?>" 
                        class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 transition duration-200 text-center">
-                        <?= e('Cancel') ?>
+                        <?= e(t('cancel')) ?>
                     </a>
                 </div>
             </form>
