@@ -91,6 +91,12 @@ $dir = getHtmlDir();
     <?php include __DIR__ . '/src/header.php'; ?>
 
     <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
+        <?php
+        $flash = getFlashMessage();
+        if ($flash):
+            echo alert($flash['message'], $flash['type']);
+        endif;
+        ?>
         <!-- Breadcrumb -->
         <nav class="mb-4 md:mb-6 text-xs md:text-sm">
             <a href="index.php" class="text-luxury-accent hover:text-luxury-primary transition-colors"><?= e(t('nav_home')) ?></a>
@@ -175,26 +181,17 @@ $dir = getHtmlDir();
                     <?php if ($product['stock_qty'] > 0): ?>
                         <form method="POST" action="cart_action.php" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                             <input type="hidden" name="action" value="add">
-                            <input type="hidden" name="product_id" value="<?= e((string)$product['id']) ?>">
-                            <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
+                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
                             
                             <label class="text-sm font-medium text-luxury-text flex items-center gap-2 sm:flex-shrink-0">
-                                <?= e(t('quantity')) ?>:
-                                <input type="number" name="quantity" value="1" min="1" max="<?= e((string)$product['stock_qty']) ?>"
-                                       class="w-20 px-3 py-2 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
+                                Quantity:
+                                <input type="number" name="quantity" value="1" min="1" max="<?= $product['stock_qty'] ?>"
+                                       class="w-20 px-3 py-2 border border-luxury-border rounded-sm">
                             </label>
                             
-                            <?php if (isLoggedIn()): ?>
-                                <button type="submit" 
-                                        class="flex-1 bg-luxury-accent text-white py-3 px-6 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                                    <?= e(t('add_to_cart')) ?>
-                                </button>
-                            <?php else: ?>
-                                <a href="login.php" 
-                                   class="flex-1 bg-luxury-accent text-white py-3 px-6 rounded-sm hover:bg-opacity-90 transition-all duration-300 text-center font-medium shadow-md">
-                                    <?= e(t('add_to_cart')) ?>
-                                </a>
-                            <?php endif; ?>
+                            <button type="submit" class="flex-1 bg-luxury-accent text-white py-3 px-6 rounded-sm hover:bg-opacity-90 font-medium">
+                                Add to Cart
+                            </button>
                         </form>
                     <?php endif; ?>
 
