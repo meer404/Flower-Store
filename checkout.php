@@ -16,6 +16,9 @@ requireLogin();
 $pdo = getDB();
 $error = '';
 
+// Get available extras
+$availableExtras = getAvailableExtras();
+
 // Get cart items
 $cartItems = [];
 $cartTotal = 0.0;
@@ -116,11 +119,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $storeCoords = getStoreCoordinates();
                 $distanceKm = haversineDistanceKm((float)$customerLat, (float)$customerLng, $storeCoords['lat'], $storeCoords['lng']);
                 $deliveryFee = getDeliveryFeeByDistance($distanceKm);
+                
+                // Get selected extras
+                $selectedExtras = isset($_POST['extras']) && is_array($_POST['extras']) ? $_POST['extras'] : [];
+                $selectedExtraIds = [];
+                $extrasTotal = 0.0;
+                
+                // Validate and calculate extras total
+                foreach ($selectedExtras as $extraId) {
+                    $eid = (int)trim($extraId);
+                    if ($eid > 0) {
+                        $selectedExtraIds[] = $eid;
+                    }
+                }
+
+                if (!empty($selectedExtraIds)) {
+                    $placeholders = implode(',', array_fill(0, count($selectedExtraIds), '?'));
+                    $stmt = $pdo->prepare("SELECT id, price FROM available_extras WHERE id IN ({$placeholders}) AND is_active = TRUE");
+                    $stmt->execute($selectedExtraIds);
+                    $extras = $stmt->fetchAll();
+                    
+                    foreach ($extras as $extra) {
+                        $extrasTotal += (float)$extra['price'];
+                    }
+                }
 
                 if ($deliveryFee === null) {
                     $error = t('delivery_out_of_range');
                 } else {
-                    $grandTotal = $cartTotal + $deliveryFee;
+                    $grandTotal = $cartTotal + $deliveryFee + $extrasTotal;
                     $customerLatValue = (float)$customerLat;
                     $customerLngValue = (float)$customerLng;
                     // Extract last 4 digits for storage
@@ -188,6 +215,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     'quantity' => $item['cart_quantity'],
                                     'id' => $item['id']
                                 ]);
+                            }
+                            
+                            // Add selected extras to order
+                            if (!empty($selectedExtraIds) && !empty($extras)) {
+                                foreach ($extras as $extra) {
+                                    $stmt = $pdo->prepare('
+                                        INSERT INTO order_extras (order_id, extra_type, extra_name_en, extra_name_ku, unit_price)
+                                        SELECT :order_id, extra_type, name_en, name_ku, price
+                                        FROM available_extras
+                                        WHERE id = :extra_id
+                                    ');
+                                    $stmt->execute([
+                                        'order_id' => $orderId,
+                                        'extra_id' => $extra['id']
+                                    ]);
+                                }
                             }
                             
                             $pdo->commit();
@@ -260,6 +303,10 @@ $dir = getHtmlDir();
                         <span><?= e(t('delivery_distance')) ?></span>
                         <span id="delivery-distance">—</span>
                     </div>
+                    <div class="flex justify-between items-center text-sm text-luxury-textLight">
+                        <span><?= e(t('extras_total')) ?></span>
+                        <span id="extras-total-amount">$0.00</span>
+                    </div>
                     <div class="flex justify-between items-center pt-2">
                         <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('total')) ?>:</span>
                         <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="subtotal-amount" data-base-total="<?= e((string)$cartTotal) ?>"><?= e(formatPrice($cartTotal, $currency)) ?></span>
@@ -269,6 +316,72 @@ $dir = getHtmlDir();
                         <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="grand-total-amount">—</span>
                     </div>
                 </div>
+
+                <!-- Order Extras Section -->
+                <?php if (!empty($availableExtras)): ?>
+                <div class="border-t border-luxury-border pt-6 mt-6">
+                    <h3 class="text-lg md:text-xl font-luxury font-bold text-luxury-primary mb-4 tracking-wide">
+                        <i class="fas fa-gift me-2"></i><?= e(t('add_extras')) ?>
+                    </h3>
+                    <p class="text-sm text-luxury-textLight mb-4"><?= e(t('add_extras_heading')) ?></p>
+                    
+                    <!-- Extras Categories Tabs -->
+                    <div class="space-y-4">
+                        <?php foreach ($availableExtras as $type => $items): ?>
+                        <div class="extras-category" data-category="<?= e($type) ?>">
+                            <div class="bg-gradient-to-r from-luxury-border to-transparent p-4 rounded-sm mb-3">
+                                <h4 class="font-semibold text-luxury-primary text-sm md:text-base">
+                                    <?php 
+                                    $categoryNames = [
+                                        'greeting_card' => t('greeting_cards'),
+                                        'small_gift' => t('small_gifts'),
+                                        'chocolate_box' => t('chocolate_boxes'),
+                                        'candle' => t('scented_candles'),
+                                        'balloons' => t('balloons')
+                                    ];
+                                    echo e($categoryNames[$type] ?? $type);
+                                    ?>
+                                </h4>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <?php foreach ($items as $extra): ?>
+                                <label class="relative flex flex-col items-start p-3 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent hover:bg-luxury-border transition-all extra-option overflow-hidden" data-extra-id="<?= e((string)$extra['id']) ?>" data-extra-price="<?= e((string)$extra['price']) ?>">
+                                    <input type="checkbox" name="extras[]" value="<?= e((string)$extra['id']) ?>" class="absolute top-3 left-3 w-4 h-4 text-luxury-accent rounded focus:ring-2 focus:ring-luxury-accent cursor-pointer z-10">
+                                    
+                                    <!-- Extra Image -->
+                                    <?php if (!empty($extra['image_url'])): ?>
+                                    <div class="w-full h-28 mb-2 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center">
+                                        <img src="<?= e($extra['image_url']) ?>" alt="<?= e(getExtraName($extra)) ?>" class="w-full h-full object-cover">
+                                    </div>
+                                    <?php else: ?>
+                                    <div class="w-full h-28 mb-2 rounded-sm bg-gradient-to-br from-luxury-border to-gray-100 flex items-center justify-center">
+                                        <i class="<?= e($extra['icon'] ?? 'fas fa-gift') ?> text-3xl text-luxury-textLight"></i>
+                                    </div>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Extra Details -->
+                                    <div class="flex-1 w-full ps-7">
+                                        <p class="font-medium text-luxury-primary text-sm md:text-base">
+                                            <?= e(getExtraName($extra)) ?>
+                                        </p>
+                                        <?php if (!empty($extra['description_en'] ?? '')): ?>
+                                        <p class="text-xs text-luxury-textLight mt-1 line-clamp-2">
+                                            <?= e(getExtraDescription($extra)) ?>
+                                        </p>
+                                        <?php endif; ?>
+                                        <p class="text-sm font-semibold text-luxury-accent mt-2">
+                                            + <?= e(formatPrice((float)$extra['price'], $currency)) ?>
+                                        </p>
+                                    </div>
+                                </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
             
             <!-- Checkout Form -->
@@ -286,6 +399,7 @@ $dir = getHtmlDir();
                     <input type="hidden" name="customer_lng" id="customer_lng" value="<?= e(sanitizeInput('customer_lng', 'POST', '')) ?>">
                     <input type="hidden" name="delivery_distance_km" id="delivery_distance_km" value="<?= e(sanitizeInput('delivery_distance_km', 'POST', '')) ?>">
                     <input type="hidden" name="delivery_fee" id="delivery_fee" value="<?= e(sanitizeInput('delivery_fee', 'POST', '')) ?>">
+                    <input type="hidden" name="extras_total" id="extras_total" value="0.00">
                     
                     <div>
                         <label for="shipping_address" class="block text-sm font-medium text-luxury-text mb-2">
@@ -653,6 +767,56 @@ $dir = getHtmlDir();
     
     expiryMonth?.addEventListener('change', validateExpiry);
     expiryYear?.addEventListener('change', validateExpiry);
+
+    // Extras handling
+    const extrasCheckboxes = document.querySelectorAll('input[name="extras[]"]');
+    const extrasTotalInput = document.getElementById('extras_total');
+    const extrasTotalDisplay = document.getElementById('extras-total-amount');
+    const grandTotalDisplay = document.getElementById('grand-total-amount');
+    const baseTotal = parseFloat(document.getElementById('subtotal-amount').dataset.baseTotal);
+    const currency = deliveryConfig.currency;
+
+    function updateExtrasTotal() {
+        let extrasTotal = 0;
+        
+        extrasCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const label = checkbox.closest('.extra-option');
+                const price = parseFloat(label.dataset.extraPrice);
+                extrasTotal += price;
+            }
+        });
+        
+        // Update hidden input
+        extrasTotalInput.value = extrasTotal.toFixed(2);
+        
+        // Update display
+        extrasTotalDisplay.textContent = formatMoney(extrasTotal);
+        
+        // Update grand total if all components are available
+        const deliveryFee = parseFloat(deliveryUi.feeInput.value || 0);
+        if (!isNaN(baseTotal) && !isNaN(deliveryFee) && !isNaN(extrasTotal)) {
+            const newGrandTotal = baseTotal + deliveryFee + extrasTotal;
+            grandTotalDisplay.textContent = formatMoney(newGrandTotal);
+        }
+    }
+
+    // Add event listeners to all extras checkboxes
+    extrasCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateExtrasTotal);
+    });
+
+    // Add visual feedback for extra options
+    document.querySelectorAll('.extra-option').forEach(label => {
+        const checkbox = label.querySelector('input[name="extras[]"]');
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                label.classList.add('border-luxury-accent', 'bg-luxury-border');
+            } else {
+                label.classList.remove('border-luxury-accent', 'bg-luxury-border');
+            }
+        });
+    });
     </script>
 </body>
 </html>

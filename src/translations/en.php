@@ -534,4 +534,23 @@ return [
     'longitude' => 'Longitude',
     'open_in_google_maps' => 'Open in Google Maps',
     'view_on_map' => 'View on Map',
+
+    // Order Extras & Add-ons
+    'add_extras' => 'Add Extras',
+    'add_extras_heading' => 'Make it Special - Add Extras to Your Order',
+    'no_extras_selected' => 'No extras selected',
+    'extras_total' => 'Extras Total',
+    'greeting_cards' => 'Greeting Cards',
+    'small_gifts' => 'Small Gifts',
+    'chocolate_boxes' => 'Chocolate Boxes',
+    'scented_candles' => 'Scented Candles',
+    'balloons' => 'Balloons',
+    'select_extras' => 'Select Extras',
+    'extra_options' => 'Extra Options',
+    'optional' => 'Optional',
+    'card_message' => 'Card Message',
+    'write_message' => 'Write a personal message (optional)',
+    'personalize_it' => 'Personalize Your Gift',
+    'selected_extras' => 'Selected Extras',
+    'click_to_add' => 'Click to select extras',
 ];
