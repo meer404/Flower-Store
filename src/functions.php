@@ -166,9 +166,7 @@ function requireAdmin(): void {
  */
 function requireLogin(): void {
     if (!isLoggedIn()) {
-        // Build redirect URL - use REQUEST_URI if available, otherwise fallback to calling script
-        $currentUri = $_SERVER['REQUEST_URI'] ?? $_SERVER['SCRIPT_NAME'] ?? 'index.php';
-        header('Location: login.php?redirect=' . urlencode($currentUri));
+        header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
         exit;
     }
 }
@@ -1063,4 +1061,83 @@ function getAvailablePermissions(): array {
     ];
 }
 
+/**
+ * Get all active available extras for display
+ * 
+ * @return array Array of available extras grouped by type
+ */
+function getAvailableExtras(): array {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->query('
+            SELECT id, extra_type, name_en, name_ku, description_en, description_ku, price, icon, image_url, sort_order
+            FROM available_extras
+            WHERE is_active = TRUE
+            ORDER BY sort_order, id
+        ');
+        
+        $extras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Group by type
+        $grouped = [];
+        foreach ($extras as $extra) {
+            $type = $extra['extra_type'];
+            if (!isset($grouped[$type])) {
+                $grouped[$type] = [];
+            }
+            $grouped[$type][] = $extra;
+        }
+        
+        return $grouped;
+    } catch (PDOException $e) {
+        error_log('Get available extras error: ' . $e->getMessage());
+        return [];
+    }
+}
 
+/**
+ * Get a single extra by ID
+ * 
+ * @param int $extraId The ID of the extra
+ * @return array|null The extra data or null if not found
+ */
+function getExtraById(int $extraId): ?array {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('
+            SELECT id, extra_type, name_en, name_ku, description_en, description_ku, price, icon, image_url
+            FROM available_extras
+            WHERE id = :id AND is_active = TRUE
+        ');
+        $stmt->execute(['id' => $extraId]);
+        $extra = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $extra ?: null;
+    } catch (PDOException $e) {
+        error_log('Get extra by ID error: ' . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Get the localized name of an extra
+ * 
+ * @param array $extra The extra data array
+ * @return string The localized name
+ */
+function getExtraName(array $extra): string {
+    $lang = getCurrentLang();
+    $nameKey = ($lang === 'ku') ? 'name_ku' : 'name_en';
+    return $extra[$nameKey] ?? '';
+}
+
+/**
+ * Get the localized description of an extra
+ * 
+ * @param array $extra The extra data array
+ * @return string The localized description
+ */
+function getExtraDescription(array $extra): string {
+    $lang = getCurrentLang();
+    $descKey = ($lang === 'ku') ? 'description_ku' : 'description_en';
+    return $extra[$descKey] ?? '';
+}

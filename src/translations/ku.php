@@ -534,4 +534,23 @@ return [
     'longitude' => 'هێڵی درێژی',
     'open_in_google_maps' => 'کردنەوە لە گووگڵ نەخشە',
     'view_on_map' => 'بینین لەسەر نەخشە',
+
+    // Order Extras & Add-ons
+    'add_extras' => 'زیادکردنی هاوکاریەکان',
+    'add_extras_heading' => 'بیکە تایبەت - هاوکاریەکان زیاد کە بۆ داواکاری خۆت',
+    'no_extras_selected' => 'هیچ هاوکاریەکی هەڵبژێردراو نییە',
+    'extras_total' => 'کۆی گشتی هاوکاریەکان',
+    'greeting_cards' => 'کاغەزی پیام',
+    'small_gifts' => 'بەخشیشی بچووك',
+    'chocolate_boxes' => 'قوتووی چۆکۆلیت',
+    'scented_candles' => 'شاممی خۆشبۆ',
+    'balloons' => 'بالۆن',
+    'select_extras' => 'هەڵبژیرنی هاوکاریەکان',
+    'extra_options' => 'بژێوە هاوکاریەکان',
+    'optional' => 'بژێوە',
+    'card_message' => 'پیامی کاغەز',
+    'write_message' => 'نووسینی پیامێکی تایبەت (بژێوە)',
+    'personalize_it' => 'بیکە تایبەتێکی خۆت',
+    'selected_extras' => 'هاوکاریەکانی هەڵبژێردراو',
+    'click_to_add' => 'کلیک بکە بۆ هەڵبژیرنی هاوکاریەکان',
 ];
