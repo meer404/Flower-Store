@@ -73,3 +73,4 @@ phpunit.xml
 .Trash-*
 ehthumbs.db
 desktop.ini
+src/config/google_oauth.local.php
