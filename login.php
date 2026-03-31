@@ -126,8 +126,19 @@ $dir = getHtmlDir();
                 <div class="flex-1 h-px bg-luxury-border"></div>
             </div>
 
-            <a href="<?= e($googleLoginUrl) ?>" class="w-full flex items-center justify-center gap-3 border border-luxury-border text-luxury-text py-3 px-4 rounded-sm hover:bg-luxury-accentLight transition-all duration-300 font-medium">
-                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white border border-luxury-border text-xs font-bold text-luxury-primary">G</span>
+            <a href="<?= e($googleLoginUrl) ?>" class="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded hover:bg-gray-50 hover:shadow-md transition-all duration-200 font-medium" style="box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">
+                <svg class="w-5 h-5" style="color: #4285F4;" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="google-gradient" x1="0%" y1="0%">
+                            <stop offset="0%" style="stop-color:#4285F4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#34A853;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M23.745 12.27c0-.79-.07-1.54-.2-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z" fill="#4285F4"/>
+                    <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.13-4.07 1.13-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.099C3.05 21.3 7.31 24 12 24z" fill="#34A853"/>
+                    <path d="M5.27 14.26c-.23-.72-.35-1.49-.35-2.26s.13-1.54.35-2.26V7.07H1.29C.47 8.55 0 10.22 0 12s.47 3.45 1.29 4.93l3.98-2.67z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.92 1.88 16.24 0.5 12 0.5c-4.69 0-8.95 2.7-10.71 6.57l3.98 2.67c.95-2.85 3.6-4.96 6.73-4.96z" fill="#EA4335"/>
+                </svg>
                 <?= e(t('continue_with_google')) ?>
             </a>
             
