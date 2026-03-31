@@ -1,0 +1,30 @@
+# Dependencies
+/vendor/
+
+# Media
+/uploads/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local configuration
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Other
+fix_superadmin_password.php
+test_post.php
+test_kurdish_translations.php
+database/
+composer.lock

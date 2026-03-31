@@ -11,10 +11,12 @@ require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';
 require_once __DIR__ . '/src/components.php';
 
+$redirectTarget = safeRedirectTarget((string)($_GET['redirect'] ?? ''), 'index.php');
+$googleLoginUrl = url('google_login.php') . '?redirect=' . urlencode($redirectTarget);
+
 // Redirect if already logged in
 if (isLoggedIn()) {
-    $redirect = safeRedirectTarget((string)($_GET['redirect'] ?? ''), 'index.php');
-    header("Location: {$redirect}");
+    header("Location: {$redirectTarget}");
     exit;
 }
 
@@ -117,6 +119,17 @@ $dir = getHtmlDir();
                     <?= e(t('login_button')) ?>
                 </button>
             </form>
+
+            <div class="flex items-center gap-3 my-6">
+                <div class="flex-1 h-px bg-luxury-border"></div>
+                <span class="text-xs uppercase tracking-wide text-luxury-textLight"><?= e(t('or')) ?></span>
+                <div class="flex-1 h-px bg-luxury-border"></div>
+            </div>
+
+            <a href="<?= e($googleLoginUrl) ?>" class="w-full flex items-center justify-center gap-3 border border-luxury-border text-luxury-text py-3 px-4 rounded-sm hover:bg-luxury-accentLight transition-all duration-300 font-medium">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white border border-luxury-border text-xs font-bold text-luxury-primary">G</span>
+                <?= e(t('continue_with_google')) ?>
+            </a>
             
             <p class="mt-6 text-center text-luxury-textLight">
                 <?= e(t('dont_have_account')) ?> 
