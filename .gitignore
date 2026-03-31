@@ -74,3 +74,4 @@ phpunit.xml
 ehthumbs.db
 desktop.ini
 src/config/google_oauth.local.php
+src/config/google_oauth.php
