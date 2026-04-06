@@ -240,6 +240,8 @@ function loadingSpinner(string $size = 'md'): string {
  */
 function modernFooter(): string {
     $year = date('Y');
+    $accountUrl = isLoggedIn() ? 'account.php' : 'login.php';
+    $wishlistUrl = isLoggedIn() ? 'wishlist.php' : 'login.php';
     
     return '<footer class="bg-gradient-to-br from-luxury-primary via-gray-900 to-luxury-primary text-white mt-20">
         <!-- Main Footer -->
@@ -260,16 +262,16 @@ function modernFooter(): string {
                         Experience the beauty of nature with our carefully curated collection of premium flowers and arrangements.
                     </p>
                     <div class="flex gap-4">
-                        <a href="#" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
+                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
                             <i class="fab fa-facebook-f"></i>
                         </a>
-                        <a href="#" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
+                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        <a href="#" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
                             <i class="fab fa-twitter"></i>
                         </a>
-                        <a href="#" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
+                        <a href="https://wa.me/964750123456" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-white/10 hover:bg-luxury-accent rounded-full flex items-center justify-center transition-all duration-300">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     </div>
@@ -281,8 +283,8 @@ function modernFooter(): string {
                     <ul class="space-y-3">
                         <li><a href="index.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_home')) . '</a></li>
                         <li><a href="shop.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_shop')) . '</a></li>
-                        <li><a href="account.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_account')) . '</a></li>
-                        <li><a href="wishlist.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_wishlist')) . '</a></li>
+                        <li><a href="' . $accountUrl . '" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_account')) . '</a></li>
+                        <li><a href="' . $wishlistUrl . '" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('nav_wishlist')) . '</a></li>
                     </ul>
                 </div>
                 
@@ -290,10 +292,10 @@ function modernFooter(): string {
                 <div>
                     <h4 class="text-lg font-bold mb-6 text-luxury-accent">' . e(t('customer_service')) . '</h4>
                     <ul class="space-y-3">
-                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('about_us')) . '</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('contact_us')) . '</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('shipping_info')) . '</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('returns')) . '</a></li>
+                        <li><a href="about.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('about_us')) . '</a></li>
+                        <li><a href="contact.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('contact_us')) . '</a></li>
+                        <li><a href="shipping.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('shipping_info')) . '</a></li>
+                        <li><a href="returns.php" class="text-gray-300 hover:text-luxury-accent transition-colors flex items-center"><i class="fas fa-chevron-right text-xs me-2"></i>' . e(t('returns')) . '</a></li>
                     </ul>
                 </div>
                 
@@ -335,9 +337,9 @@ function modernFooter(): string {
                         © ' . $year . ' Bloom & Vine. ' . e(t('all_rights_reserved')) . '
                     </p>
                     <div class="flex items-center gap-6 text-sm">
-                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('privacy_policy')) . '</a>
-                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('terms_of_service')) . '</a>
-                        <a href="#" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('cookie_policy')) . '</a>
+                        <a href="privacy.php" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('privacy_policy')) . '</a>
+                        <a href="terms.php" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('terms_of_service')) . '</a>
+                        <a href="cookie.php" class="text-gray-400 hover:text-luxury-accent transition-colors">' . e(t('cookie_policy')) . '</a>
                     </div>
                 </div>
             </div>

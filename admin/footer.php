@@ -12,8 +12,8 @@
             <span class="font-medium text-purple-600">Admin Panel v2.0</span>
         </div>
         <div class="flex items-center gap-6">
-            <a href="#" class="hover:text-purple-600 transition-colors">Support</a>
-            <a href="#" class="hover:text-purple-600 transition-colors">Documentation</a>
+            <a href="../contact.php" class="hover:text-purple-600 transition-colors">Support</a>
+            <a href="../privacy.php" class="hover:text-purple-600 transition-colors">Privacy</a>
             <a href="../index.php" class="hover:text-purple-600 transition-colors">Visit Store</a>
         </div>
     </div>
