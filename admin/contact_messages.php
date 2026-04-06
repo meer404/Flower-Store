@@ -16,6 +16,8 @@ requireAdmin();
 $pdo = getDB();
 $lang = getCurrentLang();
 $dir = getHtmlDir();
+$successMessage = '';
+$errorMessage = '';
 
 // Ensure contact_messages table exists
 try {
@@ -31,30 +33,59 @@ try {
     }
 }
 
-// Handle mark as read
+// Handle actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = sanitizeInput('action', 'POST', '');
     $messageId = (int)sanitizeInput('message_id', 'POST', '0');
     
-    if ($action === 'mark_read' && $messageId > 0) {
-        $stmt = $pdo->prepare('UPDATE contact_messages SET is_read = TRUE WHERE id = :id');
-        $stmt->execute(['id' => $messageId]);
-    } elseif ($action === 'delete' && $messageId > 0) {
-        $stmt = $pdo->prepare('DELETE FROM contact_messages WHERE id = :id');
-        $stmt->execute(['id' => $messageId]);
-    } elseif ($action === 'reply' && $messageId > 0) {
-        $reply = sanitizeInput('admin_reply', 'POST', '');
-        if ($reply) {
-            $stmt = $pdo->prepare('
-                UPDATE contact_messages 
-                SET is_replied = TRUE, admin_reply = :reply, replied_by = :replied_by, replied_at = NOW()
-                WHERE id = :id
-            ');
-            $stmt->execute([
-                'reply' => $reply,
-                'replied_by' => $_SESSION['user_id'],
-                'id' => $messageId
-            ]);
+    if ($messageId > 0) {
+        if ($action === 'mark_read') {
+            try {
+                $stmt = $pdo->prepare('UPDATE contact_messages SET is_read = TRUE WHERE id = :id');
+                $stmt->execute(['id' => $messageId]);
+                $successMessage = 'Message marked as read.';
+            } catch (PDOException $e) {
+                $errorMessage = 'Error marking message as read.';
+            }
+        } elseif ($action === 'delete') {
+            try {
+                $stmt = $pdo->prepare('DELETE FROM contact_messages WHERE id = :id');
+                $stmt->execute(['id' => $messageId]);
+                $successMessage = 'Message deleted successfully.';
+            } catch (PDOException $e) {
+                $errorMessage = 'Error deleting message.';
+            }
+        } elseif ($action === 'reply') {
+            $reply = sanitizeInput('admin_reply', 'POST', '');
+            if (empty($reply)) {
+                $errorMessage = 'Reply cannot be empty.';
+            } else {
+                try {
+                    // Get message details for email
+                    $stmt = $pdo->prepare('SELECT full_name, email, subject FROM contact_messages WHERE id = :id');
+                    $stmt->execute(['id' => $messageId]);
+                    $msgDetails = $stmt->fetch();
+                    
+                    // Update message with reply
+                    $stmt = $pdo->prepare('
+                        UPDATE contact_messages 
+                        SET is_replied = TRUE, admin_reply = :reply, replied_by = :replied_by, replied_at = NOW()
+                        WHERE id = :id
+                    ');
+                    $stmt->execute([
+                        'reply' => $reply,
+                        'replied_by' => $_SESSION['user_id'],
+                        'id' => $messageId
+                    ]);
+                    
+                    // Send email to customer
+                    sendReplyEmail($msgDetails['email'], $msgDetails['full_name'], $msgDetails['subject'], $reply);
+                    
+                    $successMessage = 'Reply sent successfully to ' . e($msgDetails['email']) . '.';
+                } catch (PDOException $e) {
+                    $errorMessage = 'Error sending reply.';
+                }
+            }
         }
     }
 }
@@ -105,6 +136,25 @@ $countReplied = $pdo->query('SELECT COUNT(*) FROM contact_messages WHERE is_repl
                     <h1 class="text-3xl font-bold text-gray-900">Contact Messages</h1>
                     <p class="text-gray-600 mt-2">Manage customer contact form submissions</p>
                 </div>
+
+                <!-- Success/Error Messages -->
+                <?php if ($successMessage): ?>
+                    <div class="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-800">
+                        <div class="flex items-center">
+                            <span class="font-bold text-lg mr-3">✓</span>
+                            <span><?= e($successMessage) ?></span>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if ($errorMessage): ?>
+                    <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
+                        <div class="flex items-center">
+                            <span class="font-bold text-lg mr-3">✕</span>
+                            <span><?= e($errorMessage) ?></span>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Filter Tabs -->
                 <div class="mb-6 flex gap-4 border-b border-gray-200">
@@ -177,45 +227,47 @@ $countReplied = $pdo->query('SELECT COUNT(*) FROM contact_messages WHERE is_repl
                                     <?php else: ?>
                                         <!-- Reply Form -->
                                         <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                            <h4 class="text-sm font-bold text-blue-900 mb-3">✉ Send Reply to Customer</h4>
                                             <form method="POST" class="space-y-3">
                                                 <input type="hidden" name="action" value="reply">
-                                                <input type="hidden" name="message_id" value="<?= e($msg['id']) ?>">
+                                                <input type="hidden" name="message_id" value="<?= (int)$msg['id'] ?>">
                                                 
                                                 <div>
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Send Reply:</label>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Your Reply:</label>
                                                     <textarea 
                                                         name="admin_reply" 
-                                                        rows="4" 
-                                                        placeholder="Type your reply here..."
-                                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-luxury-primary"
+                                                        rows="5" 
+                                                        placeholder="Type your response here. This will be sent to the customer via email."
+                                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-luxury-primary resize-vertical"
                                                         required
                                                     ></textarea>
+                                                    <p class="text-xs text-gray-600 mt-1">💡 Tip: Be professional and helpful. The customer will receive this reply via email.</p>
                                                 </div>
                                                 
-                                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                                    Send Reply
+                                                <button type="submit" class="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg">
+                                                    📧 Send Reply & Notify Customer
                                                 </button>
                                             </form>
                                         </div>
                                     <?php endif; ?>
 
                                     <!-- Actions -->
-                                    <div class="flex gap-3 pt-4 border-t border-gray-200">
+                                    <div class="flex gap-3 pt-4 border-t border-gray-200 flex-wrap">
                                         <?php if (!$msg['is_read']): ?>
                                             <form method="POST" style="display: inline;">
                                                 <input type="hidden" name="action" value="mark_read">
-                                                <input type="hidden" name="message_id" value="<?= e($msg['id']) ?>">
-                                                <button type="submit" class="text-sm px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                                                    Mark as Read
+                                                <input type="hidden" name="message_id" value="<?= (int)$msg['id'] ?>">
+                                                <button type="submit" class="text-sm px-4 py-2 bg-amber-100 text-amber-700 font-medium rounded-lg hover:bg-amber-200 transition-colors flex items-center gap-2">
+                                                    <span>👁</span> Mark as Read
                                                 </button>
                                             </form>
                                         <?php endif; ?>
                                         
-                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this message?');">
+                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this message? This cannot be undone.');">
                                             <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="message_id" value="<?= e($msg['id']) ?>">
-                                            <button type="submit" class="text-sm px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
-                                                Delete
+                                            <input type="hidden" name="message_id" value="<?= (int)$msg['id'] ?>">
+                                            <button type="submit" class="text-sm px-4 py-2 bg-red-100 text-red-700 font-medium rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2">
+                                                <span>🗑</span> Delete
                                             </button>
                                         </form>
                                     </div>
@@ -231,13 +283,99 @@ $countReplied = $pdo->query('SELECT COUNT(*) FROM contact_messages WHERE is_repl
     <script>
         function toggleMessage(id) {
             const element = document.getElementById('message-' + id);
-            element.classList.toggle('hidden');
+            if (element) {
+                element.classList.toggle('hidden');
+                
+                // Smooth scroll to details if opening
+                if (!element.classList.contains('hidden')) {
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
+                }
+            }
         }
+        
+        // Auto-hide success message after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const successMsg = document.querySelector('[style*="bg-green-50"]');
+            if (successMsg && successMsg.textContent.includes('successfully')) {
+                setTimeout(() => {
+                    successMsg.style.transition = 'opacity 0.3s ease-out';
+                    successMsg.style.opacity = '0';
+                    setTimeout(() => successMsg.remove(), 300);
+                }, 5000);
+            }
+        });
     </script>
 </body>
 </html>
 
 <?php
+/**
+ * Send reply email to customer
+ */
+function sendReplyEmail(string $email, string $customerName, string $originalSubject, string $reply): bool {
+    try {
+        $siteName = 'Bloom & Vine';
+        $siteEmail = getSystemSetting('site_email', 'noreply@bloomandvine.com');
+        
+        $subject = "Re: {$originalSubject}";
+        
+        $messageBody = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #6B2D5C; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
+        .content { background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+        .message { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #6B2D5C; }
+        .footer { font-size: 12px; color: #666; margin-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Thank You for Contacting Us</h2>
+        </div>
+        <div class="content">
+            <p>Dear {$customerName},</p>
+            
+            <p>Thank you for reaching out to {$siteName}. We appreciate your message and have prepared a response below.</p>
+            
+            <div class="message">
+                <strong>Subject:</strong> {$originalSubject}<br><br>
+                <strong>Our Reply:</strong><br>
+                <pre style="white-space: pre-wrap; word-wrap: break-word;">{$reply}</pre>
+            </div>
+            
+            <p>If you have any further questions, please don't hesitate to contact us.</p>
+            
+            <p>Best regards,<br><strong>{$siteName} Team</strong></p>
+            
+            <div class="footer">
+                <p>This is an automated message. Please do not reply to this email.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+        $headers = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+        $headers .= "From: {$siteName} <{$siteEmail}>\r\n";
+        $headers .= "Reply-To: {$siteEmail}\r\n";
+        
+        return mail($email, $subject, $messageBody, $headers);
+    } catch (Exception $e) {
+        error_log('Error sending reply email: ' . $e->getMessage());
+        return false;
+    }
+}
+
 /**
  * Helper function to get user name by ID
  */

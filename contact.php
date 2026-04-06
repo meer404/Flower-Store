@@ -19,9 +19,10 @@ $message = '';
 try {
     $pdo = getDB();
     $pdo->query("SELECT 1 FROM contact_messages LIMIT 1");
-} catch (PDOException $e) {
+} catch (Exception $e) {
     // Table doesn't exist, create it
     try {
+        $pdo = getDB();
         $sql = file_get_contents(__DIR__ . '/database/add_contact_messages.sql');
         $statements = array_filter(array_map('trim', explode(';', $sql)));
         foreach ($statements as $statement) {
@@ -41,7 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $subject = sanitizeInput('subject', 'POST', '');
     $messageBody = sanitizeInput('message', 'POST', '');
 
-    if ($name && $email && $subject && $messageBody) {
+    // Validate email format
+    $emailValid = filter_var($email, FILTER_VALIDATE_EMAIL);
+
+    if ($name && $emailValid && $subject && $messageBody) {
         try {
             $pdo = getDB();
             $stmt = $pdo->prepare('
@@ -56,13 +60,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
                 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
             ]);
-            $message = setFlashMessage('Thank you for your message! We will get back to you soon.', 'success');
+            $message = setFlashMessage('✓ Thank you for your message! We will get back to you soon.', 'success');
         } catch (PDOException $e) {
             error_log('Contact message submission error: ' . $e->getMessage());
-            $message = setFlashMessage('An error occurred. Please try again later.', 'error');
+            $message = setFlashMessage('✕ An error occurred. Please try again later.', 'error');
         }
     } else {
-        $message = setFlashMessage('Please fill in all fields.', 'error');
+        $invalidEmail = !$emailValid && $email ? 'Invalid email address. ' : '';
+        $message = setFlashMessage('✕ Please fill in all fields correctly. ' . $invalidEmail, 'error');
     }
 }
 ?>
