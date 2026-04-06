@@ -6,6 +6,9 @@ declare(strict_types=1);
  * Bloom & Vine Flower Store
  */
 
+// Load composer dependencies
+require_once __DIR__ . '/vendor/autoload.php';
+
 require_once __DIR__ . '/src/language.php';
 require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';

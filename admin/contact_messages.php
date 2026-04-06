@@ -6,6 +6,9 @@ declare(strict_types=1);
  * Bloom & Vine Flower Store
  */
 
+// Load composer dependencies (PHPMailer)
+require_once __DIR__ . '/../vendor/autoload.php';
+
 require_once __DIR__ . '/../src/language.php';
 require_once __DIR__ . '/../src/functions.php';
 require_once __DIR__ . '/../src/design_config.php';
@@ -66,24 +69,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $stmt->execute(['id' => $messageId]);
                     $msgDetails = $stmt->fetch();
                     
-                    // Update message with reply
-                    $stmt = $pdo->prepare('
-                        UPDATE contact_messages 
-                        SET is_replied = TRUE, admin_reply = :reply, replied_by = :replied_by, replied_at = NOW()
-                        WHERE id = :id
-                    ');
-                    $stmt->execute([
-                        'reply' => $reply,
-                        'replied_by' => $_SESSION['user_id'],
-                        'id' => $messageId
-                    ]);
-                    
-                    // Send email to customer
-                    sendReplyEmail($msgDetails['email'], $msgDetails['full_name'], $msgDetails['subject'], $reply);
-                    
-                    $successMessage = 'Reply sent successfully to ' . e($msgDetails['email']) . '.';
+                    if (!$msgDetails) {
+                        $errorMessage = 'Message not found.';
+                    } else {
+                        // Update message with reply
+                        $stmt = $pdo->prepare('
+                            UPDATE contact_messages 
+                            SET is_replied = TRUE, admin_reply = :reply, replied_by = :replied_by, replied_at = NOW()
+                            WHERE id = :id
+                        ');
+                        $stmt->execute([
+                            'reply' => $reply,
+                            'replied_by' => $_SESSION['user_id'],
+                            'id' => $messageId
+                        ]);
+                        
+                        // Try to send email to customer
+                        $emailSent = sendReplyEmail($msgDetails['email'], $msgDetails['full_name'], $msgDetails['subject'], $reply);
+                        
+                        if ($emailSent) {
+                            $successMessage = '✓ Reply saved and email sent to ' . e($msgDetails['email']) . '.';
+                        } else {
+                            $successMessage = '⚠ Reply saved but email could not be sent. Check Gmail configuration.';
+                        }
+                    }
                 } catch (PDOException $e) {
-                    $errorMessage = 'Error sending reply.';
+                    $errorMessage = 'Error saving reply: ' . $e->getMessage();
                 }
             }
         }
@@ -312,27 +323,56 @@ $countReplied = $pdo->query('SELECT COUNT(*) FROM contact_messages WHERE is_repl
 
 <?php
 /**
- * Send reply email to customer
+ * Send reply email to customer via Gmail
  */
 function sendReplyEmail(string $email, string $customerName, string $originalSubject, string $reply): bool {
     try {
-        $siteName = 'Bloom & Vine';
-        $siteEmail = getSystemSetting('site_email', 'noreply@bloomandvine.com');
+        // Check if PHPMailer is available
+        if (!class_exists('\PHPMailer\PHPMailer\PHPMailer')) {
+            error_log('PHPMailer not installed. Run: composer install');
+            return false;
+        }
         
-        $subject = "Re: {$originalSubject}";
+        require_once __DIR__ . '/../src/gmail_config.php';
         
-        $messageBody = <<<HTML
+        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+        
+        // SMTP configuration
+        $mail->isSMTP();
+        $mail->Host       = GMAIL_SMTP_HOST;
+        $mail->Port       = GMAIL_SMTP_PORT;
+        $mail->SMTPSecure = GMAIL_SMTP_SECURE;
+        $mail->SMTPAuth   = true;
+        
+        // Gmail credentials
+        $mail->Username = GMAIL_EMAIL;
+        $mail->Password = GMAIL_PASSWORD;
+        
+        // Email details
+        $mail->setFrom(GMAIL_EMAIL, MAIL_FROM_NAME);
+        $mail->addAddress($email, $customerName);
+        $mail->addReplyTo(GMAIL_EMAIL, MAIL_FROM_NAME);
+        
+        // Email subject and content
+        $mail->Subject = "Re: {$originalSubject}";
+        $mail->isHTML(true);
+        
+        $siteName = getSystemSetting('site_name', 'Bloom & Vine');
+        $siteEmail = getSystemSetting('site_email', GMAIL_EMAIL);
+        
+        $mail->Body = <<<HTML
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #6B2D5C; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
-        .content { background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
-        .message { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #6B2D5C; }
-        .footer { font-size: 12px; color: #666; margin-top: 20px; text-align: center; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 0; }
+        .header { background-color: #6B2D5C; color: white; padding: 20px; }
+        .header h2 { margin: 0; }
+        .content { background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; }
+        .message-box { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #6B2D5C; }
+        .footer { font-size: 12px; color: #666; margin-top: 20px; text-align: center; border-top: 1px solid #ddd; padding-top: 15px; }
     </style>
 </head>
 <body>
@@ -341,22 +381,24 @@ function sendReplyEmail(string $email, string $customerName, string $originalSub
             <h2>Thank You for Contacting Us</h2>
         </div>
         <div class="content">
-            <p>Dear {$customerName},</p>
+            <p>Dear <strong>{$customerName}</strong>,</p>
             
-            <p>Thank you for reaching out to {$siteName}. We appreciate your message and have prepared a response below.</p>
+            <p>Thank you for reaching out to <strong>{$siteName}</strong>. We appreciate your message and have prepared a response below.</p>
             
-            <div class="message">
-                <strong>Subject:</strong> {$originalSubject}<br><br>
+            <div class="message-box">
+                <strong>Original Subject:</strong> {$originalSubject}<br><br>
                 <strong>Our Reply:</strong><br>
-                <pre style="white-space: pre-wrap; word-wrap: break-word;">{$reply}</pre>
+                <pre style="white-space: pre-wrap; word-wrap: break-word; font-family: Arial, sans-serif;">{$reply}</pre>
             </div>
             
-            <p>If you have any further questions, please don't hesitate to contact us.</p>
+            <p>If you have any further questions, please feel free to reply to this email or contact us directly.</p>
             
-            <p>Best regards,<br><strong>{$siteName} Team</strong></p>
+            <p>Best regards,<br>
+            <strong>{$siteName} Team</strong><br>
+            <em>{$siteEmail}</em></p>
             
             <div class="footer">
-                <p>This is an automated message. Please do not reply to this email.</p>
+                <p>This is an automated message. Please do not reply with system issues to this email. Use our contact form instead.</p>
             </div>
         </div>
     </div>
@@ -364,17 +406,23 @@ function sendReplyEmail(string $email, string $customerName, string $originalSub
 </html>
 HTML;
 
-        $headers = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: {$siteName} <{$siteEmail}>\r\n";
-        $headers .= "Reply-To: {$siteEmail}\r\n";
+        // Alternative text version
+        $mail->AltBody = "Dear {$customerName},\n\nThank you for contacting {$siteName}.\n\nOriginal Subject: {$originalSubject}\n\nOur Reply:\n{$reply}\n\nBest regards,\n{$siteName} Team";
         
-        return mail($email, $subject, $messageBody, $headers);
+        // Send email
+        $mail->send();
+        error_log("Email sent successfully to: {$email}");
+        return true;
+        
+    } catch (\PHPMailer\PHPMailer\Exception $e) {
+        error_log("PHPMailer Error: " . $e->getMessage());
+        return false;
     } catch (Exception $e) {
-        error_log('Error sending reply email: ' . $e->getMessage());
+        error_log("Email sending error: " . $e->getMessage());
         return false;
     }
 }
+
 
 /**
  * Helper function to get user name by ID
