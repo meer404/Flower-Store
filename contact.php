@@ -15,6 +15,25 @@ $lang = getCurrentLang();
 $dir = getHtmlDir();
 $message = '';
 
+// Ensure contact_messages table exists
+try {
+    $pdo = getDB();
+    $pdo->query("SELECT 1 FROM contact_messages LIMIT 1");
+} catch (PDOException $e) {
+    // Table doesn't exist, create it
+    try {
+        $sql = file_get_contents(__DIR__ . '/database/add_contact_messages.sql');
+        $statements = array_filter(array_map('trim', explode(';', $sql)));
+        foreach ($statements as $statement) {
+            if (!empty($statement)) {
+                $pdo->exec($statement);
+            }
+        }
+    } catch (Exception $ex) {
+        // Silently fail - table will be created on admin page access
+    }
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $name = sanitizeInput('name', 'POST', '');
@@ -23,9 +42,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $messageBody = sanitizeInput('message', 'POST', '');
 
     if ($name && $email && $subject && $messageBody) {
-        // Here you would typically send an email
-        // For now, we'll just show a success message
-        $message = setFlashMessage('Thank you for your message! We will get back to you soon.', 'success');
+        try {
+            $pdo = getDB();
+            $stmt = $pdo->prepare('
+                INSERT INTO contact_messages (full_name, email, subject, message, ip_address, user_agent)
+                VALUES (:name, :email, :subject, :message, :ip_address, :user_agent)
+            ');
+            $stmt->execute([
+                'name' => $name,
+                'email' => $email,
+                'subject' => $subject,
+                'message' => $messageBody,
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
+            ]);
+            $message = setFlashMessage('Thank you for your message! We will get back to you soon.', 'success');
+        } catch (PDOException $e) {
+            error_log('Contact message submission error: ' . $e->getMessage());
+            $message = setFlashMessage('An error occurred. Please try again later.', 'error');
+        }
     } else {
         $message = setFlashMessage('Please fill in all fields.', 'error');
     }

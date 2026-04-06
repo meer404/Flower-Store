@@ -1141,3 +1141,40 @@ function getExtraDescription(array $extra): string {
     $descKey = ($lang === 'ku') ? 'description_ku' : 'description_en';
     return $extra[$descKey] ?? '';
 }
+
+/**
+ * Generate HTML for a flash message notification
+ * 
+ * @param string $message The message to display
+ * @param string $type Message type: 'success', 'error', 'warning', 'info'
+ * @return string HTML string for the flash message
+ */
+function setFlashMessage(string $message, string $type = 'info'): string {
+    $baseClasses = 'p-4 rounded-lg mb-4 flex items-start gap-3 border';
+    
+    $styles = [
+        'success' => [
+            'container' => 'bg-green-50 border-green-200 text-green-800',
+            'icon' => '✓'
+        ],
+        'error' => [
+            'container' => 'bg-red-50 border-red-200 text-red-800',
+            'icon' => '✕'
+        ],
+        'warning' => [
+            'container' => 'bg-yellow-50 border-yellow-200 text-yellow-800',
+            'icon' => '⚠'
+        ],
+        'info' => [
+            'container' => 'bg-blue-50 border-blue-200 text-blue-800',
+            'icon' => 'ℹ'
+        ]
+    ];
+    
+    $style = $styles[$type] ?? $styles['info'];
+    
+    return '<div class="' . $baseClasses . ' ' . $style['container'] . '" role="alert">
+        <span class="font-bold text-lg flex-shrink-0">' . e($style['icon']) . '</span>
+        <span class="flex-grow">' . e($message) . '</span>
+    </div>';
+}
