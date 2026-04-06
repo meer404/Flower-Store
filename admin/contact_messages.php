@@ -132,6 +132,7 @@ $countReplied = $pdo->query('SELECT COUNT(*) FROM contact_messages WHERE is_repl
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e(t('contact_messages', [], 'Contact Messages')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?= getLuxuryTailwindConfig() ?>
 </head>
 <body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
