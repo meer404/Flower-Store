@@ -214,33 +214,6 @@ $dir = getHtmlDir();
         </div>
     </section>
     <?php endif; ?>
-    
-    <!-- Newsletter Section -->
-    <section class="py-20 bg-gradient-to-br from-luxury-primary via-gray-900 to-luxury-primary text-white">
-        <div class="container mx-auto px-6">
-            <div class="max-w-3xl mx-auto text-center">
-                <div class="w-20 h-20 bg-luxury-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i class="fas fa-envelope text-3xl text-white"></i>
-                </div>
-                <h2 class="text-4xl font-luxury font-bold mb-4"><?= e(t('newsletter_title')) ?></h2>
-                <p class="text-xl text-gray-300 mb-8">
-                    <?= e(t('newsletter_subtitle')) ?>
-                </p>
-                <form class="flex flex-col sm:flex-row gap-4 max-w-xl mx-auto">
-                    <input type="email" 
-                           placeholder="<?= e(t('email_placeholder')) ?>" 
-                           class="flex-1 px-6 py-4 rounded-full text-luxury-primary focus:outline-none focus:ring-4 focus:ring-luxury-accent/50">
-                    <button type="submit" 
-                            class="bg-luxury-accent hover:bg-yellow-500 text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 shadow-xl hover:shadow-2xl">
-                        <?= e(t('subscribe_button')) ?> <i class="fas fa-paper-plane ms-2 rtl:rotate-180"></i>
-                    </button>
-                </form>
-                <p class="text-sm text-gray-400 mt-4">
-                    <i class="fas fa-lock me-2"></i><?= e(t('privacy_notice')) ?>
-                </p>
-            </div>
-        </div>
-    </section>
 
     <!-- Footer -->
     <?= modernFooter() ?>
