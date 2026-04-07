@@ -436,6 +436,44 @@ function getCategoryName(array $category): string {
 }
 
 /**
+ * Get the base URL of the site.
+ *
+ * @return string The site's base URL.
+ */
+function getSiteURL(): string {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    
+    // This assumes the project is in a subdirectory that is part of the request URI.
+    // It might need adjustment if the server configuration is different (e.g., using aliases).
+    $scriptName = $_SERVER['SCRIPT_NAME'];
+    $path = str_replace('/index.php', '', $scriptName);
+    
+    // If the script is in a subdirectory, the path will reflect that.
+    // We want to find the root of the flower store project.
+    // A simple approach is to remove known deep paths like '/admin' if they are not the root.
+    $pathParts = explode('/', trim($path, '/'));
+    
+    // Assuming 'Flower-Store' is the root directory name in the URL path
+    $projectRootSegment = 'Flower-Store';
+    $projectRootIndex = array_search($projectRootSegment, $pathParts);
+
+    if ($projectRootIndex !== false) {
+        $projectPath = implode('/', array_slice($pathParts, 0, $projectRootIndex + 1));
+        return rtrim($protocol . $host . '/' . $projectPath, '/');
+    }
+
+    // Fallback for environments where the path logic is simpler
+    $path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+    // If it's the root, dirname might return just a slash or backslash
+    if ($path === '/' || $path === '\\') {
+        $path = '';
+    }
+
+    return $protocol . $host . $path;
+}
+
+/**
  * Get cart total count
  * 
  * @return int Total number of items in cart

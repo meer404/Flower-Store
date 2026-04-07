@@ -10,6 +10,7 @@ require_once __DIR__ . '/src/language.php';
 require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';
 require_once __DIR__ . '/src/components.php';
+require_once __DIR__ . '/src/email.php';
 
 requireLogin();
 
@@ -295,6 +296,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             // Clear cart
                             $_SESSION['cart'] = [];
                             clearCoupon();
+
+                            // Send order confirmation email to customer
+                            $customerEmail = $user['email'];
+                            $customerSubject = t('order_confirmation_subject', ['order_id' => $orderId]);
+                            $customerBody = "<h1>" . t('thank_you_for_order') . "</h1>";
+                            $customerBody .= "<p>" . t('order_details_below') . "</p>";
+                            $customerBody .= "<p><strong>" . t('order_id') . ":</strong> {$orderId}</p>";
+                            $customerBody .= "<p><strong>" . t('grand_total') . ":</strong> {$currency}{$grandTotal}</p>";
+                            $customerBody .= "<p><strong>" . t('shipping_address') . ":</strong> {$shippingAddress}</p>";
+                            $customerBody .= "<p>" . t('track_order_in_account') . "</p>";
+                            sendEmail($customerEmail, $customerSubject, $customerBody);
+
+                            // Send new order notification to admin
+                            $emailConfig = require __DIR__ . '/config/email.php';
+                            $adminEmail = $emailConfig['admin_email'];
+                            $adminSubject = t('new_order_notification_subject', ['order_id' => $orderId]);
+                            $adminBody = "<h1>" . t('new_order_received') . "</h1>";
+                            $adminBody .= "<p>" . t('order_details_below') . "</p>";
+                            $adminBody .= "<p><strong>" . t('order_id') . ":</strong> {$orderId}</p>";
+                            $adminBody .= "<p><strong>" . t('customer') . ":</strong> {$user['full_name']} ({$user['email']})</p>";
+                            $adminBody .= "<p><strong>" . t('grand_total') . ":</strong> {$currency}{$grandTotal}</p>";
+                            $adminBody .= "<p><a href='" . getSiteURL() . "/admin/order_details.php?id={$orderId}'>" . t('view_order_details') . "</a></p>";
+                            sendEmail($adminEmail, $adminSubject, $adminBody);
                             
                             redirect('index.php', t('order_placed'), 'success');
                         }

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/src/language.php';
 require_once __DIR__ . '/src/functions.php';
+require_once __DIR__ . '/src/email.php';
 
 requireAdmin();
 
@@ -82,6 +83,21 @@ try {
                 $message,
                 $orderId
             );
+
+            // Get user email to send notification
+            $stmt = $pdo->prepare('SELECT email FROM users WHERE id = :user_id');
+            $stmt->execute(['user_id' => $order['user_id']]);
+            $user = $stmt->fetch();
+
+            if ($user && !empty($user['email'])) {
+                $emailSubject = t('order_status_updated_title');
+                $emailBody = t('order_status_msg', [
+                    'order_id' => $orderId,
+                    'old_status' => $statusLabels[$oldStatus] ?? ucfirst($oldStatus),
+                    'new_status' => $statusLabels[$newStatus] ?? ucfirst($newStatus)
+                ]);
+                sendEmail($user['email'], $emailSubject, $emailBody);
+            }
         }
         
         redirect('order_details.php?id=' . $orderId, t('order_status_updated'), 'success');
