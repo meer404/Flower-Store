@@ -36,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $categoryId = (int)sanitizeInput('category_id', 'POST');
         $price = (float)sanitizeInput('price', 'POST');
         $stockQty = (int)sanitizeInput('stock_qty', 'POST');
+        $color = sanitizeInput('color', 'POST');
+        $occasion = sanitizeInput('occasion', 'POST');
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
         
         // Validate required fields
@@ -78,8 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$error) {
                 try {
                     $stmt = $pdo->prepare('
-                        INSERT INTO products (category_id, name_en, name_ku, description_en, description_ku, price, stock_qty, image_url, is_featured)
-                        VALUES (:category_id, :name_en, :name_ku, :description_en, :description_ku, :price, :stock_qty, :image_url, :is_featured)
+                        INSERT INTO products (category_id, name_en, name_ku, description_en, description_ku, price, stock_qty, color, occasion, image_url, is_featured)
+                        VALUES (:category_id, :name_en, :name_ku, :description_en, :description_ku, :price, :stock_qty, :color, :occasion, :image_url, :is_featured)
                     ');
                     
                     $stmt->execute([
@@ -90,6 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'description_ku' => $descriptionKu,
                         'price' => $price,
                         'stock_qty' => $stockQty,
+                        'color' => $color ?: null,
+                        'occasion' => $occasion ?: null,
                         'image_url' => $imageUrl,
                         'is_featured' => $isFeatured
                     ]);
@@ -250,6 +254,22 @@ $dir = getHtmlDir();
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="color" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('color')) ?>
+                                            </label>
+                                            <input type="text" id="color" name="color" placeholder="e.g. Red, Blue"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="occasion" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('occasion')) ?>
+                                            </label>
+                                            <input type="text" id="occasion" name="occasion" placeholder="e.g. Birthday, Anniversary"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                         </div>
                                         
                                         <div class="pt-4 border-t border-gray-100">

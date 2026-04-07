@@ -16,10 +16,19 @@ $pdo = getDB();
 // Get search query and category filter
 $search = sanitizeInput('search', 'GET', '');
 $categoryId = (int)sanitizeInput('category', 'GET', '0');
+$minPrice = sanitizeInput('min_price', 'GET', '');
+$maxPrice = sanitizeInput('max_price', 'GET', '');
+$filterColor = sanitizeInput('color', 'GET', '');
+$filterOccasion = sanitizeInput('occasion', 'GET', '');
+$minRating = (int)sanitizeInput('rating', 'GET', '0');
 
 // Get all categories for filter
 $stmt = $pdo->query('SELECT id, name_en, name_ku, slug FROM categories ORDER BY name_en');
 $categories = $stmt->fetchAll();
+
+// Get distinctive colors and occasions
+$colors = $pdo->query('SELECT DISTINCT color FROM products WHERE color IS NOT NULL AND color != "" ORDER BY color')->fetchAll(PDO::FETCH_COLUMN);
+$occasions = $pdo->query('SELECT DISTINCT occasion FROM products WHERE occasion IS NOT NULL AND occasion != "" ORDER BY occasion')->fetchAll(PDO::FETCH_COLUMN);
 
 // Build product query
 $whereConditions = ['p.stock_qty > 0'];
@@ -39,12 +48,40 @@ if ($categoryId > 0) {
     $params['category_id'] = $categoryId;
 }
 
-$whereClause = implode(' AND ', $whereConditions);
+if ($minPrice !== '') {
+    $whereConditions[] = 'p.price >= :min_price';
+    $params['min_price'] = (float)$minPrice;
+}
 
-$sql = "SELECT p.*, c.name_en as category_name_en, c.name_ku as category_name_ku 
+if ($maxPrice !== '') {
+    $whereConditions[] = 'p.price <= :max_price';
+    $params['max_price'] = (float)$maxPrice;
+}
+
+if ($filterColor !== '') {
+    $whereConditions[] = 'p.color = :color';
+    $params['color'] = $filterColor;
+}
+
+if ($filterOccasion !== '') {
+    $whereConditions[] = 'p.occasion = :occasion';
+    $params['occasion'] = $filterOccasion;
+}
+
+$whereClause = implode(' AND ', $whereConditions);
+$havingClause = '';
+
+if ($minRating > 0) {
+    $havingClause = ' HAVING avg_rating >= :min_rating';
+    $params['min_rating'] = $minRating;
+}
+
+$sql = "SELECT p.*, c.name_en as category_name_en, c.name_ku as category_name_ku,
+        (SELECT COALESCE(AVG(rating), 0) FROM reviews r WHERE r.product_id = p.id) as avg_rating
         FROM products p 
         JOIN categories c ON p.category_id = c.id 
         WHERE {$whereClause}
+        {$havingClause}
         ORDER BY p.created_at DESC";
 
 $stmt = $pdo->prepare($sql);
@@ -116,7 +153,6 @@ $dir = getHtmlDir();
                                 <i class="fas fa-th-large me-2"></i><?= e(t('category')) ?>
                             </label>
                             <select id="category" name="category" 
-                                    onchange="document.getElementById('filterForm').submit();"
                                     class="w-full px-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
                                 <option value="0"><?= e(t('all_categories')) ?></option>
                                 <?php foreach ($categories as $category): ?>
@@ -127,13 +163,73 @@ $dir = getHtmlDir();
                                 <?php endforeach; ?>
                             </select>
                         </div>
+
+                        <!-- Price Range Filter -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
+                                <i class="fas fa-dollar-sign me-2"></i><?= e(t('price')) ?>
+                            </label>
+                            <div class="flex gap-2">
+                                <input type="number" name="min_price" value="<?= e((string)$minPrice) ?>" placeholder="<?= e(t('min_price')) ?>" min="0" step="1"
+                                       class="w-1/2 px-4 py-3 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
+                                <input type="number" name="max_price" value="<?= e((string)$maxPrice) ?>" placeholder="<?= e(t('max_price')) ?>" min="0" step="1"
+                                       class="w-1/2 px-4 py-3 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Color Filter -->
+                        <?php if (!empty($colors)): ?>
+                        <div class="mb-6">
+                            <label for="color" class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
+                                <i class="fas fa-palette me-2"></i><?= e(t('color')) ?>
+                            </label>
+                            <select id="color" name="color" 
+                                    class="w-full px-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
+                                <option value=""><?= e(t('all_colors')) ?></option>
+                                <?php foreach ($colors as $c): ?>
+                                    <option value="<?= e($c) ?>" <?= $filterColor === $c ? 'selected' : '' ?>><?= e($c) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Occasion Filter -->
+                        <?php if (!empty($occasions)): ?>
+                        <div class="mb-6">
+                            <label for="occasion" class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
+                                <i class="fas fa-calendar-alt me-2"></i><?= e(t('occasion')) ?>
+                            </label>
+                            <select id="occasion" name="occasion" 
+                                    class="w-full px-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
+                                <option value=""><?= e(t('all_occasions')) ?></option>
+                                <?php foreach ($occasions as $occ): ?>
+                                    <option value="<?= e($occ) ?>" <?= $filterOccasion === $occ ? 'selected' : '' ?>><?= e($occ) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Customer Rating Filter -->
+                        <div class="mb-6">
+                            <label for="rating" class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
+                                <i class="fas fa-star me-2"></i><?= e(t('customer_rating')) ?>
+                            </label>
+                            <select id="rating" name="rating" 
+                                    class="w-full px-4 py-3.5 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent transition-all">
+                                <option value="0"><?= e(t('all_ratings')) ?></option>
+                                <option value="4" <?= $minRating === 4 ? 'selected' : '' ?>><?= e(t('4_stars_up')) ?></option>
+                                <option value="3" <?= $minRating === 3 ? 'selected' : '' ?>><?= e(t('3_stars_up')) ?></option>
+                                <option value="2" <?= $minRating === 2 ? 'selected' : '' ?>><?= e(t('2_stars_up')) ?></option>
+                                <option value="1" <?= $minRating === 1 ? 'selected' : '' ?>><?= e(t('1_star_up')) ?></option>
+                            </select>
+                        </div>
                         
                         <button type="submit" 
                                 class="w-full bg-gradient-to-r from-luxury-accent to-yellow-500 text-white py-4 px-6 rounded-xl hover:from-yellow-500 hover:to-luxury-accent transition-all duration-300 font-bold shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5">
                             <i class="fas fa-search me-2"></i><?= e(t('search')) ?>
                         </button>
                         
-                        <?php if ($search || $categoryId > 0): ?>
+                        <?php if ($search || $categoryId > 0 || $minPrice !== '' || $maxPrice !== '' || $filterColor !== '' || $filterOccasion !== '' || $minRating > 0): ?>
                             <a href="shop.php?lang=<?= e($lang) ?>" 
                                class="block mt-4 text-center text-luxury-accent hover:text-luxury-primary transition-colors font-semibold py-2">
                                 <i class="fas fa-times me-2"></i><?= e(t('clear_filters')) ?>
@@ -142,7 +238,7 @@ $dir = getHtmlDir();
                     </form>
                     
                     <!-- Active Filters Display -->
-                    <?php if ($search || $categoryId > 0): ?>
+                    <?php if ($search || $categoryId > 0 || $minPrice !== '' || $maxPrice !== '' || $filterColor !== '' || $filterOccasion !== '' || $minRating > 0): ?>
                         <div class="mt-6 pt-6 border-t-2 border-luxury-border">
                             <p class="text-sm font-bold text-luxury-primary mb-3 uppercase"><?= e(t('active_filters')) ?></p>
                             <div class="flex flex-wrap gap-2">
@@ -160,6 +256,26 @@ $dir = getHtmlDir();
                                         <?= e($catName) ?>
                                     </span>
                                 <?php endif; endif; ?>
+                                <?php if ($minPrice !== '' || $maxPrice !== ''): ?>
+                                    <span class="bg-luxury-accent/10 text-luxury-accent px-3 py-1 rounded-full text-sm font-semibold">
+                                        Price: <?= $minPrice !== '' ? e($minPrice) : '0' ?> - <?= $maxPrice !== '' ? e($maxPrice) : 'Max' ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($filterColor !== ''): ?>
+                                    <span class="bg-luxury-accent/10 text-luxury-accent px-3 py-1 rounded-full text-sm font-semibold">
+                                        Color: <?= e($filterColor) ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($filterOccasion !== ''): ?>
+                                    <span class="bg-luxury-accent/10 text-luxury-accent px-3 py-1 rounded-full text-sm font-semibold">
+                                        Occasion: <?= e($filterOccasion) ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($minRating > 0): ?>
+                                    <span class="bg-luxury-accent/10 text-luxury-accent px-3 py-1 rounded-full text-sm font-semibold">
+                                        <?= e((string)$minRating) ?>+ Stars
+                                    </span>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endif; ?>

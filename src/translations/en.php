@@ -154,6 +154,18 @@ return [
     'found_products' => 'Found :count products',
     'no_products_found' => 'No Products Found',
     'no_products_subtitle' => 'Try adjusting your search or filters',
+    'color' => 'Color',
+    'occasion' => 'Occasion',
+    'min_price' => 'Min Price',
+    'max_price' => 'Max Price',
+    'customer_rating' => 'Customer Rating',
+    '4_stars_up' => '4 Stars & Up',
+    '3_stars_up' => '3 Stars & Up',
+    '2_stars_up' => '2 Stars & Up',
+    '1_star_up' => '1 Star & Up',
+    'all_colors' => 'All Colors',
+    'all_occasions' => 'All Occasions',
+    'all_ratings' => 'All Ratings',
 
     // Admin
     'admin_dashboard' => 'Admin Dashboard',

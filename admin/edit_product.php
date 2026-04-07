@@ -55,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $categoryId = (int)sanitizeInput('category_id', 'POST');
         $price = (float)sanitizeInput('price', 'POST');
         $stockQty = (int)sanitizeInput('stock_qty', 'POST');
+        $color = sanitizeInput('color', 'POST');
+        $occasion = sanitizeInput('occasion', 'POST');
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
         $sku = sanitizeInput('sku', 'POST');
         
@@ -86,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     UPDATE products 
                     SET category_id = :category_id, name_en = :name_en, name_ku = :name_ku, 
                         description_en = :description_en, description_ku = :description_ku, 
-                        price = :price, stock_qty = :stock_qty, image_url = :image_url, 
+                        price = :price, stock_qty = :stock_qty, color = :color, occasion = :occasion, image_url = :image_url, 
                         is_featured = :is_featured, sku = :sku
                     WHERE id = :id
                 ');
@@ -99,6 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'description_ku' => $descriptionKu,
                     'price' => $price,
                     'stock_qty' => $stockQty,
+                    'color' => $color ?: null,
+                    'occasion' => $occasion ?: null,
                     'image_url' => $imageUrl,
                     'is_featured' => $isFeatured,
                     'sku' => $sku ?: null,
@@ -302,6 +306,26 @@ $dir = getHtmlDir();
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select>
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="color" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('color')) ?>
+                                            </label>
+                                            <input type="text" id="color" name="color"
+                                                   value="<?= e($product['color'] ?? '') ?>"
+                                                   placeholder="e.g. Red, Blue"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+                                        
+                                        <div>
+                                            <label for="occasion" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('occasion')) ?>
+                                            </label>
+                                            <input type="text" id="occasion" name="occasion"
+                                                   value="<?= e($product['occasion'] ?? '') ?>"
+                                                   placeholder="e.g. Valentine, Birthday"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                         </div>
                                         
                                         <div class="pt-4 border-t border-gray-100">
