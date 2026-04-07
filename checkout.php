@@ -48,6 +48,16 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION[
     }
 }
 
+$appliedCoupon = getAppliedCoupon($cartTotal);
+$finalCartTotal = $cartTotal;
+$discountAmount = 0.0;
+$couponId = null;
+if ($appliedCoupon) {
+    $discountAmount = $appliedCoupon['discount_amount'];
+    $finalCartTotal -= $discountAmount;
+    $couponId = $appliedCoupon['id'];
+}
+
 // Redirect if cart is empty
 if (empty($cartItems)) {
     redirect('cart.php', e(t('empty_cart')), 'error');
@@ -147,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($deliveryFee === null) {
                     $error = t('delivery_out_of_range');
                 } else {
-                    $grandTotal = $cartTotal + $deliveryFee + $extrasTotal;
+                    $grandTotal = $finalCartTotal + $deliveryFee + $extrasTotal;
                     $customerLatValue = (float)$customerLat;
                     $customerLngValue = (float)$customerLng;
                     // Extract last 4 digits for storage
@@ -175,12 +185,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         } else {
                             // Create order with payment details
                             $stmt = $pdo->prepare('
-                                INSERT INTO orders (user_id, grand_total, payment_status, shipping_address, customer_lat, customer_lng, delivery_date, payment_method, card_last_four, cardholder_name, card_expiry_month, card_expiry_year)
-                                VALUES (:user_id, :grand_total, :payment_status, :shipping_address, :customer_lat, :customer_lng, :delivery_date, :payment_method, :card_last_four, :cardholder_name, :card_expiry_month, :card_expiry_year)
+                                INSERT INTO orders (user_id, grand_total, discount_amount, coupon_id, payment_status, shipping_address, customer_lat, customer_lng, delivery_date, payment_method, card_last_four, cardholder_name, card_expiry_month, card_expiry_year)
+                                VALUES (:user_id, :grand_total, :discount_amount, :coupon_id, :payment_status, :shipping_address, :customer_lat, :customer_lng, :delivery_date, :payment_method, :card_last_four, :cardholder_name, :card_expiry_month, :card_expiry_year)
                             ');
                             $stmt->execute([
                                 'user_id' => $userId,
                                 'grand_total' => $grandTotal,
+                                'discount_amount' => $discountAmount,
+                                'coupon_id' => $couponId,
                                 'payment_status' => 'paid', // Mark as paid when card details provided
                                 'shipping_address' => $shippingAddress,
                                 'customer_lat' => $customerLatValue,
@@ -233,10 +245,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 }
                             }
                             
+                            if ($couponId) {
+                                $stmt = $pdo->prepare('UPDATE coupons SET used_count = used_count + 1 WHERE id = :id');
+                                $stmt->execute(['id' => $couponId]);
+                            }
+
                             $pdo->commit();
                             
                             // Clear cart
                             $_SESSION['cart'] = [];
+                            clearCoupon();
                             
                             redirect('index.php', t('order_placed'), 'success');
                         }
@@ -307,9 +325,19 @@ $dir = getHtmlDir();
                         <span><?= e(t('extras_total')) ?></span>
                         <span id="extras-total-amount">$0.00</span>
                     </div>
+                    <div class="flex justify-between items-center text-sm text-luxury-textLight pt-2 border-t border-luxury-border">
+                        <span class="text-md md:text-lg text-luxury-primary"><?= e(t('subtotal')) ?>:</span>
+                        <span class="text-md md:text-lg text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                    </div>
+                    <?php if ($appliedCoupon): ?>
+                    <div class="flex justify-between items-center text-sm text-pink-500">
+                        <span class="text-md md:text-lg text-pink-600"><?= e(t('discount')) ?> (<?= e($appliedCoupon['code']) ?>):</span>
+                        <span class="text-md md:text-lg text-pink-600 font-luxury">-<?= e(formatPrice($discountAmount, $currency)) ?></span>
+                    </div>
+                    <?php endif; ?>
                     <div class="flex justify-between items-center pt-2">
                         <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('total')) ?>:</span>
-                        <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="subtotal-amount" data-base-total="<?= e((string)$cartTotal) ?>"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                        <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="subtotal-amount" data-base-total="<?= e((string)$finalCartTotal) ?>"><?= e(formatPrice($finalCartTotal, $currency)) ?></span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('delivery_total')) ?>:</span>

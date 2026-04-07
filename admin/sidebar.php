@@ -98,6 +98,18 @@ $csrfToken = generateCSRFToken();
                 </li>
                 <?php endif; ?>
 
+                <?php if ($isSuperAdmin || hasPermission('manage_coupons')): ?>
+                <li>
+                    <a href="<?= url('admin/coupons.php') ?>" 
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'coupons.php' ? 'bg-pink-50 text-pink-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-pink-600' ?>">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'coupons.php' ? 'bg-pink-100 text-pink-600' : 'bg-gray-100 text-gray-400 group-hover:bg-pink-100 group-hover:text-pink-600' ?>">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <span class="flex-1"><?= e(t('coupons')) ?></span>
+                    </a>
+                </li>
+                <?php endif; ?>
+
                 <li>
                     <a href="<?= url('admin/contact_messages.php') ?>" 
                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'contact_messages.php' ? 'bg-indigo-50 text-indigo-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600' ?>">

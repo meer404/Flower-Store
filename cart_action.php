@@ -125,7 +125,43 @@ try {
             redirect('cart.php', t('error'), 'error');
         }
         $_SESSION['cart'] = [];
+        clearCoupon();
         redirect('cart.php', t('success'), 'success');
+    }
+
+    if ($action === 'apply_coupon') {
+        if (!$csrfOk) {
+            redirect('cart.php', t('error'), 'error');
+        }
+        $code = requestScalar('coupon_code', '');
+        if (empty($code)) {
+            redirect('cart.php', t('error'), 'error');
+        }
+        
+        // Calculate cart total to validate min purchase
+        $cartTotal = 0.0;
+        foreach ($_SESSION['cart'] as $pid => $qty) {
+            $stmt = $pdo->prepare('SELECT price FROM products WHERE id = :id AND stock_qty > 0');
+            $stmt->execute(['id' => $pid]);
+            $price = $stmt->fetchColumn();
+            if ($price !== false) {
+                $cartTotal += (float)$price * (int)$qty;
+            }
+        }
+        
+        if (applyCoupon($code, $cartTotal)) {
+            redirect('cart.php', t('coupon_applied'), 'success');
+        } else {
+            redirect('cart.php', t('invalid_coupon'), 'error');
+        }
+    }
+
+    if ($action === 'remove_coupon') {
+        if (!$csrfOk) {
+            redirect('cart.php', t('error'), 'error');
+        }
+        clearCoupon();
+        redirect('cart.php', t('coupon_removed'), 'success');
     }
 } catch (PDOException $e) {
     error_log('Cart action error: ' . $e->getMessage());

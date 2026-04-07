@@ -978,7 +978,8 @@ function getAdminPermissions(?int $adminId = null): array {
             'manage_admins',
             'view_users',
             'manage_users',
-            'system_settings'
+            'system_settings',
+            'manage_coupons'
         ];
     }
     
@@ -1057,7 +1058,8 @@ function getAvailablePermissions(): array {
         'view_reports' => 'Access Reports',
         'view_users' => 'View Customer Users',
         'manage_users' => 'Ban/Modify Customer Accounts',
-        'system_settings' => 'System Settings'
+        'system_settings' => 'System Settings',
+        'manage_coupons' => 'Manage Discount Coupons'
     ];
 }
 
@@ -1177,4 +1179,113 @@ function setFlashMessage(string $message, string $type = 'info'): string {
         <span class="font-bold text-lg flex-shrink-0">' . e($style['icon']) . '</span>
         <span class="flex-grow">' . e($message) . '</span>
     </div>';
+}
+
+/**
+ * Validate a coupon code and calculate its value.
+ *
+ * @param string $code The coupon code
+ * @param float $cartTotal The current cart total
+ * @return array|null Array with coupon details and discount amount, or null if invalid
+ */
+function validateCoupon(string $code, float $cartTotal): ?array {
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('
+            SELECT id, code, discount_type, discount_value, min_purchase, expiry_date, usage_limit, used_count
+            FROM coupons
+            WHERE code = :code AND is_active = TRUE
+        ');
+        $stmt->execute(['code' => $code]);
+        $coupon = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$coupon) {
+            return null;
+        }
+
+        // Check min purchase
+        if ((float)$coupon['min_purchase'] > $cartTotal) {
+            return null;
+        }
+
+        // Check expiry
+        if (!empty($coupon['expiry_date']) && strtotime($coupon['expiry_date']) < time()) {
+            return null;
+        }
+
+        // Check usage limit
+        if (!empty($coupon['usage_limit']) && (int)$coupon['used_count'] >= (int)$coupon['usage_limit']) {
+            return null;
+        }
+
+        $discountValue = (float)$coupon['discount_value'];
+        $discountAmount = 0.0;
+
+        if ($coupon['discount_type'] === 'percentage') {
+            $discountAmount = ($cartTotal * $discountValue) / 100;
+        } elseif ($coupon['discount_type'] === 'fixed') {
+            $discountAmount = $discountValue;
+        }
+
+        // Don't discount more than the cart total
+        if ($discountAmount > $cartTotal) {
+            $discountAmount = $cartTotal;
+        }
+
+        return [
+            'id' => (int)$coupon['id'],
+            'code' => $coupon['code'],
+            'discount_type' => $coupon['discount_type'],
+            'discount_value' => $discountValue,
+            'discount_amount' => $discountAmount
+        ];
+    } catch (PDOException $e) {
+        error_log('Validate coupon error: ' . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Get the currently applied coupon from session, revalidating it against current total
+ *
+ * @param float $cartTotal The current cart total
+ * @return array|null Validated coupon details or null
+ */
+function getAppliedCoupon(float $cartTotal): ?array {
+    if (empty($_SESSION['applied_coupon_code'])) {
+        return null;
+    }
+    
+    $coupon = validateCoupon($_SESSION['applied_coupon_code'], $cartTotal);
+    
+    if (!$coupon) {
+        // Automatically clear if it became invalid
+        clearCoupon();
+    }
+    
+    return $coupon;
+}
+
+/**
+ * Apply a coupon code to the session
+ *
+ * @param string $code The coupon code
+ * @param float $cartTotal The current cart total
+ * @return bool True if successfully applied
+ */
+function applyCoupon(string $code, float $cartTotal): bool {
+    $coupon = validateCoupon($code, $cartTotal);
+    
+    if ($coupon) {
+        $_SESSION['applied_coupon_code'] = $code;
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Remove any applied coupon from session
+ */
+function clearCoupon(): void {
+    unset($_SESSION['applied_coupon_code']);
 }

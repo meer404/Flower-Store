@@ -42,6 +42,12 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION[
     }
 }
 
+$appliedCoupon = getAppliedCoupon($cartTotal);
+$finalTotal = $cartTotal;
+if ($appliedCoupon) {
+    $finalTotal -= $appliedCoupon['discount_amount'];
+}
+
 $lang = getCurrentLang();
 $dir = getHtmlDir();
 ?>
@@ -77,7 +83,7 @@ $dir = getHtmlDir();
                 <?php if (!empty($cartItems)): ?>
                 <div class="hidden md:block bg-white/10 backdrop-blur-sm px-8 py-6 rounded-2xl">
                     <p class="text-sm text-gray-300 mb-1"><?= e(t('cart_total')) ?></p>
-                    <p class="text-4xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal)) ?></p>
+                    <p class="text-4xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($finalTotal, $currency)) ?></p>
                 </div>
                 <?php endif; ?>
             </div>
@@ -177,11 +183,29 @@ $dir = getHtmlDir();
                         </tbody>
                         <tfoot class="bg-gradient-to-r from-luxury-accentLight to-yellow-100">
                             <tr>
-                                <td colspan="3" class="px-6 py-6 text-end text-lg font-bold text-luxury-primary">
+                                <td colspan="3" class="px-6 py-4 text-end text-md font-bold text-luxury-primary border-b border-white/20">
+                                    <?= e(t('subtotal')) ?>:
+                                </td>
+                                <td colspan="2" class="px-6 py-4 border-b border-white/20">
+                                    <span class="text-xl font-bold text-luxury-primary font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                                </td>
+                            </tr>
+                            <?php if ($appliedCoupon): ?>
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-end text-md font-bold text-pink-600 border-b border-white/20">
+                                    <?= e(t('discount')) ?> (<?= e($appliedCoupon['code']) ?>):
+                                </td>
+                                <td colspan="2" class="px-6 py-4 border-b border-white/20">
+                                    <span class="text-xl font-bold text-pink-600 font-luxury">-<?= e(formatPrice((float)$appliedCoupon['discount_amount'], $currency)) ?></span>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
+                            <tr>
+                                <td colspan="3" class="px-6 py-6 text-end text-xl font-bold text-luxury-primary">
                                     <i class="fas fa-calculator me-2"></i><?= e(t('total')) ?>:
                                 </td>
                                 <td colspan="2" class="px-6 py-6">
-                                    <span class="text-3xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                                    <span class="text-3xl font-bold text-luxury-accent font-luxury"><?= e(formatPrice($finalTotal, $currency)) ?></span>
                                 </td>
                             </tr>
                         </tfoot>
@@ -237,11 +261,51 @@ $dir = getHtmlDir();
                 
                 <!-- Mobile Total -->
                 <div class="bg-gradient-to-r from-luxury-accent to-yellow-500 text-white p-6 rounded-2xl shadow-xl">
-                    <div class="flex justify-between items-center">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-lg font-medium"><?= e(t('subtotal')) ?>:</span>
+                        <span class="text-xl"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                    </div>
+                    <?php if ($appliedCoupon): ?>
+                    <div class="flex justify-between items-center mb-2 text-yellow-200">
+                        <span class="text-lg font-medium"><?= e(t('discount')) ?> (<?= e($appliedCoupon['code']) ?>):</span>
+                        <span class="text-xl">-<?= e(formatPrice((float)$appliedCoupon['discount_amount'], $currency)) ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="flex justify-between items-center border-t border-white/20 pt-2">
                         <span class="text-xl font-bold"><i class="fas fa-calculator me-2"></i><?= e(t('total')) ?>:</span>
-                        <span class="text-3xl font-bold font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                        <span class="text-3xl font-bold font-luxury"><?= e(formatPrice($finalTotal, $currency)) ?></span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Coupon Code -->
+            <div class="mt-8 bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6">
+                <h3 class="text-lg font-bold text-luxury-primary mb-4"><i class="fas fa-ticket-alt me-2 text-pink-500"></i><?= e(t('apply_coupon')) ?></h3>
+                <?php if ($appliedCoupon): ?>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 bg-pink-50 border border-pink-200 p-4 rounded-xl">
+                        <div class="flex-1 w-full text-center sm:text-start">
+                            <span class="font-bold text-pink-700 bg-pink-200 px-3 py-1 rounded-md tracking-widest"><?= e($appliedCoupon['code']) ?></span>
+                            <span class="text-pink-600 font-medium ml-3">-<?= e(formatPrice((float)$appliedCoupon['discount_amount'], $currency)) ?></span>
+                        </div>
+                        <form method="POST" action="<?= url('cart_action.php') ?>" class="w-full sm:w-auto">
+                            <input type="hidden" name="action" value="remove_coupon">
+                            <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
+                            <button type="submit" class="w-full sm:w-auto text-red-500 hover:text-red-700 font-bold px-4 py-2 bg-white rounded-lg shadow-sm border border-red-100 transition-colors">
+                                <i class="fas fa-times me-1"></i><?= e(t('remove_coupon')) ?>
+                            </button>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <form method="POST" action="<?= url('cart_action.php') ?>" class="flex flex-col sm:flex-row gap-4">
+                        <input type="hidden" name="action" value="apply_coupon">
+                        <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
+                        <input type="text" name="coupon_code" placeholder="<?= e(t('coupon_code')) ?>" required style="text-transform:uppercase"
+                               class="flex-1 px-4 py-3 border-2 border-luxury-border rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 uppercase font-bold text-gray-700 placeholder-gray-400">
+                        <button type="submit" class="bg-pink-600 text-white px-8 py-3 rounded-xl hover:bg-pink-700 transition-all font-bold shadow-md whitespace-nowrap">
+                            <?= e(t('apply_coupon')) ?>
+                        </button>
+                    </form>
+                <?php endif; ?>
             </div>
 
             <div class="mt-8 bg-white border-2 border-luxury-border rounded-2xl shadow-xl p-6">
