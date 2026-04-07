@@ -1226,12 +1226,44 @@ function getAvailablePermissions(): array {
         'manage_categories' => 'Manage Categories',
         'view_orders' => 'View Orders & Details',
         'manage_orders' => 'Update Order Status',
+        'export_data' => 'Export Orders & Customers',
         'view_reports' => 'Access Reports',
         'view_users' => 'View Customer Users',
         'manage_users' => 'Ban/Modify Customer Accounts',
         'system_settings' => 'System Settings',
         'manage_coupons' => 'Manage Discount Coupons'
     ];
+}
+
+/**
+ * Export tabular data to a CSV file and stream it to the browser.
+ * Uses pure PHP — no external dependencies required.
+ *
+ * @param string $filename Download file name (extension will be forced to .csv)
+ * @param array $headers Column headers
+ * @param array $rows Array of row arrays
+ * @return void
+ */
+function exportToCsv(string $filename, array $headers, array $rows): void {
+    // Force .csv extension regardless of what was passed
+    $filename = preg_replace('/\\.xlsx?$/i', '', $filename) . '.csv';
+
+    header('Content-Type: text/csv; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Cache-Control: max-age=0');
+
+    $output = fopen('php://output', 'w');
+
+    // UTF-8 BOM so Excel opens the file with correct encoding
+    fwrite($output, "\xEF\xBB\xBF");
+
+    fputcsv($output, $headers);
+
+    foreach ($rows as $row) {
+        fputcsv($output, $row);
+    }
+
+    fclose($output);
 }
 
 /**

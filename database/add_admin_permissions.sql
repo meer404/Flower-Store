@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `admin_permissions` (
 -- 'manage_categories' - Manage product categories
 -- 'view_orders' - View orders and order details
 -- 'manage_orders' - Update order status
+-- 'export_data' - Export orders and customers
 -- 'view_reports' - Access reports section
 -- 'manage_admins' - Create and manage other admins (super admin only)
 -- 'view_users' - View customer users

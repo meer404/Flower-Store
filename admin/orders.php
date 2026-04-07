@@ -24,6 +24,60 @@ $page = max(1, (int)sanitizeInput('page', 'GET', '1'));
 $perPage = 20;
 $offset = ($page - 1) * $perPage;
 
+$exportRequested = sanitizeInput('export', 'GET');
+if ($exportRequested === '1') {
+    requirePermission('export_data');
+    $scope = sanitizeInput('scope', 'GET', 'page');
+    $scope = $scope === 'all' ? 'all' : 'page';
+
+    $exportSql = 'SELECT o.*, u.full_name as user_name, u.email as user_email 
+                  FROM orders o 
+                  LEFT JOIN users u ON o.user_id = u.id 
+                  ORDER BY o.order_date DESC';
+    if ($scope === 'page') {
+        $exportSql .= ' LIMIT :limit OFFSET :offset';
+    }
+
+    $exportStmt = $pdo->prepare($exportSql);
+    if ($scope === 'page') {
+        $exportStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $exportStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    }
+    $exportStmt->execute();
+    $exportOrders = $exportStmt->fetchAll();
+
+    $headers = [
+        t('order_id'),
+        t('customer'),
+        t('email'),
+        t('total'),
+        t('payment'),
+        t('status'),
+        t('date')
+    ];
+
+    $rows = [];
+    foreach ($exportOrders as $order) {
+        $customerName = $order['guest_name'] ?? $order['user_name'] ?? 'Guest';
+        $customerEmail = $order['guest_email'] ?? $order['user_email'] ?? '';
+        $orderStatus = strtolower($order['order_status'] ?? $order['status'] ?? 'pending');
+        $paymentStatus = strtolower($order['payment_status'] ?? 'pending');
+        $rows[] = [
+            $order['id'],
+            $customerName,
+            $customerEmail,
+            (float)$order['grand_total'],
+            ucfirst($paymentStatus),
+            ucfirst($orderStatus),
+            date('Y-m-d H:i:s', strtotime($order['order_date']))
+        ];
+    }
+
+    $fileName = 'orders-' . date('Ymd-His') . '.csv';
+    exportToCsv($fileName, $headers, $rows);
+    exit;
+}
+
 // Get total count
 $stmt = $pdo->query('SELECT COUNT(*) as total FROM orders');
 $totalOrders = (int)$stmt->fetch()['total'];
@@ -39,6 +93,16 @@ $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $orders = $stmt->fetchAll();
+
+$exportPageUrl = '?' . http_build_query([
+    'export' => '1',
+    'scope' => 'page',
+    'page' => $page
+]);
+$exportAllUrl = '?' . http_build_query([
+    'export' => '1',
+    'scope' => 'all'
+]);
 
 $lang = getCurrentLang();
 $dir = getHtmlDir();
@@ -86,13 +150,23 @@ $dir = getHtmlDir();
 
                 <!-- Orders Table Card -->
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 gap-4">
                         <div>
                             <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-list me-2 text-blue-600"></i><?= e(t('all_orders')) ?></h2>
                             <p class="text-gray-500 text-sm"><?= e(t('total_orders_count', ['count' => $totalOrders])) ?></p>
                         </div>
-                        <div class="text-sm font-medium text-gray-500 bg-white px-3 py-1 rounded-lg border border-gray-200">
-                            <?= e(t('page_x_of_y', ['page' => $page, 'total' => $totalPages])) ?>
+                        <div class="flex items-center gap-2">
+                            <?php if (hasPermission('export_data')): ?>
+                                <a href="<?= e($exportPageUrl) ?>" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-file-export me-1"></i><?= e(t('export_current_page')) ?>
+                                </a>
+                                <a href="<?= e($exportAllUrl) ?>" class="px-3 py-1.5 bg-white border border-blue-600 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors">
+                                    <i class="fas fa-download me-1"></i><?= e(t('export_all_results')) ?>
+                                </a>
+                            <?php endif; ?>
+                            <div class="text-sm font-medium text-gray-500 bg-white px-3 py-1 rounded-lg border border-gray-200">
+                                <?= e(t('page_x_of_y', ['page' => $page, 'total' => $totalPages])) ?>
+                            </div>
                         </div>
                     </div>
                     

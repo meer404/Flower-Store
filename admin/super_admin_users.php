@@ -77,6 +77,66 @@ if ($roleFilter !== 'all') {
 
 $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
+$exportRequested = sanitizeInput('export', 'GET');
+if ($exportRequested === '1') {
+    requirePermission('export_data');
+    $scope = sanitizeInput('scope', 'GET', 'page');
+    $scope = $scope === 'all' ? 'all' : 'page';
+
+    $exportSql = "
+        SELECT u.*, 
+               COUNT(DISTINCT o.id) as total_orders,
+               COALESCE(SUM(CASE WHEN o.payment_status = 'paid' THEN o.grand_total ELSE 0 END), 0) as total_spent
+        FROM users u
+        LEFT JOIN orders o ON u.id = o.user_id
+        {$whereClause}
+        GROUP BY u.id
+        ORDER BY u.created_at DESC
+    ";
+
+    if ($scope === 'page') {
+        $exportSql .= ' LIMIT :limit OFFSET :offset';
+    }
+
+    $exportStmt = $pdo->prepare($exportSql);
+    foreach ($params as $key => $value) {
+        $exportStmt->bindValue(":{$key}", $value);
+    }
+    if ($scope === 'page') {
+        $exportStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $exportStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    }
+    $exportStmt->execute();
+    $exportUsers = $exportStmt->fetchAll();
+
+    $headers = [
+        t('id'),
+        t('user'),
+        t('email'),
+        t('role'),
+        t('order'),
+        t('total_spent'),
+        t('joined')
+    ];
+
+    $rows = [];
+    foreach ($exportUsers as $user) {
+        $rows[] = [
+            $user['id'],
+            $user['full_name'],
+            $user['email'],
+            ucfirst(str_replace('_', ' ', $user['role'])),
+            (int)$user['total_orders'],
+            (float)$user['total_spent'],
+            date('Y-m-d', strtotime($user['created_at']))
+        ];
+    }
+
+    $fileName = 'customers-' . date('Ymd-His') . '.csv';
+    exportToCsv($fileName, $headers, $rows);
+    exit;
+}
+
 // Get total count
 $countStmt = $pdo->prepare("SELECT COUNT(*) FROM users {$whereClause}");
 $countStmt->execute($params);
@@ -102,6 +162,20 @@ $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $users = $stmt->fetchAll();
+
+$exportPageUrl = '?' . http_build_query([
+    'export' => '1',
+    'scope' => 'page',
+    'page' => $page,
+    'search' => $search,
+    'role' => $roleFilter
+]);
+$exportAllUrl = '?' . http_build_query([
+    'export' => '1',
+    'scope' => 'all',
+    'search' => $search,
+    'role' => $roleFilter
+]);
 
 $csrfToken = generateCSRFToken();
 ?>
@@ -184,11 +258,21 @@ $csrfToken = generateCSRFToken();
 
                 <!-- Users Table -->
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center gap-4">
                         <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                             <i class="fas fa-list text-red-500"></i>
                             <?= e(t('users')) ?> <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-sm"><?= e((string)$totalUsers) ?></span>
                         </h2>
+                        <?php if (hasPermission('export_data')): ?>
+                            <div class="flex items-center gap-2">
+                                <a href="<?= e($exportPageUrl) ?>" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition-colors">
+                                    <i class="fas fa-file-export me-1"></i><?= e(t('export_current_page')) ?>
+                                </a>
+                                <a href="<?= e($exportAllUrl) ?>" class="px-3 py-1.5 bg-white border border-red-600 text-red-700 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors">
+                                    <i class="fas fa-download me-1"></i><?= e(t('export_all_results')) ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="overflow-x-auto">
