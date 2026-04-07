@@ -84,7 +84,6 @@ $recentOrders = $stmt->fetchAll();
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?= getLuxuryTailwindConfig() ?>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
     <div class="flex min-h-screen">
@@ -200,6 +199,12 @@ $recentOrders = $stmt->fetchAll();
                         <?= statsCard(t('total_admins'), (string)$stats['total_admins'], 'fas fa-user-shield text-3xl', 'purple') ?>
                     </div>
                 </div>
+
+                <?php
+                $revenueChartDatasets = getRevenueChartDatasets();
+                $chartAccent = 'super';
+                include __DIR__ . '/partials/revenue_analytics_chart.php';
+                ?>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
                     <!-- Recent Orders -->

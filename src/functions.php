@@ -888,6 +888,154 @@ function getSalesReport(string $period = 'month'): array {
 }
 
 /**
+ * Paid revenue and order counts for admin analytics charts (filled time buckets).
+ *
+ * @return array{
+ *   daily: array{labels: string[], revenue: float[], orders: int[]},
+ *   weekly: array{labels: string[], revenue: float[], orders: int[]},
+ *   monthly: array{labels: string[], revenue: float[], orders: int[]}
+ * }
+ */
+function getRevenueChartDatasets(): array {
+    $emptyBucket = ['labels' => [], 'revenue' => [], 'orders' => []];
+    $out = [
+        'daily' => $emptyBucket,
+        'weekly' => $emptyBucket,
+        'monthly' => $emptyBucket,
+    ];
+
+    try {
+        $pdo = getDB();
+    } catch (Throwable $e) {
+        error_log('Revenue chart datasets: DB unavailable — ' . $e->getMessage());
+        return $out;
+    }
+
+    // Daily: last 30 calendar days (paid orders only)
+    $dailyMap = [];
+    try {
+        $stmt = $pdo->query("
+            SELECT DATE(order_date) AS bucket,
+                   COALESCE(SUM(grand_total), 0) AS revenue,
+                   COUNT(*) AS order_count
+            FROM orders
+            WHERE payment_status = 'paid'
+              AND order_date >= DATE_SUB(CURDATE(), INTERVAL 29 DAY)
+            GROUP BY DATE(order_date)
+            ORDER BY bucket ASC
+        ");
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $dailyMap[$row['bucket']] = [
+                'revenue' => (float)$row['revenue'],
+                'orders' => (int)$row['order_count'],
+            ];
+        }
+    } catch (PDOException $e) {
+        error_log('Revenue chart daily: ' . $e->getMessage());
+    }
+
+    $dailyLabels = [];
+    $dailyRevenue = [];
+    $dailyOrders = [];
+    $today = new DateTimeImmutable('today');
+    for ($i = 29; $i >= 0; $i--) {
+        $day = $today->modify("-{$i} days");
+        $d = $day->format('Y-m-d');
+        $dailyLabels[] = $day->format('M j');
+        $dailyRevenue[] = $dailyMap[$d]['revenue'] ?? 0.0;
+        $dailyOrders[] = $dailyMap[$d]['orders'] ?? 0;
+    }
+
+    // Weekly: last 12 weeks, bucket by Monday (MySQL WEEKDAY: 0 = Monday)
+    $weeklyMap = [];
+    try {
+        $stmt = $pdo->query("
+            SELECT DATE(DATE_SUB(order_date, INTERVAL WEEKDAY(order_date) DAY)) AS week_start,
+                   COALESCE(SUM(grand_total), 0) AS revenue,
+                   COUNT(*) AS order_count
+            FROM orders
+            WHERE payment_status = 'paid'
+              AND order_date >= DATE_SUB(CURDATE(), INTERVAL 84 DAY)
+            GROUP BY week_start
+        ");
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $weeklyMap[$row['week_start']] = [
+                'revenue' => (float)$row['revenue'],
+                'orders' => (int)$row['order_count'],
+            ];
+        }
+    } catch (PDOException $e) {
+        error_log('Revenue chart weekly: ' . $e->getMessage());
+    }
+
+    $weeklyLabels = [];
+    $weeklyRevenue = [];
+    $weeklyOrders = [];
+    $mondayThisWeek = new DateTimeImmutable('monday this week');
+    for ($i = 11; $i >= 0; $i--) {
+        $weekStart = $mondayThisWeek->modify("-{$i} weeks");
+        $key = $weekStart->format('Y-m-d');
+        $weeklyLabels[] = $weekStart->format('M j');
+        $weeklyRevenue[] = $weeklyMap[$key]['revenue'] ?? 0.0;
+        $weeklyOrders[] = $weeklyMap[$key]['orders'] ?? 0;
+    }
+
+    // Monthly: last 12 calendar months
+    $monthlyMap = [];
+    try {
+        $stmt = $pdo->query("
+            SELECT DATE_FORMAT(order_date, '%Y-%m') AS ym,
+                   COALESCE(SUM(grand_total), 0) AS revenue,
+                   COUNT(*) AS order_count
+            FROM orders
+            WHERE payment_status = 'paid'
+              AND order_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(order_date, '%Y-%m')
+            ORDER BY ym ASC
+        ");
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $monthlyMap[$row['ym']] = [
+                'revenue' => (float)$row['revenue'],
+                'orders' => (int)$row['order_count'],
+            ];
+        }
+    } catch (PDOException $e) {
+        error_log('Revenue chart monthly: ' . $e->getMessage());
+    }
+
+    $monthAnchor = new DateTimeImmutable('first day of this month');
+    $startMonth = $monthAnchor->modify('-11 months');
+    $monthlyLabels = [];
+    $monthlyRevenue = [];
+    $monthlyOrders = [];
+    for ($i = 0; $i < 12; $i++) {
+        $m = $startMonth->modify("+{$i} months");
+        $key = $m->format('Y-m');
+        $monthlyLabels[] = $m->format('M Y');
+        $monthlyRevenue[] = $monthlyMap[$key]['revenue'] ?? 0.0;
+        $monthlyOrders[] = $monthlyMap[$key]['orders'] ?? 0;
+    }
+
+    return [
+        'daily' => [
+            'labels' => $dailyLabels,
+            'revenue' => $dailyRevenue,
+            'orders' => $dailyOrders,
+        ],
+        'weekly' => [
+            'labels' => $weeklyLabels,
+            'revenue' => $weeklyRevenue,
+            'orders' => $weeklyOrders,
+        ],
+        'monthly' => [
+            'labels' => $monthlyLabels,
+            'revenue' => $monthlyRevenue,
+            'orders' => $monthlyOrders,
+        ],
+    ];
+}
+
+/**
  * Format time as "ago"
  * 
  * @param string|int|null $timestamp Timestamp string or integer

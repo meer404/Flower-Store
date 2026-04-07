@@ -185,6 +185,14 @@ $dir = getHtmlDir();
                     <?= statsCard(t('total_revenue'), formatPrice((float)$stats['revenue']), 'fas fa-wallet', 'purple') ?>
                 </div>
 
+                <?php if ($canViewReports): ?>
+                <?php
+                $revenueChartDatasets = getRevenueChartDatasets();
+                $chartAccent = 'admin';
+                include __DIR__ . '/partials/revenue_analytics_chart.php';
+                ?>
+                <?php endif; ?>
+
                 <!-- Recent Orders -->
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                     <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
