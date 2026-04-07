@@ -41,6 +41,11 @@ $stmt = $pdo->prepare('SELECT * FROM product_images WHERE product_id = :id ORDER
 $stmt->execute(['id' => $productId]);
 $productImages = $stmt->fetchAll();
 
+// Get variants
+$stmt = $pdo->prepare('SELECT * FROM product_variants WHERE product_id = :id ORDER BY variant_type, id');
+$stmt->execute(['id' => $productId]);
+$productVariants = $stmt->fetchAll();
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = sanitizeInput('csrf_token', 'POST');
@@ -134,6 +139,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     ]);
                                 }
                             }
+                        }
+                    }
+                }
+                
+                // Handle product variants
+                $pdo->prepare('DELETE FROM product_variants WHERE product_id = ?')->execute([$productId]);
+                if (isset($_POST['variants']) && is_array($_POST['variants'])) {
+                    $stmtVar = $pdo->prepare('INSERT INTO product_variants (product_id, variant_type, name_en, name_ku, price_adjustment) VALUES (?, ?, ?, ?, ?)');
+                    foreach ($_POST['variants'] as $v) {
+                        if (!empty($v['name_en']) && !empty($v['name_ku']) && in_array($v['type'], ['size', 'addon'])) {
+                            $stmtVar->execute([
+                                $productId, 
+                                $v['type'], 
+                                $v['name_en'], 
+                                $v['name_ku'], 
+                                (float)($v['price'] ?? 0)
+                            ]);
                         }
                     }
                 }
@@ -286,6 +308,48 @@ $dir = getHtmlDir();
                                 </div>
                             </div>
                             
+                            <!-- Product Variants -->
+                            <div class="lg:col-span-2">
+                                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                                    <h2 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-100">Product Variants (Sizes & Add-ons)</h2>
+                                    
+                                    <div id="variantsContainer" class="space-y-4">
+                                        <?php if (!empty($productVariants)): ?>
+                                            <?php foreach ($productVariants as $index => $v): ?>
+                                                <div class="flex gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-200 variant-row">
+                                                    <div class="flex-1">
+                                                        <label class="block text-xs font-bold text-gray-700 mb-1">Type</label>
+                                                        <select name="variants[<?= $index ?>][type]" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                                            <option value="size" <?= $v['variant_type'] === 'size' ? 'selected' : '' ?>>Size</option>
+                                                            <option value="addon" <?= $v['variant_type'] === 'addon' ? 'selected' : '' ?>>Add-on</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="flex-1">
+                                                        <label class="block text-xs font-bold text-gray-700 mb-1">Name (EN)</label>
+                                                        <input type="text" name="variants[<?= $index ?>][name_en]" value="<?= e($v['name_en']) ?>" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                                    </div>
+                                                    <div class="flex-1">
+                                                        <label class="block text-xs font-bold text-gray-700 mb-1">Name (KU)</label>
+                                                        <input type="text" name="variants[<?= $index ?>][name_ku]" value="<?= e($v['name_ku']) ?>" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                                    </div>
+                                                    <div class="flex-[0.5]">
+                                                        <label class="block text-xs font-bold text-gray-700 mb-1">Price (+)</label>
+                                                        <input type="number" step="0.01" name="variants[<?= $index ?>][price]" value="<?= e((string)$v['price_adjustment']) ?>" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                                    </div>
+                                                    <div>
+                                                        <button type="button" onclick="this.closest('.variant-row').remove()" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-colors"><i class="fas fa-trash"></i></button>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <button type="button" onclick="addVariantRow()" class="mt-4 px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium text-sm transition-colors">
+                                        <i class="fas fa-plus mr-2"></i> Add Variant
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <!-- Right Column: Media & Organization -->
                             <div class="lg:col-span-1 space-y-6">
                                 <!-- Organization -->
@@ -410,5 +474,41 @@ $dir = getHtmlDir();
             <?php include __DIR__ . '/footer.php'; ?>
         </div>
     </div>
+    
+    <script>
+        let variantIndex = <?= count($productVariants ?? []) ?>;
+        
+        function addVariantRow() {
+            const container = document.getElementById('variantsContainer');
+            const row = document.createElement('div');
+            row.className = 'flex gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-200 variant-row';
+            row.innerHTML = `
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Type</label>
+                    <select name="variants[${variantIndex}][type]" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="size">Size</option>
+                        <option value="addon">Add-on</option>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Name (EN)</label>
+                    <input type="text" name="variants[${variantIndex}][name_en]" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Name (KU)</label>
+                    <input type="text" name="variants[${variantIndex}][name_ku]" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                </div>
+                <div class="flex-[0.5]">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Price (+)</label>
+                    <input type="number" step="0.01" name="variants[${variantIndex}][price]" value="0.00" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                </div>
+                <div>
+                    <button type="button" onclick="this.closest('.variant-row').remove()" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-colors"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(row);
+            variantIndex++;
+        }
+    </script>
 </body>
 </html>

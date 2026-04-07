@@ -16,28 +16,83 @@ $cartItems = [];
 $cartTotal = 0.0;
 $currency = (string)getSystemSetting('currency', '$');
 
-// Get cart items with product details
+// Get cart items with product details - supports compound keys like "12_v_3_5"
 if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-    $productIds = array_keys($_SESSION['cart']);
-    $placeholders = implode(',', array_fill(0, count($productIds), '?'));
+    // Extract product IDs from cart keys
+    $cartKeys = array_keys($_SESSION['cart']);
+    $productIdMap = []; // cartKey -> productId
+    $variantIdMap = []; // cartKey -> [variantIds]
     
-    $stmt = $pdo->prepare("SELECT p.*, c.name_en as category_name_en, c.name_ku as category_name_ku 
-                           FROM products p 
-                           JOIN categories c ON p.category_id = c.id 
-                           WHERE p.id IN ({$placeholders})");
-    $stmt->execute($productIds);
-    $products = $stmt->fetchAll();
+    foreach ($cartKeys as $cartKey) {
+        $cartKey = (string)$cartKey;
+        if (strpos($cartKey, '_v_') !== false) {
+            [$pid, $vids] = explode('_v_', $cartKey, 2);
+            $productIdMap[$cartKey] = (int)$pid;
+            $variantIdMap[$cartKey] = array_map('intval', explode('_', $vids));
+        } else {
+            $productIdMap[$cartKey] = (int)$cartKey;
+            $variantIdMap[$cartKey] = [];
+        }
+    }
     
-    // Combine with cart quantities
-    foreach ($products as $product) {
-        $productId = (int)$product['id'];
-        $quantity = (int)($_SESSION['cart'][$productId] ?? 0);
+    $uniqueProductIds = array_unique(array_values($productIdMap));
+    if (!empty($uniqueProductIds)) {
+        $placeholders = implode(',', array_fill(0, count($uniqueProductIds), '?'));
+        $stmt = $pdo->prepare("SELECT p.*, c.name_en as category_name_en, c.name_ku as category_name_ku 
+                               FROM products p 
+                               JOIN categories c ON p.category_id = c.id 
+                               WHERE p.id IN ({$placeholders})");
+        $stmt->execute($uniqueProductIds);
+        $productsById = [];
+        foreach ($stmt->fetchAll() as $p) {
+            $productsById[(int)$p['id']] = $p;
+        }
         
-        if ($quantity > 0) {
-            $product['cart_quantity'] = $quantity;
-            $product['subtotal'] = (float)$product['price'] * $quantity;
+        // Fetch all variants we need
+        $allVariantIds = [];
+        foreach ($variantIdMap as $vids) {
+            $allVariantIds = array_merge($allVariantIds, $vids);
+        }
+        $allVariantIds = array_unique($allVariantIds);
+        $variantsById = [];
+        if (!empty($allVariantIds)) {
+            $vPlaceholders = implode(',', array_fill(0, count($allVariantIds), '?'));
+            $vStmt = $pdo->prepare("SELECT * FROM product_variants WHERE id IN ({$vPlaceholders})");
+            $vStmt->execute($allVariantIds);
+            foreach ($vStmt->fetchAll() as $v) {
+                $variantsById[(int)$v['id']] = $v;
+            }
+        }
+        
+        foreach ($cartKeys as $cartKey) {
+            $cartKey = (string)$cartKey;
+            $productId = $productIdMap[$cartKey] ?? 0;
+            $product = $productsById[$productId] ?? null;
+            if (!$product) continue;
+            
+            $quantity = (int)($_SESSION['cart'][$cartKey] ?? 0);
+            if ($quantity <= 0) continue;
+            
+            // Compute price with variants
+            $variantPrice = 0.0;
+            $variantLabels = [];
+            $lang = getCurrentLang();
+            foreach (($variantIdMap[$cartKey] ?? []) as $vid) {
+                if (isset($variantsById[$vid])) {
+                    $v = $variantsById[$vid];
+                    $variantPrice += (float)$v['price_adjustment'];
+                    $variantLabels[] = ($lang === 'ku' ? $v['name_ku'] : $v['name_en']);
+                }
+            }
+            
+            $unitPrice = (float)$product['price'] + $variantPrice;
+            $product['cart_key']       = $cartKey;
+            $product['cart_quantity']  = $quantity;
+            $product['unit_price']     = $unitPrice;
+            $product['variant_labels'] = $variantLabels;
+            $product['subtotal']       = $unitPrice * $quantity;
             $cartItems[] = $product;
-            $cartTotal += $product['subtotal'];
+            $cartTotal  += $product['subtotal'];
         }
     }
 }
@@ -142,16 +197,23 @@ $dir = getHtmlDir();
                                             <div>
                                                 <h3 class="text-base font-bold text-luxury-primary mb-1"><?= e(getProductName($item)) ?></h3>
                                                 <p class="text-sm text-luxury-textLight"><i class="fas fa-tag me-1"></i><?= e(getCategoryName($item)) ?></p>
+                                                <?php if (!empty($item['variant_labels'])): ?>
+                                                    <div class="flex flex-wrap gap-1 mt-1">
+                                                        <?php foreach ($item['variant_labels'] as $label): ?>
+                                                            <span class="text-xs bg-luxury-accentLight text-luxury-primary px-2 py-0.5 rounded-full font-medium"><?= e($label) ?></span>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-6">
-                                        <span class="text-lg font-bold text-luxury-accent"><?= e(formatPrice((float)$item['price'], $currency)) ?></span>
+                                        <span class="text-lg font-bold text-luxury-accent"><?= e(formatPrice($item['unit_price'] ?? (float)$item['price'], $currency)) ?></span>
                                     </td>
                                     <td class="px-6 py-6">
                                         <form method="POST" action="cart_action.php" class="inline">
                                             <input type="hidden" name="action" value="update">
-                                            <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
+                                            <input type="hidden" name="cart_key" value="<?= e($item['cart_key']) ?>">
                                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                                             <div class="flex items-center gap-2">
                                                 <input type="number" name="quantity" value="<?= $item['cart_quantity'] ?>" 
@@ -170,7 +232,7 @@ $dir = getHtmlDir();
                                     <td class="px-6 py-6">
                                         <form method="POST" action="<?= url('cart_action.php') ?>" class="inline">
                                             <input type="hidden" name="action" value="remove">
-                                            <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
+                                            <input type="hidden" name="cart_key" value="<?= e($item['cart_key']) ?>">
                                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                                             <button type="submit" 
                                                     class="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-4 py-2 rounded-xl transition-all duration-300 font-semibold">
@@ -226,13 +288,20 @@ $dir = getHtmlDir();
                             <div class="flex-1">
                                 <h3 class="text-lg font-bold text-luxury-primary mb-1"><?= e(getProductName($item)) ?></h3>
                                 <p class="text-sm text-luxury-textLight mb-2"><i class="fas fa-tag me-1"></i><?= e(getCategoryName($item)) ?></p>
-                                <p class="text-xl font-bold text-luxury-accent"><?= e(formatPrice((float)$item['price'], $currency)) ?></p>
+                                <?php if (!empty($item['variant_labels'])): ?>
+                                    <div class="flex flex-wrap gap-1 mb-2">
+                                        <?php foreach ($item['variant_labels'] as $label): ?>
+                                            <span class="text-xs bg-luxury-accentLight text-luxury-primary px-2 py-0.5 rounded-full font-medium"><?= e($label) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                                <p class="text-xl font-bold text-luxury-accent"><?= e(formatPrice($item['unit_price'] ?? (float)$item['price'], $currency)) ?></p>
                             </div>
                         </div>
                         <div class="flex items-center justify-between p-4 border-t-2 border-luxury-border">
                             <form method="POST" action="<?= url('cart_action.php') ?>" class="flex items-center gap-2">
                                 <input type="hidden" name="action" value="update">
-                                <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
+                                <input type="hidden" name="cart_key" value="<?= e($item['cart_key']) ?>">
                                 <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                                 <label class="text-sm font-bold text-luxury-primary">
                                     <i class="fas fa-hashtag me-1"></i><?= e(t('quantity')) ?>:
@@ -249,7 +318,7 @@ $dir = getHtmlDir();
                         </div>
                         <form method="POST" action="<?= url('cart_action.php') ?>" class="p-4 bg-red-50">
                             <input type="hidden" name="action" value="remove">
-                            <input type="hidden" name="product_id" value="<?= e((string)$item['id']) ?>">
+                            <input type="hidden" name="cart_key" value="<?= e($item['cart_key']) ?>">
                             <input type="hidden" name="csrf_token" value="<?= e(generateCSRFToken()) ?>">
                             <button type="submit" 
                                     class="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl transition-all duration-300 font-bold shadow-md">

@@ -483,13 +483,36 @@ function getCartTotal(): float {
     $total = 0.0;
     $pdo = getDB();
     
-    foreach ($_SESSION['cart'] as $productId => $quantity) {
+    foreach ($_SESSION['cart'] as $cartKey => $quantity) {
+        $cartKey = (string)$cartKey;
+        // Parse compound key e.g. "12_v_3_5"
+        if (strpos($cartKey, '_v_') !== false) {
+            [$pid, $vids] = explode('_v_', $cartKey, 2);
+            $productId = (int)$pid;
+            $variantIds = array_map('intval', explode('_', $vids));
+        } else {
+            $productId = (int)$cartKey;
+            $variantIds = [];
+        }
+        
         $stmt = $pdo->prepare('SELECT price FROM products WHERE id = :id');
         $stmt->execute(['id' => $productId]);
         $product = $stmt->fetch();
         
         if ($product) {
-            $total += (float)$product['price'] * (int)$quantity;
+            $unitPrice = (float)$product['price'];
+            
+            // Add variant price adjustments
+            if (!empty($variantIds)) {
+                $vPlaceholders = implode(',', array_fill(0, count($variantIds), '?'));
+                $vStmt = $pdo->prepare("SELECT price_adjustment FROM product_variants WHERE id IN ({$vPlaceholders})");
+                $vStmt->execute($variantIds);
+                foreach ($vStmt->fetchAll() as $v) {
+                    $unitPrice += (float)$v['price_adjustment'];
+                }
+            }
+            
+            $total += $unitPrice * (int)$quantity;
         }
     }
     

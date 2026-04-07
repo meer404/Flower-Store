@@ -569,6 +569,13 @@ return [
     'selected_extras' => 'Selected Extras',
     'click_to_add' => 'Click to select extras',
 
+    // Product Variants
+    'size' => 'Size',
+    'addons' => 'Add-ons',
+    'product_variants' => 'Product Options',
+    'variant_size' => 'Size',
+    'variant_addon' => 'Add-on',
+
     // Coupons
     'coupons' => 'Coupons',
     'manage_coupons' => 'Manage Coupons',

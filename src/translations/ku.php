@@ -569,6 +569,13 @@ return [
     'selected_extras' => 'هاوکاریەکانی هەڵبژێردراو',
     'click_to_add' => 'کلیک بکە بۆ هەڵبژیرنی هاوکاریەکان',
 
+    // Product Variants
+    'size' => 'قەبارە',
+    'addons' => 'زیادکردنی',
+    'product_variants' => 'بژاردەکانی بەرهەم',
+    'variant_size' => 'قەبارە',
+    'variant_addon' => 'زیادکردنی',
+
     // Coupons
     'coupons' => 'کۆپۆنەکان',
     'manage_coupons' => 'بەڕێوەبردنی کۆپۆنەکان',

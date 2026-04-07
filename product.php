@@ -39,6 +39,13 @@ $stmt = $pdo->prepare('SELECT image_url FROM product_images WHERE product_id = :
 $stmt->execute(['id' => $productId]);
 $productImages = $stmt->fetchAll();
 
+// Get variants
+$stmt = $pdo->prepare('SELECT * FROM product_variants WHERE product_id = :id ORDER BY variant_type DESC, sort_order, id');
+$stmt->execute(['id' => $productId]);
+$allVariants = $stmt->fetchAll();
+$sizes = array_filter($allVariants, fn($v) => $v['variant_type'] === 'size');
+$addons = array_filter($allVariants, fn($v) => $v['variant_type'] === 'addon');
+
 // Get reviews
 $stmt = $pdo->prepare('SELECT r.*, u.full_name 
                        FROM reviews r 
@@ -179,19 +186,68 @@ $dir = getHtmlDir();
 
                 <div class="space-y-4">
                     <?php if ($product['stock_qty'] > 0): ?>
-                        <form method="POST" action="cart_action.php" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                        <form method="POST" action="cart_action.php" class="space-y-6 bg-gray-50 p-6 rounded-lg border border-luxury-border" id="addToCartForm">
                             <input type="hidden" name="action" value="add">
                             <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                            <input type="hidden" id="basePrice" value="<?= $product['price'] ?>">
                             
-                            <label class="text-sm font-medium text-luxury-text flex items-center gap-2 sm:flex-shrink-0">
-                                Quantity:
-                                <input type="number" name="quantity" value="1" min="1" max="<?= $product['stock_qty'] ?>"
-                                       class="w-20 px-3 py-2 border border-luxury-border rounded-sm">
-                            </label>
+                            <?php if (!empty($sizes)): ?>
+                                <div class="space-y-3">
+                                    <h3 class="text-sm font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('size')) ?></h3>
+                                    <div class="flex flex-wrap gap-3">
+                                        <?php foreach ($sizes as $index => $size): ?>
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="variants[]" value="<?= $size['id'] ?>" class="peer sr-only variant-input" data-price="<?= $size['price_adjustment'] ?>" <?= $index === 0 ? 'checked' : '' ?>>
+                                                <div class="px-5 py-3 border border-luxury-border rounded-md text-luxury-text peer-checked:border-luxury-accent peer-checked:bg-luxury-accentLight hover:border-luxury-accent transition-colors text-sm font-medium flex flex-col items-center min-w-[100px]">
+                                                    <span><?= e($lang === 'ku' ? $size['name_ku'] : $size['name_en']) ?></span>
+                                                    <?php if ($size['price_adjustment'] > 0): ?>
+                                                        <span class="text-luxury-accent text-xs mt-1 block">(+<?= e(formatPrice((float)$size['price_adjustment'])) ?>)</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                             
-                            <button type="submit" class="flex-1 bg-luxury-accent text-white py-3 px-6 rounded-sm hover:bg-opacity-90 font-medium">
-                                Add to Cart
-                            </button>
+                            <?php if (!empty($addons)): ?>
+                                <div class="space-y-3 pt-4 border-t border-gray-200">
+                                    <h3 class="text-sm font-bold text-luxury-primary uppercase tracking-wider"><?= e(t('addons')) ?></h3>
+                                    <div class="flex flex-col gap-3">
+                                        <?php foreach ($addons as $addon): ?>
+                                            <label class="flex items-center gap-4 cursor-pointer group p-2 hover:bg-white rounded-lg transition-colors">
+                                                <div class="relative flex items-center justify-center w-6 h-6">
+                                                    <input type="checkbox" name="variants[]" value="<?= $addon['id'] ?>" class="peer sr-only variant-input" data-price="<?= $addon['price_adjustment'] ?>">
+                                                    <div class="w-6 h-6 border-2 border-luxury-border rounded group-hover:border-luxury-accent peer-checked:bg-luxury-accent peer-checked:border-luxury-accent transition-colors flex items-center justify-center">
+                                                        <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                                    </div>
+                                                </div>
+                                                <span class="text-base font-medium text-luxury-text flex-1"><?= e($lang === 'ku' ? $addon['name_ku'] : $addon['name_en']) ?></span>
+                                                <span class="text-sm font-bold text-luxury-accent">+<?= e(formatPrice((float)$addon['price_adjustment'])) ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 pt-6 border-t border-gray-200">
+                                <label class="text-sm font-bold text-luxury-text flex flex-col gap-2 sm:flex-shrink-0">
+                                    <span class="uppercase tracking-wider">Quantity</span>
+                                    <input type="number" name="quantity" id="quantityInput" value="1" min="1" max="<?= $product['stock_qty'] ?>"
+                                           class="w-24 px-4 py-3 border border-luxury-border rounded-md focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent font-medium text-lg text-center">
+                                </label>
+                                
+                                <div class="flex-1 flex flex-col items-start pl-0 sm:pl-4 sm:border-l border-gray-200">
+                                    <span class="text-xs font-bold text-luxury-textLight uppercase tracking-wider mb-1">Total Price</span>
+                                    <div class="text-3xl font-luxury font-bold text-luxury-accent" id="displayTotalPrice">
+                                        <?= e(formatPrice((float)$product['price'])) ?>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="bg-luxury-accent text-white py-4 px-8 rounded-md hover:bg-opacity-90 font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
+                                    <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                                </button>
+                            </div>
                         </form>
                     <?php endif; ?>
 
@@ -290,6 +346,34 @@ $dir = getHtmlDir();
     </div>
 
     <?= modernFooter() ?>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const variantInputs = document.querySelectorAll('.variant-input');
+            const quantityInput = document.getElementById('quantityInput');
+            const displayTotalPrice = document.getElementById('displayTotalPrice');
+            const basePrice = parseFloat(document.getElementById('basePrice')?.value || 0);
+            
+            function updatePrice() {
+                if(!displayTotalPrice) return;
+                let additionalPrice = 0;
+                variantInputs.forEach(input => {
+                    if (input.checked) {
+                        additionalPrice += parseFloat(input.dataset.price || 0);
+                    }
+                });
+                const qty = parseInt(quantityInput?.value || 1);
+                const total = (basePrice + additionalPrice) * qty;
+                
+                displayTotalPrice.textContent = '$' + total.toFixed(2);
+            }
+            
+            variantInputs.forEach(input => input.addEventListener('change', updatePrice));
+            if(quantityInput) quantityInput.addEventListener('input', updatePrice);
+            
+            updatePrice();
+        });
+    </script>
 </body>
 </html>
 

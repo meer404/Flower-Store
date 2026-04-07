@@ -19,31 +19,70 @@ $error = '';
 // Get available extras
 $availableExtras = getAvailableExtras();
 
-// Get cart items
+// Get cart items - supports compound keys like "12_v_3_5"
 $cartItems = [];
 $cartTotal = 0.0;
 $currency = (string)getSystemSetting('currency', '$');
 
 if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-    $productIds = array_keys($_SESSION['cart']);
-    $placeholders = implode(',', array_fill(0, count($productIds), '?'));
-    
-    $stmt = $pdo->prepare("SELECT p.*, c.name_en as category_name_en, c.name_ku as category_name_ku 
-                           FROM products p 
-                           JOIN categories c ON p.category_id = c.id 
-                           WHERE p.id IN ({$placeholders})");
-    $stmt->execute($productIds);
-    $products = $stmt->fetchAll();
-    
-    foreach ($products as $product) {
-        $productId = (int)$product['id'];
-        $quantity = (int)($_SESSION['cart'][$productId] ?? 0);
+    $cartKeys = array_keys($_SESSION['cart']);
+    $productIdMap = [];
+    $variantIdMap = [];
+    foreach ($cartKeys as $cartKey) {
+        $cartKey = (string)$cartKey;
+        if (strpos($cartKey, '_v_') !== false) {
+            [$pid, $vids] = explode('_v_', $cartKey, 2);
+            $productIdMap[$cartKey] = (int)$pid;
+            $variantIdMap[$cartKey] = array_map('intval', explode('_', $vids));
+        } else {
+            $productIdMap[$cartKey] = (int)$cartKey;
+            $variantIdMap[$cartKey] = [];
+        }
+    }
+    $uniqueProductIds = array_unique(array_values($productIdMap));
+    if (!empty($uniqueProductIds)) {
+        $placeholders = implode(',', array_fill(0, count($uniqueProductIds), '?'));
+        $stmt = $pdo->prepare("SELECT p.*, c.name_en as category_name_en, c.name_ku as category_name_ku 
+                               FROM products p 
+                               JOIN categories c ON p.category_id = c.id 
+                               WHERE p.id IN ({$placeholders})");
+        $stmt->execute($uniqueProductIds);
+        $productsById = [];
+        foreach ($stmt->fetchAll() as $p) { $productsById[(int)$p['id']] = $p; }
         
-        if ($quantity > 0) {
-            $product['cart_quantity'] = $quantity;
-            $product['subtotal'] = (float)$product['price'] * $quantity;
+        $allVariantIds = array_unique(array_merge(...array_values($variantIdMap)));
+        $variantsById = [];
+        if (!empty($allVariantIds)) {
+            $vPlaceholders = implode(',', array_fill(0, count($allVariantIds), '?'));
+            $vStmt = $pdo->prepare("SELECT * FROM product_variants WHERE id IN ({$vPlaceholders})");
+            $vStmt->execute($allVariantIds);
+            foreach ($vStmt->fetchAll() as $v) { $variantsById[(int)$v['id']] = $v; }
+        }
+        
+        foreach ($cartKeys as $cartKey) {
+            $cartKey = (string)$cartKey;
+            $productId = $productIdMap[$cartKey] ?? 0;
+            $product = $productsById[$productId] ?? null;
+            if (!$product) continue;
+            $quantity = (int)($_SESSION['cart'][$cartKey] ?? 0);
+            if ($quantity <= 0) continue;
+            $variantPrice = 0.0;
+            $variantLabels = [];
+            foreach (($variantIdMap[$cartKey] ?? []) as $vid) {
+                if (isset($variantsById[$vid])) {
+                    $variantPrice += (float)$variantsById[$vid]['price_adjustment'];
+                    $variantLabels[] = $variantsById[$vid]['name_en'];
+                }
+            }
+            $unitPrice = (float)$product['price'] + $variantPrice;
+            $product['cart_key']       = $cartKey;
+            $product['cart_quantity']  = $quantity;
+            $product['unit_price']     = $unitPrice;
+            $product['variant_labels'] = $variantLabels;
+            $product['variants_summary'] = !empty($variantLabels) ? implode(', ', $variantLabels) : null;
+            $product['subtotal']       = $unitPrice * $quantity;
             $cartItems[] = $product;
-            $cartTotal += $product['subtotal'];
+            $cartTotal  += $product['subtotal'];
         }
     }
 }
@@ -211,14 +250,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             foreach ($cartItems as $item) {
                                 // Insert order item
                                 $stmt = $pdo->prepare('
-                                    INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-                                    VALUES (:order_id, :product_id, :quantity, :unit_price)
+                                    INSERT INTO order_items (order_id, product_id, quantity, unit_price, variants_summary)
+                                    VALUES (:order_id, :product_id, :quantity, :unit_price, :variants_summary)
                                 ');
                                 $stmt->execute([
                                     'order_id' => $orderId,
                                     'product_id' => $item['id'],
                                     'quantity' => $item['cart_quantity'],
-                                    'unit_price' => $item['price']
+                                    'unit_price' => $item['unit_price'] ?? $item['price'],
+                                    'variants_summary' => $item['variants_summary'] ?? null
                                 ]);
                                 
                                 // Update product stock
@@ -305,7 +345,14 @@ $dir = getHtmlDir();
                         <div class="flex justify-between items-start border-b border-luxury-border pb-4">
                             <div class="flex-1">
                                 <p class="font-medium text-luxury-primary mb-1"><?= e(getProductName($item)) ?></p>
-                                <p class="text-sm text-luxury-textLight"><?= e((string)$item['cart_quantity']) ?> x <?= e(formatPrice((float)$item['price'], $currency)) ?></p>
+                                <?php if (!empty($item['variant_labels'])): ?>
+                                    <p class="text-xs text-luxury-textLight mb-1">
+                                        <?php foreach ($item['variant_labels'] as $vl): ?>
+                                            <span class="inline-block bg-luxury-accentLight/60 text-luxury-primary px-1.5 py-0.5 rounded mr-1 text-xs"><?= e($vl) ?></span>
+                                        <?php endforeach; ?>
+                                    </p>
+                                <?php endif; ?>
+                                <p class="text-sm text-luxury-textLight"><?= e((string)$item['cart_quantity']) ?> x <?= e(formatPrice($item['unit_price'] ?? (float)$item['price'], $currency)) ?></p>
                             </div>
                             <p class="font-semibold text-luxury-accent ms-4"><?= e(formatPrice($item['subtotal'], $currency)) ?></p>
                         </div>

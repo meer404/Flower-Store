@@ -188,6 +188,11 @@ $dir = getHtmlDir();
                                             <h4 class="font-bold text-gray-800 truncate">
                                                 <?= e(getProductName(['name_en'=>$item['name_en'], 'name_ku'=>$item['name_ku']])) ?>
                                             </h4>
+                                            <?php if (!empty($item['variants_summary'])): ?>
+                                                <p class="text-xs text-blue-600 font-medium mt-0.5">
+                                                    <i class="fas fa-tags me-1"></i><?= e($item['variants_summary']) ?>
+                                                </p>
+                                            <?php endif; ?>
                                             <p class="text-sm text-gray-500">
                                                 <?= e(formatPrice((float)$item['unit_price'])) ?> x <?= e((string)$item['quantity']) ?>
                                             </p>

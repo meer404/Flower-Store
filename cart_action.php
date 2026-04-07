@@ -22,11 +22,13 @@ function requestScalar(string $key, string $default = ''): string {
 
 $action = requestScalar('action', '');
 $productId = (int)requestScalar('product_id', '0');
+$cartKeyParam = requestScalar('cart_key', '');
 $quantity = (int)requestScalar('quantity', '1');
 $csrfToken = requestScalar('csrf_token', '');
+$variants = isset($_POST['variants']) && is_array($_POST['variants']) ? array_map('intval', $_POST['variants']) : [];
 
 // Backward compatibility for older links/forms that omit explicit action.
-if ($action === '' && $productId > 0) {
+if ($action === '' && ($productId > 0 || $cartKeyParam !== '')) {
     $action = 'add';
 }
 
@@ -64,6 +66,12 @@ try {
 
 try {
     if ($action === 'add') {
+        // If product ID is 0 but we have a cart_key, derive product ID
+        if ($productId <= 0 && $cartKeyParam !== '') {
+            $parts = explode('_v_', $cartKeyParam);
+            $productId = (int)($parts[0] ?? 0);
+        }
+        
         if ($productId <= 0) {
             redirect($fallbackRedirect, t('error'), 'error');
         }
@@ -82,8 +90,16 @@ try {
         }
 
         $addQty = min($quantity, $stockQty);
-        $currentQty = (int)($_SESSION['cart'][$productId] ?? 0);
-        $_SESSION['cart'][$productId] = min($currentQty + $addQty, $stockQty);
+        
+        // Construct cart key
+        sort($variants);
+        $cartKey = empty($variants) ? (string)$productId : $productId . '_v_' . implode('_', $variants);
+        if ($cartKeyParam !== '') {
+            $cartKey = $cartKeyParam; // Override if explicitly provided
+        }
+        
+        $currentQty = (int)($_SESSION['cart'][$cartKey] ?? 0);
+        $_SESSION['cart'][$cartKey] = min($currentQty + $addQty, $stockQty);
 
         redirect('cart.php', t('success'), 'success');
     }
@@ -92,21 +108,27 @@ try {
         if (!$csrfOk) {
             redirect('cart.php', t('error'), 'error');
         }
-        if ($productId <= 0) {
+        $targetKey = $cartKeyParam !== '' ? $cartKeyParam : (string)$productId;
+        
+        if ($targetKey === '0' || $targetKey === '') {
             redirect('cart.php', t('error'), 'error');
         }
+        
+        // Determine base product ID for max stock check
+        $baseIdParts = explode('_v_', $targetKey);
+        $baseId = (int)$baseIdParts[0];
 
         $stmt = $pdo->prepare('SELECT id, stock_qty FROM products WHERE id = :id');
-        $stmt->execute(['id' => $productId]);
+        $stmt->execute(['id' => $baseId]);
         $product = $stmt->fetch();
         if (!$product) {
-            unset($_SESSION['cart'][$productId]);
+            unset($_SESSION['cart'][$targetKey]);
             redirect('cart.php', t('error'), 'error');
         }
 
         $stockQty = (int)($product['stock_qty'] ?? 0);
         $newQty = max(1, min($quantity, max(1, $stockQty)));
-        $_SESSION['cart'][$productId] = $newQty;
+        $_SESSION['cart'][$targetKey] = $newQty;
         redirect('cart.php', t('success'), 'success');
     }
 
@@ -114,8 +136,9 @@ try {
         if (!$csrfOk) {
             redirect('cart.php', t('error'), 'error');
         }
-        if ($productId > 0) {
-            unset($_SESSION['cart'][$productId]);
+        $targetKey = $cartKeyParam !== '' ? $cartKeyParam : (string)$productId;
+        if ($targetKey !== '' && $targetKey !== '0') {
+            unset($_SESSION['cart'][$targetKey]);
         }
         redirect('cart.php', t('success'), 'success');
     }
@@ -139,15 +162,7 @@ try {
         }
         
         // Calculate cart total to validate min purchase
-        $cartTotal = 0.0;
-        foreach ($_SESSION['cart'] as $pid => $qty) {
-            $stmt = $pdo->prepare('SELECT price FROM products WHERE id = :id AND stock_qty > 0');
-            $stmt->execute(['id' => $pid]);
-            $price = $stmt->fetchColumn();
-            if ($price !== false) {
-                $cartTotal += (float)$price * (int)$qty;
-            }
-        }
+        $cartTotal = getCartTotal();
         
         if (applyCoupon($code, $cartTotal)) {
             redirect('cart.php', t('coupon_applied'), 'success');

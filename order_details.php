@@ -489,7 +489,12 @@ $dir = getHtmlDir();
                     <?php $receiptLineTotal = (float)$item['quantity'] * (float)$item['unit_price']; ?>
                     <?php $receiptSubtotal += $receiptLineTotal; ?>
                     <div class="receipt-item-row">
-                        <span><?= e(getProductName($item)) ?></span>
+                        <span>
+                            <?= e(getProductName($item)) ?>
+                            <?php if (!empty($item['variants_summary'])): ?>
+                            <br><span style="font-size:10px; color:var(--receipt-muted);"><?= e($item['variants_summary']) ?></span>
+                            <?php endif; ?>
+                        </span>
                         <span class="receipt-right"><?= e((string)$item['quantity']) ?></span>
                         <span class="receipt-right"><?= e(formatPrice((float)$item['unit_price'])) ?></span>
                         <span class="receipt-right"><?= e(formatPrice($receiptLineTotal)) ?></span>
@@ -571,6 +576,11 @@ $dir = getHtmlDir();
                                 <?php endif; ?>
                                 <div class="flex-1 min-w-0">
                                     <h3 class="font-semibold text-luxury-primary mb-1"><?= e(getProductName($item)) ?></h3>
+                                    <?php if (!empty($item['variants_summary'])): ?>
+                                        <p class="text-xs text-luxury-accent mb-1 font-medium">
+                                            <i class="fas fa-tags me-1"></i><?= e($item['variants_summary']) ?>
+                                        </p>
+                                    <?php endif; ?>
                                     <p class="text-sm text-luxury-textLight">
                                         <?= e((string)$item['quantity']) ?> x <?= e(formatPrice((float)$item['unit_price'])) ?>
                                     </p>
