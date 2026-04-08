@@ -142,8 +142,7 @@ function isSuperAdmin(): bool {
  */
 function requireSuperAdmin(): void {
     if (!isSuperAdmin()) {
-        header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
-        exit;
+        redirect(url('login.php') . '?redirect=' . urlencode($_SERVER['REQUEST_URI']));
     }
 }
 
@@ -154,8 +153,7 @@ function requireSuperAdmin(): void {
  */
 function requireAdmin(): void {
     if (!isAdmin()) {
-        header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
-        exit;
+        redirect(url('login.php') . '?redirect=' . urlencode($_SERVER['REQUEST_URI']));
     }
 }
 
@@ -166,8 +164,7 @@ function requireAdmin(): void {
  */
 function requireLogin(): void {
     if (!isLoggedIn()) {
-        header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
-        exit;
+        redirect(url('login.php') . '?redirect=' . urlencode($_SERVER['REQUEST_URI']));
     }
 }
 

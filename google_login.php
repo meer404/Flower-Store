@@ -9,8 +9,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 $redirectTarget = safeRedirectTarget((string)($_GET['redirect'] ?? ''), 'index.php');
 
 if (isLoggedIn()) {
-    header('Location: ' . $redirectTarget);
-    exit;
+    redirect($redirectTarget);
 }
 
 $config = loadGoogleOAuthConfig();
@@ -28,5 +27,4 @@ $client->setState($state);
 $client->setPrompt('select_account');
 
 $authUrl = $client->createAuthUrl();
-header('Location: ' . $authUrl);
-exit;
+redirect($authUrl);

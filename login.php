@@ -16,8 +16,7 @@ $googleLoginUrl = url('google_login.php') . '?redirect=' . urlencode($redirectTa
 
 // Redirect if already logged in
 if (isLoggedIn()) {
-    header("Location: {$redirectTarget}");
-    exit;
+    redirect($redirectTarget);
 }
 
 $error = '';

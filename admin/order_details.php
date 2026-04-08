@@ -66,8 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isSuperAdmin() || hasPermission('m
         $_SESSION['flash_type'] = 'success';
         
         // Refresh to show changes
-        header("Location: order_details.php?id={$id}");
-        exit;
+        redirect("order_details.php?id={$id}");
     } catch (PDOException $e) {
         $error = t('database_error');
     }
