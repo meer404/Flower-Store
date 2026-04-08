@@ -12,11 +12,11 @@ define('GMAIL_SMTP_PORT', 587);
 define('GMAIL_SMTP_SECURE', 'tls');
 
 // Gmail Account Email (change this to your Gmail address)
-define('GMAIL_EMAIL', getenv('GMAIL_EMAIL') ?: 'your-email@gmail.com');
+define('GMAIL_EMAIL', getenv('GMAIL_EMAIL') ?: 'info.bloomandvine@gmail.com');
 
 // Gmail App Password (create at: https://myaccount.google.com/apppasswords)
 // DO NOT use your regular Gmail password!
-define('GMAIL_PASSWORD', getenv('GMAIL_PASSWORD') ?: 'your-app-password-here');
+define('GMAIL_PASSWORD', getenv('GMAIL_PASSWORD') ?: 'jmdd obqn slfg xhvj');
 
 // From Name
 define('MAIL_FROM_NAME', 'Bloom & Vine');
@@ -29,11 +29,11 @@ define('MAIL_FROM_NAME', 'Bloom & Vine');
 function validateGmailConfig(): array|true {
     $errors = [];
     
-    if (GMAIL_EMAIL === 'your-email@gmail.com') {
+    if (GMAIL_EMAIL === 'info.bloomandvine@gmail.com') {
         $errors[] = 'Gmail email not configured. Set GMAIL_EMAIL environment variable.';
     }
     
-    if (GMAIL_PASSWORD === 'your-app-password-here') {
+    if (GMAIL_PASSWORD === 'jmdd obqn slfg xhvj') {
         $errors[] = 'Gmail app password not configured. Set GMAIL_PASSWORD environment variable.';
     }
     

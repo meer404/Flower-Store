@@ -76,3 +76,4 @@ desktop.ini
 src/config/google_oauth.local.php
 src/config/google_oauth.php
 config/email.php
+src/gmail_config.php

@@ -309,7 +309,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             sendEmail($customerEmail, $customerSubject, $customerBody);
 
                             // Send new order notification to admin
-                            $emailConfig = require __DIR__ . '/config/email.php';
+                            $emailConfig = require __DIR__ . '/src/email.php';
                             $adminEmail = $emailConfig['admin_email'];
                             $adminSubject = t('new_order_notification_subject', ['order_id' => $orderId]);
                             $adminBody = "<h1>" . t('new_order_received') . "</h1>";

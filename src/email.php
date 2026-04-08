@@ -3,24 +3,23 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/gmail_config.php'; // Use the new secure config
 
 function sendEmail(string $to, string $subject, string $body, ?string $altBody = ''): bool {
-    $config = require __DIR__ . '/../config/email.php';
-
     $mail = new PHPMailer(true);
 
     try {
         //Server settings
         $mail->isSMTP();
-        $mail->Host       = $config['smtp_host'];
+        $mail->Host       = GMAIL_SMTP_HOST;
         $mail->SMTPAuth   = true;
-        $mail->Username   = $config['smtp_user'];
-        $mail->Password   = $config['smtp_pass'];
-        $mail->SMTPSecure = $config['smtp_secure'];
-        $mail->Port       = $config['smtp_port'];
+        $mail->Username   = GMAIL_EMAIL;
+        $mail->Password   = GMAIL_PASSWORD;
+        $mail->SMTPSecure = GMAIL_SMTP_SECURE;
+        $mail->Port       = GMAIL_SMTP_PORT;
 
         //Recipients
-        $mail->setFrom($config['from_email'], $config['from_name']);
+        $mail->setFrom(GMAIL_EMAIL, MAIL_FROM_NAME);
         $mail->addAddress($to);
 
         // Content
