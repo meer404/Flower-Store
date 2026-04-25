@@ -455,10 +455,10 @@ return [
 
     // Wishlist
     'my_wishlist' => 'لیستی دڵخوازەکانم',
-    'wishlist_empty' => 'لیستی ئاواتەکانت بەتاڵە.',
-    'wishlist_title' => 'لیستی ئاوات',
-    'wishlist_added' => 'زیادکرایەوە بۆ لیستی ئاوات',
-    'wishlist_removed' => 'لاببردایەوە لە لیستی ئاوات',
+    'wishlist_empty' => 'لیستی دڵخوازەکانت بەتاڵە.',
+    'wishlist_title' => 'لیستی دڵخواز',
+    'wishlist_added' => 'زیادکرایەوە بۆ لیستی دڵخواز',
+    'wishlist_removed' => 'لاببردایەوە لە لیستی دڵخواز',
     'payment_method' => 'شێوازی پارەدان',
     'select_payment_method' => 'شێوازی پارەدان هەڵبژێرە',
     'visa' => 'ڤیزا',
