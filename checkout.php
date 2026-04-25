@@ -11,6 +11,7 @@ require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/design_config.php';
 require_once __DIR__ . '/src/components.php';
 require_once __DIR__ . '/src/email.php';
+require_once __DIR__ . '/src/FibService.php';
 
 requireLogin();
 
@@ -137,37 +138,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = t('delivery_location_required');
     } elseif (!is_numeric($customerLat) || !is_numeric($customerLng)) {
         $error = t('delivery_location_required');
-    } elseif (empty($paymentMethod) || !in_array($paymentMethod, ['visa', 'mastercard'], true)) {
+    } elseif (empty($paymentMethod) || !in_array($paymentMethod, ['visa', 'mastercard', 'fib'], true)) {
         $error = t('payment_method_required');
-    } elseif (empty($cardNumber)) {
+    } elseif ($paymentMethod !== 'fib' && empty($cardNumber)) {
         $error = t('card_number_required');
-    } elseif (empty($cardholderName)) {
+    } elseif ($paymentMethod !== 'fib' && empty($cardholderName)) {
         $error = t('cardholder_name_required');
-    } elseif (empty($expiryMonth) || empty($expiryYear)) {
+    } elseif ($paymentMethod !== 'fib' && (empty($expiryMonth) || empty($expiryYear))) {
         $error = t('expiry_date_required');
-    } elseif (empty($cvv)) {
+    } elseif ($paymentMethod !== 'fib' && empty($cvv)) {
         $error = t('cvv_required');
     } else {
-        // Validate card number (basic validation)
-        $cardNumberClean = preg_replace('/\s+/', '', $cardNumber);
-        if (!preg_match('/^\d{13,19}$/', $cardNumberClean)) {
-            $error = t('card_number_invalid');
-        } elseif ($paymentMethod === 'visa' && !preg_match('/^4\d{12,15}$/', $cardNumberClean)) {
-            $error = t('card_number_invalid') . ' - ' . t('visa_start_4');
-        } elseif ($paymentMethod === 'mastercard' && !preg_match('/^5[1-5]\d{14}$/', $cardNumberClean)) {
-            $error = t('card_number_invalid') . ' - ' . t('mastercard_start_5');
-        } else {
-            // Validate expiry date
-            $expiryMonthInt = (int)$expiryMonth;
-            $expiryYearInt = (int)$expiryYear;
-            $currentYear = (int)date('Y');
-            $currentMonth = (int)date('n');
-            
-            if ($expiryYearInt < $currentYear || ($expiryYearInt === $currentYear && $expiryMonthInt < $currentMonth)) {
-                $error = t('expiry_date_invalid');
-            } elseif (!preg_match('/^\d{3,4}$/', $cvv)) {
-                $error = t('cvv_invalid');
+        $cardNumberClean = '';
+        $cardLastFour = null;
+        $expiryMonthInt = null;
+        $expiryYearInt = null;
+
+        if ($paymentMethod !== 'fib') {
+            // Validate card number (basic validation)
+            $cardNumberClean = preg_replace('/\s+/', '', $cardNumber);
+            if (!preg_match('/^\d{13,19}$/', $cardNumberClean)) {
+                $error = t('card_number_invalid');
+            } elseif ($paymentMethod === 'visa' && !preg_match('/^4\d{12,15}$/', $cardNumberClean)) {
+                $error = t('card_number_invalid') . ' - ' . t('visa_start_4');
+            } elseif ($paymentMethod === 'mastercard' && !preg_match('/^5[1-5]\d{14}$/', $cardNumberClean)) {
+                $error = t('card_number_invalid') . ' - ' . t('mastercard_start_5');
             } else {
+                // Validate expiry date
+                $expiryMonthInt = (int)$expiryMonth;
+                $expiryYearInt = (int)$expiryYear;
+                $currentYear = (int)date('Y');
+                $currentMonth = (int)date('n');
+                
+                if ($expiryYearInt < $currentYear || ($expiryYearInt === $currentYear && $expiryMonthInt < $currentMonth)) {
+                    $error = t('expiry_date_invalid');
+                } elseif (!preg_match('/^\d{3,4}$/', $cvv)) {
+                    $error = t('cvv_invalid');
+                } else {
+                    $cardLastFour = substr($cardNumberClean, -4);
+                }
+            }
+        }
+
+        if (!$error) {
                 $storeCoords = getStoreCoordinates();
                 $distanceKm = haversineDistanceKm((float)$customerLat, (float)$customerLng, $storeCoords['lat'], $storeCoords['lng']);
                 $deliveryFee = getDeliveryFeeByDistance($distanceKm);
@@ -227,15 +240,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         } else {
                             // Create order with payment details
                             $stmt = $pdo->prepare('
-                                INSERT INTO orders (user_id, grand_total, discount_amount, coupon_id, payment_status, shipping_address, customer_lat, customer_lng, delivery_date, payment_method, card_last_four, cardholder_name, card_expiry_month, card_expiry_year)
-                                VALUES (:user_id, :grand_total, :discount_amount, :coupon_id, :payment_status, :shipping_address, :customer_lat, :customer_lng, :delivery_date, :payment_method, :card_last_four, :cardholder_name, :card_expiry_month, :card_expiry_year)
+                                INSERT INTO orders (user_id, grand_total, discount_amount, coupon_id, payment_status, shipping_address, customer_lat, customer_lng, delivery_date, payment_method, card_last_four, cardholder_name, card_expiry_month, card_expiry_year, fib_payment_id)
+                                VALUES (:user_id, :grand_total, :discount_amount, :coupon_id, :payment_status, :shipping_address, :customer_lat, :customer_lng, :delivery_date, :payment_method, :card_last_four, :cardholder_name, :card_expiry_month, :card_expiry_year, :fib_payment_id)
                             ');
                             $stmt->execute([
                                 'user_id' => $userId,
                                 'grand_total' => $grandTotal,
                                 'discount_amount' => $discountAmount,
                                 'coupon_id' => $couponId,
-                                'payment_status' => 'paid', // Mark as paid when card details provided
+                                'payment_status' => ($paymentMethod === 'fib') ? 'pending' : 'paid',
                                 'shipping_address' => $shippingAddress,
                                 'customer_lat' => $customerLatValue,
                                 'customer_lng' => $customerLngValue,
@@ -244,7 +257,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'card_last_four' => $cardLastFour,
                                 'cardholder_name' => $cardholderName,
                                 'card_expiry_month' => $expiryMonthInt,
-                                'card_expiry_year' => $expiryYearInt
+                                'card_expiry_year' => $expiryYearInt,
+                                'fib_payment_id' => null
                             ]);
                             
                             $orderId = (int)$pdo->lastInsertId();
@@ -293,36 +307,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $stmt->execute(['id' => $couponId]);
                             }
 
-                            $pdo->commit();
-                            
-                            // Clear cart
-                            $_SESSION['cart'] = [];
-                            clearCoupon();
+                            if ($paymentMethod === 'fib') {
+                                try {
+                                    $callbackUrl = getSiteURL() . '/fib_webhook.php';
+                                    $redirectUrl = getSiteURL() . '/order_details.php?id=' . $orderId;
+                                    $fibPayment = FibService::createPayment((int)$grandTotal, "Order #{$orderId}", $callbackUrl, $redirectUrl);
+                                    
+                                    if (isset($fibPayment['paymentId'])) {
+                                        $stmt = $pdo->prepare('UPDATE orders SET fib_payment_id = :fib_id, fib_qr_code = :qr, fib_app_link = :link WHERE id = :id');
+                                        $stmt->execute([
+                                            'fib_id' => $fibPayment['paymentId'], 
+                                            'qr' => $fibPayment['qrCode'] ?? null,
+                                            'link' => $fibPayment['personalAppLink'] ?? null,
+                                            'id' => $orderId
+                                        ]);
+                                        
+                                        $pdo->commit();
+                                        $_SESSION['cart'] = [];
+                                        clearCoupon();
+                                        
+                                        // Redirect to specialized FIB payment page
+                                        redirect('fib_payment.php?order_id=' . $orderId, t('pay_with_fib'), 'info');
+                                    } else {
+                                        throw new Exception("Invalid FIB response");
+                                    }
+                                } catch (Exception $e) {
+                                    $pdo->rollBack();
+                                    error_log('FIB Create Payment error: ' . $e->getMessage());
+                                    $error = t('order_error') . ' (FIB: ' . $e->getMessage() . ')';
+                                }
+                            } else {
+                                $pdo->commit();
+                                
+                                // Clear cart
+                                $_SESSION['cart'] = [];
+                                clearCoupon();
 
-                            // Send order confirmation email to customer
-                            $customerEmail = $user['email'];
-                            $customerSubject = t('order_confirmation_subject', ['order_id' => $orderId]);
-                            $customerBody = "<h1>" . t('thank_you_for_order') . "</h1>";
-                            $customerBody .= "<p>" . t('order_details_below') . "</p>";
-                            $customerBody .= "<p><strong>" . t('order_id') . ":</strong> {$orderId}</p>";
-                            $customerBody .= "<p><strong>" . t('grand_total') . ":</strong> " . formatPrice((float)$grandTotal, $currency) . "</p>";
-                            $customerBody .= "<p><strong>" . t('shipping_address') . ":</strong> {$shippingAddress}</p>";
-                            $customerBody .= "<p>" . t('track_order_in_account') . "</p>";
-                            sendEmail($customerEmail, $customerSubject, $customerBody);
+                                // Send order confirmation email to customer
+                                $customerEmail = $user['email'];
+                                $customerSubject = t('order_confirmation_subject', ['order_id' => $orderId]);
+                                $customerBody = "<h1>" . t('thank_you_for_order') . "</h1>";
+                                $customerBody .= "<p>" . t('order_details_below') . "</p>";
+                                $customerBody .= "<p><strong>" . t('order_id') . ":</strong> {$orderId}</p>";
+                                $customerBody .= "<p><strong>" . t('grand_total') . ":</strong> " . formatPrice((float)$grandTotal, $currency) . "</p>";
+                                $customerBody .= "<p><strong>" . t('shipping_address') . ":</strong> {$shippingAddress}</p>";
+                                $customerBody .= "<p>" . t('track_order_in_account') . "</p>";
+                                sendEmail($customerEmail, $customerSubject, $customerBody);
 
-                            // Send new order notification to admin
-                            $emailConfig = require __DIR__ . '/src/email.php';
-                            $adminEmail = $emailConfig['admin_email'];
-                            $adminSubject = t('new_order_notification_subject', ['order_id' => $orderId]);
-                            $adminBody = "<h1>" . t('new_order_received') . "</h1>";
-                            $adminBody .= "<p>" . t('order_details_below') . "</p>";
-                            $adminBody .= "<p><strong>" . t('order_id') . ":</strong> {$orderId}</p>";
-                            $adminBody .= "<p><strong>" . t('customer') . ":</strong> {$user['full_name']} ({$user['email']})</p>";
-                            $adminBody .= "<p><strong>" . t('grand_total') . ":</strong> " . formatPrice((float)$grandTotal, $currency) . "</p>";
-                            $adminBody .= "<p><a href='" . getSiteURL() . "/admin/order_details.php?id={$orderId}'>" . t('view_order_details') . "</a></p>";
-                            sendEmail($adminEmail, $adminSubject, $adminBody);
-                            
-                            redirect('index.php', t('order_placed'), 'success');
+                                // Send new order notification to admin
+                                $emailConfig = require __DIR__ . '/src/email.php';
+                                $adminEmail = $emailConfig['admin_email'];
+                                $adminSubject = t('new_order_notification_subject', ['order_id' => $orderId]);
+                                $adminBody = "<h1>" . t('new_order_received') . "</h1>";
+                                $adminBody .= "<p>" . t('order_details_below') . "</p>";
+                                $adminBody .= "<p><strong>" . t('order_id') . ":</strong> {$orderId}</p>";
+                                $adminBody .= "<p><strong>" . t('customer') . ":</strong> {$user['full_name']} ({$user['email']})</p>";
+                                $adminBody .= "<p><strong>" . t('grand_total') . ":</strong> " . formatPrice((float)$grandTotal, $currency) . "</p>";
+                                $adminBody .= "<p><a href='" . getSiteURL() . "/admin/order_details.php?id={$orderId}'>" . t('view_order_details') . "</a></p>";
+                                sendEmail($adminEmail, $adminSubject, $adminBody);
+                                
+                                redirect('index.php', t('order_placed'), 'success');
+                            }
                         }
                     } catch (PDOException $e) {
                         $pdo->rollBack();
@@ -332,7 +377,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
-    }
 }
 
 $csrfToken = generateCSRFToken();
@@ -539,7 +583,16 @@ $dir = getHtmlDir();
                             <label for="payment_method" class="block text-sm font-medium text-luxury-text mb-2">
                                 <?= e(t('select_payment_method')) ?> *
                             </label>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <label class="relative flex items-center p-4 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent transition-colors payment-method-option <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'border-luxury-accent bg-luxury-border' : '' ?>">
+                                    <input type="radio" name="payment_method" value="fib" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'checked' : '' ?>>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-8 bg-luxury-primary rounded flex items-center justify-center">
+                                            <span class="text-white font-bold text-xs">FIB</span>
+                                        </div>
+                                        <span class="font-medium text-luxury-primary"><?= e(t('fib')) ?></span>
+                                    </div>
+                                </label>
                                 <label class="relative flex items-center p-4 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent transition-colors payment-method-option <?= (sanitizeInput('payment_method', 'POST', '') === 'visa') ? 'border-luxury-accent bg-luxury-border' : '' ?>">
                                     <input type="radio" name="payment_method" value="visa" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'visa') ? 'checked' : '' ?>>
                                     <div class="flex items-center gap-3">
@@ -561,7 +614,9 @@ $dir = getHtmlDir();
                             </div>
                         </div>
                         
-                        <div class="space-y-4">
+                        </div>
+                        
+                        <div id="card-details-section" class="<?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'hidden' : '' ?> space-y-4 mt-6">
                             <div>
                                 <label for="card_number" class="block text-sm font-medium text-luxury-text mb-2">
                                     <?= e(t('card_number')) ?> *
@@ -923,6 +978,38 @@ $dir = getHtmlDir();
             }
         });
     });
+
+    // Payment method toggle
+    document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+        input.addEventListener('change', (e) => {
+            const cardSection = document.getElementById('card-details-section');
+            const cardInputs = cardSection.querySelectorAll('input, select');
+            
+            if (e.target.value === 'fib') {
+                cardSection.classList.add('hidden');
+                cardInputs.forEach(i => i.removeAttribute('required'));
+            } else {
+                cardSection.classList.remove('hidden');
+                cardInputs.forEach(i => i.setAttribute('required', ''));
+            }
+            
+            // Update UI styles
+            document.querySelectorAll('.payment-method-option').forEach(opt => {
+                opt.classList.remove('border-luxury-accent', 'bg-luxury-border');
+            });
+            e.target.closest('.payment-method-option').classList.add('border-luxury-accent', 'bg-luxury-border');
+        });
+    });
+
+    // Initialize state
+    const initialPaymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+    if (initialPaymentMethod === 'fib') {
+        const cardSection = document.getElementById('card-details-section');
+        if (cardSection) {
+            cardSection.classList.add('hidden');
+            cardSection.querySelectorAll('input, select').forEach(i => i.removeAttribute('required'));
+        }
+    }
     </script>
 </body>
 </html>

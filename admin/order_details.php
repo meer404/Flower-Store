@@ -273,6 +273,36 @@ $dir = getHtmlDir();
                             </div>
                         </div>
 
+                        <!-- Payment Info -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-100 font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-credit-card text-blue-600"></i><?= e(t('payment_method')) ?>
+                            </div>
+                            <div class="p-6 space-y-4">
+                                <div>
+                                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1"><?= e(t('payment_method')) ?></h4>
+                                    <p class="font-medium text-gray-800">
+                                        <?php 
+                                        if ($order['payment_method'] === 'fib') {
+                                            echo 'First Iraqi Bank (FIB)';
+                                        } else {
+                                            echo e(ucfirst($order['payment_method']));
+                                            if (!empty($order['card_last_four'])) {
+                                                echo ' (**** ' . e($order['card_last_four']) . ')';
+                                            }
+                                        }
+                                        ?>
+                                    </p>
+                                </div>
+                                <?php if ($order['payment_method'] === 'fib' && !empty($order['fib_payment_id'])): ?>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">FIB Payment ID</h4>
+                                        <p class="font-mono text-sm text-blue-600 break-all"><?= e($order['fib_payment_id']) ?></p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
                         <!-- Admin Actions -->
                         <?php if (isSuperAdmin() || hasPermission('manage_orders')): ?>
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

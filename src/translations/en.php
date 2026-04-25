@@ -592,4 +592,13 @@ return [
     'coupon_deleted_success' => 'Coupon deleted successfully',
     'delete_coupon_confirm' => 'Are you sure you want to delete this coupon?',
     'permission_manage_coupons' => 'Manage discount coupons',
+    'fib' => 'First Iraqi Bank (FIB)',
+    'pay_with_fib' => 'Pay with FIB',
+    'fib_qr_code' => 'FIB QR Code',
+    'scan_to_pay' => 'Scan the QR code below using your FIB app to complete the payment.',
+    'open_in_fib' => 'Open in FIB App',
+    'payment_waiting' => 'Waiting for payment...',
+    'payment_confirmed' => 'Payment confirmed! Redirecting...',
+    'payment_failed' => 'Payment failed or was declined. Please try again.',
+    'payment_expired' => 'Payment link has expired.',
 ];
