@@ -405,184 +405,170 @@ $dir = getHtmlDir();
             </div>
         <?php endif; ?>
         
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-            <!-- Order Summary -->
-            <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 order-2 lg:order-1">
-                <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('order_summary')) ?></h2>
-                
-                <div class="space-y-4 md:space-y-6 mb-6">
-                    <?php foreach ($cartItems as $item): ?>
-                        <div class="flex justify-between items-start border-b border-luxury-border pb-4">
-                            <div class="flex-1">
-                                <p class="font-medium text-luxury-primary mb-1"><?= e(getProductName($item)) ?></p>
-                                <?php if (!empty($item['variant_labels'])): ?>
-                                    <p class="text-xs text-luxury-textLight mb-1">
-                                        <?php foreach ($item['variant_labels'] as $vl): ?>
-                                            <span class="inline-block bg-luxury-accentLight/60 text-luxury-primary px-1.5 py-0.5 rounded mr-1 text-xs"><?= e($vl) ?></span>
-                                        <?php endforeach; ?>
-                                    </p>
-                                <?php endif; ?>
-                                <p class="text-sm text-luxury-textLight"><?= e((string)$item['cart_quantity']) ?> x <?= e(formatPrice($item['unit_price'] ?? (float)$item['price'], $currency)) ?></p>
+        <form method="POST" action="" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
+            <input type="hidden" name="customer_lat" id="customer_lat" value="<?= e(sanitizeInput('customer_lat', 'POST', '')) ?>">
+            <input type="hidden" name="customer_lng" id="customer_lng" value="<?= e(sanitizeInput('customer_lng', 'POST', '')) ?>">
+            <input type="hidden" name="delivery_distance_km" id="delivery_distance_km" value="<?= e(sanitizeInput('delivery_distance_km', 'POST', '')) ?>">
+            <input type="hidden" name="delivery_fee" id="delivery_fee" value="<?= e(sanitizeInput('delivery_fee', 'POST', '')) ?>">
+            <input type="hidden" name="extras_total" id="extras_total" value="0.00">
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                <!-- Column 1: Delivery Details -->
+                <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 order-1">
+                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('customer_info')) ?></h2>
+                    
+                    <div class="mb-6 p-4 bg-luxury-border rounded-sm">
+                        <p class="text-sm text-luxury-textLight mb-2"><?= e(t('name')) ?>: <span class="font-medium text-luxury-primary"><?= e($user['full_name']) ?></span></p>
+                        <p class="text-sm text-luxury-textLight"><?= e(t('email')) ?>: <span class="font-medium text-luxury-primary"><?= e($user['email']) ?></span></p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label for="shipping_address" class="block text-sm font-medium text-luxury-text mb-2">
+                                <?= e(t('shipping_address')) ?> *
+                            </label>
+                            <textarea id="shipping_address" name="shipping_address" rows="4" required
+                                      class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"
+                                      placeholder="<?= e(t('enter_shipping_address')) ?>"><?= e(sanitizeInput('shipping_address', 'POST', '')) ?></textarea>
+                            <div class="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                                <button type="button" id="use-location" class="inline-flex items-center justify-center gap-2 border-2 border-luxury-accent text-luxury-accent px-4 py-2 rounded-sm hover:bg-luxury-accent hover:text-white transition-all duration-300 font-medium">
+                                    <i class="fas fa-location-crosshairs"></i>
+                                    <?= e(t('use_my_location')) ?>
+                                </button>
+                                <span class="text-xs text-luxury-textLight" id="delivery-status"></span>
                             </div>
-                            <p class="font-semibold text-luxury-accent ms-4"><?= e(formatPrice($item['subtotal'], $currency)) ?></p>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-                
-                <div class="border-t border-luxury-border pt-4 space-y-2">
-                    <div class="flex justify-between items-center text-sm text-luxury-textLight">
-                        <span><?= e(t('delivery_fee')) ?></span>
-                        <span id="delivery-fee-amount">—</span>
+                        
+                        <div>
+                            <label for="delivery_date" class="block text-sm font-medium text-luxury-text mb-2">
+                                <?= e(t('delivery_date')) ?> *
+                            </label>
+                            <input type="date" id="delivery_date" name="delivery_date" required
+                                   min="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>"
+                                   value="<?= e(sanitizeInput('delivery_date', 'POST', '')) ?>"
+                                   class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+                            <p class="text-xs text-luxury-textLight mt-1">
+                                <?= e(t('delivery_date_hint')) ?>
+                            </p>
+                        </div>
                     </div>
-                    <div class="flex justify-between items-center text-sm text-luxury-textLight">
-                        <span><?= e(t('delivery_distance')) ?></span>
-                        <span id="delivery-distance">—</span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm text-luxury-textLight">
-                        <span><?= e(t('extras_total')) ?></span>
-                        <span id="extras-total-amount"><?= e(formatPrice(0.0, $currency)) ?></span>
-                    </div>
-                    <div class="flex justify-between items-center text-sm text-luxury-textLight pt-2 border-t border-luxury-border">
-                        <span class="text-md md:text-lg text-luxury-primary"><?= e(t('subtotal')) ?>:</span>
-                        <span class="text-md md:text-lg text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
-                    </div>
-                    <?php if ($appliedCoupon): ?>
-                    <div class="flex justify-between items-center text-sm text-pink-500">
-                        <span class="text-md md:text-lg text-pink-600"><?= e(t('discount')) ?> (<?= e($appliedCoupon['code']) ?>):</span>
-                        <span class="text-md md:text-lg text-pink-600 font-luxury">-<?= e(formatPrice($discountAmount, $currency)) ?></span>
+
+                    <!-- Order Extras Section -->
+                    <?php if (!empty($availableExtras)): ?>
+                    <div class="border-t border-luxury-border pt-6 mt-6">
+                        <h3 class="text-lg md:text-xl font-luxury font-bold text-luxury-primary mb-4 tracking-wide">
+                            <i class="fas fa-gift me-2"></i><?= e(t('add_extras')) ?>
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <?php foreach ($availableExtras as $type => $items): ?>
+                            <div class="extras-category" data-category="<?= e($type) ?>">
+                                <div class="bg-gradient-to-r from-luxury-border to-transparent p-3 rounded-sm mb-3">
+                                    <h4 class="font-semibold text-luxury-primary text-sm">
+                                        <?php 
+                                        $categoryNames = [
+                                            'greeting_card' => t('greeting_cards'),
+                                            'small_gift' => t('small_gifts'),
+                                            'chocolate_box' => t('chocolate_boxes'),
+                                            'candle' => t('scented_candles'),
+                                            'balloons' => t('balloons')
+                                        ];
+                                        echo e($categoryNames[$type] ?? $type);
+                                        ?>
+                                    </h4>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <?php foreach ($items as $extra): ?>
+                                    <label class="relative flex flex-col items-start p-3 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent hover:bg-luxury-border transition-all extra-option overflow-hidden" data-extra-id="<?= e((string)$extra['id']) ?>" data-extra-price="<?= e((string)$extra['price']) ?>">
+                                        <input type="checkbox" name="extras[]" value="<?= e((string)$extra['id']) ?>" class="absolute top-3 left-3 w-4 h-4 text-luxury-accent rounded focus:ring-2 focus:ring-luxury-accent cursor-pointer z-10">
+                                        
+                                        <!-- Extra Image -->
+                                        <?php if (!empty($extra['image_url'])): ?>
+                                        <div class="w-full h-28 mb-2 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center">
+                                            <img src="<?= e($extra['image_url']) ?>" alt="<?= e(getExtraName($extra)) ?>" class="w-full h-full object-cover">
+                                        </div>
+                                        <?php else: ?>
+                                        <div class="w-full h-28 mb-2 rounded-sm bg-gradient-to-br from-luxury-border to-gray-100 flex items-center justify-center">
+                                            <i class="<?= e($extra['icon'] ?? 'fas fa-gift') ?> text-3xl text-luxury-textLight"></i>
+                                        </div>
+                                        <?php endif; ?>
+                                        
+                                        <div class="flex-1 w-full ps-7">
+                                            <p class="font-medium text-luxury-primary text-sm"><?= e(getExtraName($extra)) ?></p>
+                                            <p class="text-sm font-semibold text-luxury-accent mt-1">+ <?= e(formatPrice((float)$extra['price'], $currency)) ?></p>
+                                        </div>
+                                    </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
                     <?php endif; ?>
-                    <div class="flex justify-between items-center pt-2">
-                        <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('total')) ?>:</span>
-                        <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="subtotal-amount" data-base-total="<?= e((string)$finalCartTotal) ?>"><?= e(formatPrice($finalCartTotal, $currency)) ?></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('delivery_total')) ?>:</span>
-                        <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="grand-total-amount">—</span>
-                    </div>
                 </div>
-
-                <!-- Order Extras Section -->
-                <?php if (!empty($availableExtras)): ?>
-                <div class="border-t border-luxury-border pt-6 mt-6">
-                    <h3 class="text-lg md:text-xl font-luxury font-bold text-luxury-primary mb-4 tracking-wide">
-                        <i class="fas fa-gift me-2"></i><?= e(t('add_extras')) ?>
-                    </h3>
-                    <p class="text-sm text-luxury-textLight mb-4"><?= e(t('add_extras_heading')) ?></p>
+                <!-- Column 2: Order Review & Payment -->
+                <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 order-2">
+                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('order_summary')) ?></h2>
                     
-                    <!-- Extras Categories Tabs -->
-                    <div class="space-y-4">
-                        <?php foreach ($availableExtras as $type => $items): ?>
-                        <div class="extras-category" data-category="<?= e($type) ?>">
-                            <div class="bg-gradient-to-r from-luxury-border to-transparent p-4 rounded-sm mb-3">
-                                <h4 class="font-semibold text-luxury-primary text-sm md:text-base">
-                                    <?php 
-                                    $categoryNames = [
-                                        'greeting_card' => t('greeting_cards'),
-                                        'small_gift' => t('small_gifts'),
-                                        'chocolate_box' => t('chocolate_boxes'),
-                                        'candle' => t('scented_candles'),
-                                        'balloons' => t('balloons')
-                                    ];
-                                    echo e($categoryNames[$type] ?? $type);
-                                    ?>
-                                </h4>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <?php foreach ($items as $extra): ?>
-                                <label class="relative flex flex-col items-start p-3 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent hover:bg-luxury-border transition-all extra-option overflow-hidden" data-extra-id="<?= e((string)$extra['id']) ?>" data-extra-price="<?= e((string)$extra['price']) ?>">
-                                    <input type="checkbox" name="extras[]" value="<?= e((string)$extra['id']) ?>" class="absolute top-3 left-3 w-4 h-4 text-luxury-accent rounded focus:ring-2 focus:ring-luxury-accent cursor-pointer z-10">
-                                    
-                                    <!-- Extra Image -->
-                                    <?php if (!empty($extra['image_url'])): ?>
-                                    <div class="w-full h-28 mb-2 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center">
-                                        <img src="<?= e($extra['image_url']) ?>" alt="<?= e(getExtraName($extra)) ?>" class="w-full h-full object-cover">
-                                    </div>
-                                    <?php else: ?>
-                                    <div class="w-full h-28 mb-2 rounded-sm bg-gradient-to-br from-luxury-border to-gray-100 flex items-center justify-center">
-                                        <i class="<?= e($extra['icon'] ?? 'fas fa-gift') ?> text-3xl text-luxury-textLight"></i>
-                                    </div>
+                    <div class="space-y-4 md:space-y-6 mb-6">
+                        <?php foreach ($cartItems as $item): ?>
+                            <div class="flex justify-between items-start border-b border-luxury-border pb-4">
+                                <div class="flex-1">
+                                    <p class="font-medium text-luxury-primary mb-1"><?= e(getProductName($item)) ?></p>
+                                    <?php if (!empty($item['variant_labels'])): ?>
+                                        <p class="text-xs text-luxury-textLight mb-1">
+                                            <?php foreach ($item['variant_labels'] as $vl): ?>
+                                                <span class="inline-block bg-luxury-accentLight/60 text-luxury-primary px-1.5 py-0.5 rounded mr-1 text-xs"><?= e($vl) ?></span>
+                                            <?php endforeach; ?>
+                                        </p>
                                     <?php endif; ?>
-                                    
-                                    <!-- Extra Details -->
-                                    <div class="flex-1 w-full ps-7">
-                                        <p class="font-medium text-luxury-primary text-sm md:text-base">
-                                            <?= e(getExtraName($extra)) ?>
-                                        </p>
-                                        <?php if (!empty($extra['description_en'] ?? '')): ?>
-                                        <p class="text-xs text-luxury-textLight mt-1 line-clamp-2">
-                                            <?= e(getExtraDescription($extra)) ?>
-                                        </p>
-                                        <?php endif; ?>
-                                        <p class="text-sm font-semibold text-luxury-accent mt-2">
-                                            + <?= e(formatPrice((float)$extra['price'], $currency)) ?>
-                                        </p>
-                                    </div>
-                                </label>
-                                <?php endforeach; ?>
+                                    <p class="text-sm text-luxury-textLight"><?= e((string)$item['cart_quantity']) ?> x <?= e(formatPrice($item['unit_price'] ?? (float)$item['price'], $currency)) ?></p>
+                                </div>
+                                <p class="font-semibold text-luxury-accent ms-4"><?= e(formatPrice($item['subtotal'], $currency)) ?></p>
                             </div>
-                        </div>
                         <?php endforeach; ?>
                     </div>
-                </div>
-                <?php endif; ?>
-            </div>
-            
-            <!-- Checkout Form -->
-            <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 order-1 lg:order-2">
-                <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('customer_info')) ?></h2>
-                
-                <div class="mb-6 p-4 bg-luxury-border rounded-sm">
-                    <p class="text-sm text-luxury-textLight mb-2"><?= e(t('name')) ?>: <span class="font-medium text-luxury-primary"><?= e($user['full_name']) ?></span></p>
-                    <p class="text-sm text-luxury-textLight"><?= e(t('email')) ?>: <span class="font-medium text-luxury-primary"><?= e($user['email']) ?></span></p>
-                </div>
-                
-                <form method="POST" action="" class="space-y-6">
-                    <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                    <input type="hidden" name="customer_lat" id="customer_lat" value="<?= e(sanitizeInput('customer_lat', 'POST', '')) ?>">
-                    <input type="hidden" name="customer_lng" id="customer_lng" value="<?= e(sanitizeInput('customer_lng', 'POST', '')) ?>">
-                    <input type="hidden" name="delivery_distance_km" id="delivery_distance_km" value="<?= e(sanitizeInput('delivery_distance_km', 'POST', '')) ?>">
-                    <input type="hidden" name="delivery_fee" id="delivery_fee" value="<?= e(sanitizeInput('delivery_fee', 'POST', '')) ?>">
-                    <input type="hidden" name="extras_total" id="extras_total" value="0.00">
                     
-                    <div>
-                        <label for="shipping_address" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('shipping_address')) ?> *
-                        </label>
-                        <textarea id="shipping_address" name="shipping_address" rows="4" required
-                                  class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"
-                                  placeholder="<?= e(t('enter_shipping_address')) ?>"><?= e(sanitizeInput('shipping_address', 'POST', '')) ?></textarea>
-                        <div class="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                            <button type="button" id="use-location" class="inline-flex items-center justify-center gap-2 border-2 border-luxury-accent text-luxury-accent px-4 py-2 rounded-sm hover:bg-luxury-accent hover:text-white transition-all duration-300 font-medium">
-                                <i class="fas fa-location-crosshairs"></i>
-                                <?= e(t('use_my_location')) ?>
-                            </button>
-                            <span class="text-xs text-luxury-textLight" id="delivery-status"></span>
+                    <div class="border-t border-luxury-border pt-4 space-y-2">
+                        <div class="flex justify-between items-center text-sm text-luxury-textLight">
+                            <span><?= e(t('delivery_fee')) ?></span>
+                            <span id="delivery-fee-amount">—</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-luxury-textLight">
+                            <span><?= e(t('delivery_distance')) ?></span>
+                            <span id="delivery-distance">—</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-luxury-textLight">
+                            <span><?= e(t('extras_total')) ?></span>
+                            <span id="extras-total-amount"><?= e(formatPrice(0.0, $currency)) ?></span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-luxury-textLight pt-2 border-t border-luxury-border">
+                            <span class="text-md md:text-lg text-luxury-primary"><?= e(t('subtotal')) ?>:</span>
+                            <span class="text-md md:text-lg text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                        </div>
+                        <?php if ($appliedCoupon): ?>
+                        <div class="flex justify-between items-center text-sm text-pink-500">
+                            <span class="text-md md:text-lg text-pink-600"><?= e(t('discount')) ?> (<?= e($appliedCoupon['code']) ?>):</span>
+                            <span class="text-md md:text-lg text-pink-600 font-luxury">-<?= e(formatPrice($discountAmount, $currency)) ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('total')) ?>:</span>
+                            <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="subtotal-amount" data-base-total="<?= e((string)$finalCartTotal) ?>"><?= e(formatPrice($finalCartTotal, $currency)) ?></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('delivery_total')) ?>:</span>
+                            <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="grand-total-amount">—</span>
                         </div>
                     </div>
-                    
-                    <div>
-                        <label for="delivery_date" class="block text-sm font-medium text-luxury-text mb-2">
-                            <?= e(t('delivery_date')) ?> *
-                        </label>
-                        <input type="date" id="delivery_date" name="delivery_date" required
-                               min="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>"
-                               value="<?= e(sanitizeInput('delivery_date', 'POST', '')) ?>"
-                               class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                        <p class="text-xs text-luxury-textLight mt-1">
-                            <?= e(t('delivery_date_hint')) ?>
-                        </p>
-                    </div>
-                    
+
                     <!-- Payment Method Section -->
                     <div class="border-t border-luxury-border pt-6 mt-6">
                         <h3 class="text-lg md:text-xl font-luxury font-bold text-luxury-primary mb-4 tracking-wide"><?= e(t('payment_method')) ?></h3>
                         
-                        <div class="mb-4">
-                            <label for="payment_method" class="block text-sm font-medium text-luxury-text mb-2">
-                                <?= e(t('select_payment_method')) ?> *
-                            </label>
+                        <div class="space-y-4">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <label class="relative flex items-center p-4 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent transition-colors payment-method-option <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'border-luxury-accent bg-luxury-border' : '' ?>">
                                     <input type="radio" name="payment_method" value="fib" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'checked' : '' ?>>
@@ -612,89 +598,48 @@ $dir = getHtmlDir();
                                     </div>
                                 </label>
                             </div>
-                        </div>
-                        
-                        </div>
-                        
-                        <div id="card-details-section" class="<?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'hidden' : '' ?> space-y-4 mt-6">
-                            <div>
-                                <label for="card_number" class="block text-sm font-medium text-luxury-text mb-2">
-                                    <?= e(t('card_number')) ?> *
-                                </label>
-                                <input type="text" id="card_number" name="card_number" required
-                                       maxlength="19" pattern="[\d\s]+"
-                                       value="<?= e(sanitizeInput('card_number', 'POST', '')) ?>"
-                                       placeholder="1234 5678 9012 3456"
-                                       class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                            </div>
-                            
-                            <div>
-                                <label for="cardholder_name" class="block text-sm font-medium text-luxury-text mb-2">
-                                    <?= e(t('cardholder_name')) ?> *
-                                </label>
-                                <input type="text" id="cardholder_name" name="cardholder_name" required
-                                       value="<?= e(sanitizeInput('cardholder_name', 'POST', '')) ?>"
-                                       placeholder="<?= e(t('name_on_card')) ?>"
-                                       class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4">
+
+                            <div id="card-details-section" class="<?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'hidden' : '' ?> space-y-4 mt-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-luxury-text mb-2">
-                                        <?= e(t('expiry_date')) ?> *
-                                    </label>
+                                    <label for="card_number" class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('card_number')) ?> *</label>
+                                    <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
                                     <div class="grid grid-cols-2 gap-2">
-                                        <select name="expiry_month" id="expiry_month" required
-                                                class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+                                        <select name="expiry_month" id="expiry_month" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
                                             <option value=""><?= e(t('expiry_month')) ?></option>
                                             <?php for ($i = 1; $i <= 12; $i++): ?>
-                                                <option value="<?= e(sprintf('%02d', $i)) ?>" <?= (sanitizeInput('expiry_month', 'POST', '') === sprintf('%02d', $i)) ? 'selected' : '' ?>>
-                                                    <?= e(sprintf('%02d', $i)) ?>
-                                                </option>
+                                                <option value="<?= e(sprintf('%02d', $i)) ?>"><?= e(sprintf('%02d', $i)) ?></option>
                                             <?php endfor; ?>
                                         </select>
-                                        <select name="expiry_year" id="expiry_year" required
-                                                class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
+                                        <select name="expiry_year" id="expiry_year" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
                                             <option value=""><?= e(t('expiry_year')) ?></option>
-                                            <?php 
-                                            $currentYear = (int)date('Y');
-                                            for ($i = $currentYear; $i <= $currentYear + 10; $i++): 
-                                            ?>
-                                                <option value="<?= e((string)$i) ?>" <?= (sanitizeInput('expiry_year', 'POST', '') === (string)$i) ? 'selected' : '' ?>>
-                                                    <?= e((string)$i) ?>
-                                                </option>
+                                            <?php for ($i = (int)date('Y'); $i <= (int)date('Y') + 10; $i++): ?>
+                                                <option value="<?= e((string)$i) ?>"><?= e((string)$i) ?></option>
                                             <?php endfor; ?>
                                         </select>
                                     </div>
-                                </div>
-                                
-                                <div>
-                                    <label for="cvv" class="block text-sm font-medium text-luxury-text mb-2">
-                                        <?= e(t('cvv')) ?> *
-                                    </label>
-                                    <input type="text" id="cvv" name="cvv" required
-                                           maxlength="4" pattern="\d{3,4}"
-                                           value="<?= e(sanitizeInput('cvv', 'POST', '')) ?>"
-                                           placeholder="123"
-                                           class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                                    <p class="text-xs text-luxury-textLight mt-1"><?= e(t('cvv_hint')) ?></p>
+                                    <input type="text" id="cvv" name="cvv" placeholder="CVV" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <button type="submit" id="place-order-btn"
-                            class="w-full bg-luxury-accent text-white py-3 px-4 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-medium shadow-md">
-                        <?= e(t('place_order')) ?>
-                    </button>
-                </form>
-                
-                <a href="cart.php" 
-                   class="block mt-6 text-center text-luxury-accent hover:text-luxury-primary transition-colors font-medium">
-                    <i class="fas fa-arrow-left rtl:rotate-180"></i> <?= e(t('back_to_cart')) ?>
-                </a>
+
+                    <!-- Actions -->
+                    <div class="mt-8 pt-6 border-t border-luxury-border space-y-4">
+                        <button type="submit" id="place-order-btn"
+                                class="w-full bg-luxury-accent text-white py-4 px-6 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-bold shadow-lg uppercase tracking-widest text-sm flex items-center justify-center gap-2">
+                            <i class="fas fa-check-circle"></i> <?= e(t('place_order')) ?>
+                        </button>
+                        
+                        <a href="cart.php" 
+                           class="block text-center text-luxury-textLight hover:text-luxury-accent transition-colors font-medium text-sm">
+                            <i class="fas fa-arrow-left rtl:rotate-180"></i> <?= e(t('back_to_cart')) ?>
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 
     <?= modernFooter() ?>
