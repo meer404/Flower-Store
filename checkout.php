@@ -157,9 +157,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($paymentMethod !== 'fib') {
             // Validate card number (basic validation)
             $cardNumberClean = preg_replace('/\s+/', '', $cardNumber);
-            if (!preg_match('/^\d{13,19}$/', $cardNumberClean)) {
+            if (!preg_match('/^\d{16}$/', $cardNumberClean)) {
                 $error = t('card_number_invalid');
-            } elseif ($paymentMethod === 'visa' && !preg_match('/^4\d{12,15}$/', $cardNumberClean)) {
+            } elseif ($paymentMethod === 'visa' && !preg_match('/^4\d{15}$/', $cardNumberClean)) {
                 $error = t('card_number_invalid') . ' - ' . t('visa_start_4');
             } elseif ($paymentMethod === 'mastercard' && !preg_match('/^5[1-5]\d{14}$/', $cardNumberClean)) {
                 $error = t('card_number_invalid') . ' - ' . t('mastercard_start_5');
@@ -570,10 +570,10 @@ $dir = getHtmlDir();
                         
                         <div class="space-y-4">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <label class="relative flex items-center p-4 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent transition-colors payment-method-option <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'border-luxury-accent bg-luxury-border' : '' ?>">
+                                <label class="relative flex items-center p-4 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent transition-colors payment-method-option <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'border-[#00A69C] bg-[#00A69C]/5' : '' ?>">
                                     <input type="radio" name="payment_method" value="fib" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'checked' : '' ?>>
                                     <div class="flex items-center gap-3">
-                                        <div class="w-12 h-8 bg-luxury-primary rounded flex items-center justify-center">
+                                        <div class="w-12 h-8 bg-[#00A69C] rounded flex items-center justify-center">
                                             <span class="text-white font-bold text-xs">FIB</span>
                                         </div>
                                         <span class="font-medium text-luxury-primary"><?= e(t('fib')) ?></span>
@@ -602,7 +602,7 @@ $dir = getHtmlDir();
                             <div id="card-details-section" class="<?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'hidden' : '' ?> space-y-4 mt-4">
                                 <div>
                                     <label for="card_number" class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('card_number')) ?> *</label>
-                                    <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
+                                    <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="grid grid-cols-2 gap-2">
@@ -627,9 +627,15 @@ $dir = getHtmlDir();
 
                     <!-- Actions -->
                     <div class="mt-8 pt-6 border-t border-luxury-border space-y-4">
+                        <?php 
+                        $isFibSelected = (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '');
+                        $btnStyle = $isFibSelected ? 'style="background-color: #00A69C;"' : '';
+                        $btnText = $isFibSelected ? '<i class="fas fa-wallet"></i> ' . e(t('pay_with_fib')) : '<i class="fas fa-check-circle"></i> ' . e(t('place_order'));
+                        ?>
                         <button type="submit" id="place-order-btn"
-                                class="w-full bg-luxury-accent text-white py-4 px-6 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-bold shadow-lg uppercase tracking-widest text-sm flex items-center justify-center gap-2">
-                            <i class="fas fa-check-circle"></i> <?= e(t('place_order')) ?>
+                                class="w-full bg-luxury-accent text-white py-4 px-6 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-bold shadow-lg uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+                                <?= $btnStyle ?>>
+                            <?= $btnText ?>
                         </button>
                         
                         <a href="cart.php" 
@@ -803,11 +809,12 @@ $dir = getHtmlDir();
     });
     // Card number formatting
     document.getElementById('card_number')?.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\s+/g, '');
-        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-        if (formattedValue.length <= 19) {
-            e.target.value = formattedValue;
+        let value = e.target.value.replace(/\D/g, ''); // Only digits
+        if (value.length > 16) {
+            value = value.substr(0, 16);
         }
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue;
     });
     
     // Payment method selection visual feedback
@@ -830,12 +837,12 @@ $dir = getHtmlDir();
         if (cardNumber && paymentMethod) {
             let isValid = false;
             if (paymentMethod === 'visa') {
-                isValid = /^4\d{12,15}$/.test(cardNumber);
+                isValid = /^4\d{15}$/.test(cardNumber);
             } else if (paymentMethod === 'mastercard') {
                 isValid = /^5[1-5]\d{14}$/.test(cardNumber);
             }
             
-            if (!isValid && cardNumber.length >= 13) {
+            if (!isValid && cardNumber.length >= 16) {
                 this.setCustomValidity('<?= e(t('card_mismatch')) ?>');
                 this.classList.add('border-red-500');
             } else {
@@ -929,20 +936,39 @@ $dir = getHtmlDir();
         input.addEventListener('change', (e) => {
             const cardSection = document.getElementById('card-details-section');
             const cardInputs = cardSection.querySelectorAll('input, select');
+            const placeOrderBtn = document.getElementById('place-order-btn');
             
             if (e.target.value === 'fib') {
                 cardSection.classList.add('hidden');
                 cardInputs.forEach(i => i.removeAttribute('required'));
+                
+                // Update place order button for FIB
+                if (placeOrderBtn) {
+                    placeOrderBtn.style.backgroundColor = '#00A69C';
+                    placeOrderBtn.innerHTML = '<i class="fas fa-wallet"></i> <?= e(t('pay_with_fib')) ?>';
+                }
             } else {
                 cardSection.classList.remove('hidden');
                 cardInputs.forEach(i => i.setAttribute('required', ''));
+                
+                // Reset place order button
+                if (placeOrderBtn) {
+                    placeOrderBtn.style.backgroundColor = '';
+                    placeOrderBtn.innerHTML = '<i class="fas fa-check-circle"></i> <?= e(t('place_order')) ?>';
+                }
             }
             
             // Update UI styles
             document.querySelectorAll('.payment-method-option').forEach(opt => {
-                opt.classList.remove('border-luxury-accent', 'bg-luxury-border');
+                opt.classList.remove('border-luxury-accent', 'bg-luxury-border', 'border-[#00A69C]', 'bg-[#00A69C]/5');
             });
-            e.target.closest('.payment-method-option').classList.add('border-luxury-accent', 'bg-luxury-border');
+            
+            const selectedOption = e.target.closest('.payment-method-option');
+            if (e.target.value === 'fib') {
+                selectedOption.classList.add('border-[#00A69C]', 'bg-[#00A69C]/5');
+            } else {
+                selectedOption.classList.add('border-luxury-accent', 'bg-luxury-border');
+            }
         });
     });
 
@@ -950,9 +976,19 @@ $dir = getHtmlDir();
     const initialPaymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
     if (initialPaymentMethod === 'fib') {
         const cardSection = document.getElementById('card-details-section');
+        const placeOrderBtn = document.getElementById('place-order-btn');
         if (cardSection) {
             cardSection.classList.add('hidden');
             cardSection.querySelectorAll('input, select').forEach(i => i.removeAttribute('required'));
+        }
+        if (placeOrderBtn) {
+            placeOrderBtn.style.backgroundColor = '#00A69C';
+            placeOrderBtn.innerHTML = '<i class="fas fa-wallet"></i> <?= e(t('pay_with_fib')) ?>';
+        }
+        const fibOption = document.querySelector('input[value="fib"]')?.closest('.payment-method-option');
+        if (fibOption) {
+            fibOption.classList.remove('border-luxury-accent', 'bg-luxury-border');
+            fibOption.classList.add('border-[#00A69C]', 'bg-[#00A69C]/5');
         }
     }
     </script>

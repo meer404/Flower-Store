@@ -104,7 +104,7 @@ $currency = (string)getSystemSetting('currency', 'IQD ');
 
                 <?php $appLink = $fibPayment['personalAppLink'] ?? $order['fib_app_link'] ?? '#'; ?>
                 <a href="<?= e($appLink) ?>" 
-                   class="flex items-center justify-center gap-3 w-full bg-luxury-primary text-white py-4 rounded-xl font-bold hover:bg-luxury-secondary transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                   class="flex items-center justify-center gap-3 w-full bg-[#00A69C] text-white py-4 rounded-xl font-bold hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                     <i class="fas fa-external-link-alt"></i>
                     <?= e(t('open_in_fib')) ?>
                 </a>
