@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1)
+declare(strict_types=1)
 ;
 
 /**
@@ -13,7 +13,7 @@ return [
     'nav_shop' => 'Shop',
     'nav_login' => 'Login',
     'nav_logout' => 'Logout',
-    'nav_register' => 'Register',
+    'nav_register' => 'Sing Up',
     'nav_admin' => 'Admin',
     'nav_cart' => 'Cart',
     'nav_account' => 'My Account',

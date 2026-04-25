@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1)
+declare(strict_types=1)
 ;
 
 /**
@@ -17,27 +17,27 @@ return [
     'nav_admin' => 'بەڕێوەبردن',
     'nav_cart' => 'سەبەتە',
     'nav_account' => 'هەژماری من',
-    'nav_wishlist' => 'لیستی ئاوات',
+    'nav_wishlist' => 'لیستی دڵخواز',
     'profile' => 'پرۆفایل',
     'change_password' => 'گۆڕینی وشەی نهێنی',
     'super_admin' => 'بەڕێوەبەری باڵا',
     'my_orders' => 'داواکاریەکانم',
-    'my_wishlist' => 'لیستی ئاواتەکانم',
+    'my_wishlist' => 'لیستی دڵخوازەکانم',
     'notifications' => 'ئاگانامەکان',
-    'free_shipping_notice' => 'گەیاندنی خۆڕایی بۆ داواکاری سەرووی ٥٠ دۆلار',
+    'free_shipping_notice' => 'گەیاندنی خۆڕایی بۆ داواکاری سەرووی ٥٠ هەزار',
 
     // Hero Section
     'hero_title' => 'بەخێربێیت بۆ بلوم & ڤاین',
     'hero_subtitle' => 'گوڵی جوان بۆ هەموو بۆنەیەک',
-    'hero_cta' => 'ئێستا بفرۆشە',
+    'hero_cta' => 'ئێستا بکڕە',
     'fresh_flowers_daily' => 'گوڵی تازە ڕۆژانە',
     'view_featured' => 'بینینی هەڵبژێردراوەکان',
     'stats_products' => 'بەرهەم',
-    'stats_customers' => 'بەشداربووانی دڵخۆش',
+    'stats_customers' => 'بەشداربووان',
     'stats_quality' => 'کوالیتی تازە',
-    'stats_support' => 'پشتیبانی',
+    'stats_support' => 'پشتیوانی',
     'feature_delivery_title' => 'گەیاندنی خۆڕایی',
-    'feature_delivery_desc' => 'گەیاندنی خۆڕایی بۆ هەموو داواکاریەکان سەرووی ٥٠ دۆلار',
+    'feature_delivery_desc' => 'گەیاندنی خۆڕایی بۆ هەموو داواکاریەکان سەرووی ٥٠ هەزار',
     'feature_fresh_title' => 'هەمیشە تازە',
     'feature_fresh_desc' => 'گوڵی تازە ڕۆژانە دەگات',
     'feature_quality_title' => 'کوالیتی گرەنتی کراوە',
@@ -454,7 +454,7 @@ return [
     'order_updated_success' => 'داواکاری بە سەرکەوتوویی نوێکرایەوە',
 
     // Wishlist
-    'my_wishlist' => 'لیستی ئاواتەکانم',
+    'my_wishlist' => 'لیستی دڵخوازەکانم',
     'wishlist_empty' => 'لیستی ئاواتەکانت بەتاڵە.',
     'wishlist_title' => 'لیستی ئاوات',
     'wishlist_added' => 'زیادکرایەوە بۆ لیستی ئاوات',
