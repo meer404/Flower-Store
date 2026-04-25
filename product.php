@@ -353,6 +353,9 @@ $dir = getHtmlDir();
             const quantityInput = document.getElementById('quantityInput');
             const displayTotalPrice = document.getElementById('displayTotalPrice');
             const basePrice = parseFloat(document.getElementById('basePrice')?.value || 0);
+            const currency = <?= json_encode((string)getSystemSetting('currency', 'IQD ')) ?>;
+            const usdToIqdRate = <?= json_encode((float)getSystemSetting('usd_to_iqd_rate', 1300)) ?>;
+            const isIqd = <?= (strtoupper(trim((string)getSystemSetting('currency', 'IQD '))) === 'IQD' || str_starts_with(strtoupper(trim((string)getSystemSetting('currency', 'IQD '))), 'IQD')) ? 'true' : 'false' ?>;
             
             function updatePrice() {
                 if(!displayTotalPrice) return;
@@ -364,8 +367,11 @@ $dir = getHtmlDir();
                 });
                 const qty = parseInt(quantityInput?.value || 1);
                 const total = (basePrice + additionalPrice) * qty;
-                
-                displayTotalPrice.textContent = '$' + total.toFixed(2);
+
+                const converted = isIqd ? (total * (usdToIqdRate || 1300)) : total;
+                const decimals = isIqd ? 0 : 2;
+                const formatted = Number(converted).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+                displayTotalPrice.textContent = (isIqd ? (currency.trim() + ' ') : currency) + formatted;
             }
             
             variantInputs.forEach(input => input.addEventListener('change', updatePrice));

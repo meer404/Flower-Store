@@ -14,7 +14,9 @@ require_once __DIR__ . '/src/components.php';
 $pdo = getDB();
 $cartItems = [];
 $cartTotal = 0.0;
-$currency = (string)getSystemSetting('currency', '$');
+$currency = (string)getSystemSetting('currency', 'IQD ');
+$usdToIqdRate = (float)getSystemSetting('usd_to_iqd_rate', 1300);
+$isIqdCurrency = strtoupper(trim($currency)) === 'IQD' || str_starts_with(strtoupper(trim($currency)), 'IQD');
 
 // Get cart items with product details - supports compound keys like "12_v_3_5"
 if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION['cart'])) {
@@ -420,7 +422,9 @@ $dir = getHtmlDir();
         'store' => getStoreCoordinates(),
         'tiers' => getDeliveryFeeTiers(),
         'outerFee' => getOuterZoneDeliveryFee(),
-        'currency' => $currency
+        'currency' => $currency,
+        'isIqd' => $isIqdCurrency,
+        'usdToIqdRate' => $usdToIqdRate
     ], JSON_UNESCAPED_SLASHES) ?>;
 
     const cartDeliveryMessages = {
@@ -438,7 +442,10 @@ $dir = getHtmlDir();
     };
 
     function cartFormatMoney(amount) {
-        return `${cartDeliveryConfig.currency}${amount.toFixed(2)}`;
+        const a = cartDeliveryConfig.isIqd ? (amount * (cartDeliveryConfig.usdToIqdRate || 1300)) : amount;
+        const decimals = cartDeliveryConfig.isIqd ? 0 : 2;
+        const formatted = Number(a).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        return `${cartDeliveryConfig.currency}${cartDeliveryConfig.isIqd ? ' ' : ''}${formatted}`;
     }
 
     function cartHaversineKm(lat1, lng1, lat2, lng2) {

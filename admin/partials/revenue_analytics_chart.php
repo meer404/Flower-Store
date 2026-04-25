@@ -14,6 +14,9 @@ if (!isset($revenueChartDatasets) || !is_array($revenueChartDatasets)) {
 $accent = ($chartAccent ?? 'admin') === 'super' ? 'super' : 'admin';
 $primaryRgb = $accent === 'super' ? '220, 38, 38' : '124, 58, 237';
 $canvasId = $accent === 'super' ? 'revenueAnalyticsChartSuper' : 'revenueAnalyticsChartAdmin';
+$currency = (string)getSystemSetting('currency', 'IQD ');
+$usdToIqdRate = (float)getSystemSetting('usd_to_iqd_rate', 1300);
+$isIqdCurrency = strtoupper(trim($currency)) === 'IQD' || str_starts_with(strtoupper(trim($currency)), 'IQD');
 ?>
                 <div class="revenue-analytics-widget bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-8 lg:mb-12">
                     <div class="px-6 py-5 sm:px-8 sm:py-6 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -51,6 +54,9 @@ $canvasId = $accent === 'super' ? 'revenueAnalyticsChartSuper' : 'revenueAnalyti
 
                     const primaryRgb = '<?= e($primaryRgb) ?>';
                     const accent = '<?= e($accent) ?>';
+                    const currency = <?= json_encode($currency) ?>;
+                    const isIqd = <?= $isIqdCurrency ? 'true' : 'false' ?>;
+                    const usdToIqdRate = <?= json_encode($usdToIqdRate) ?>;
                     const tabRoot = canvas.closest('.revenue-analytics-widget') || document;
                     let chart = null;
 
@@ -138,7 +144,10 @@ $canvasId = $accent === 'super' ? 'revenueAnalyticsChartSuper' : 'revenueAnalyti
                                         grid: { color: 'rgba(0,0,0,0.05)' },
                                         ticks: {
                                             callback: function (value) {
-                                                return '$' + Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
+                                                const v = Number(value);
+                                                const converted = isIqd ? (v * (usdToIqdRate || 1300)) : v;
+                                                const formatted = Number(converted).toLocaleString(undefined, { maximumFractionDigits: 0 });
+                                                return (isIqd ? (currency.trim() + ' ') : currency) + formatted;
                                             }
                                         }
                                     },

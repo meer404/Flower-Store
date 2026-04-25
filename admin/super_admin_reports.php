@@ -17,6 +17,9 @@ requirePermission('view_reports');
 $pdo = getDB();
 $lang = getCurrentLang();
 $dir = getHtmlDir();
+$currency = (string)getSystemSetting('currency', 'IQD ');
+$usdToIqdRate = (float)getSystemSetting('usd_to_iqd_rate', 1300);
+$isIqdCurrency = strtoupper(trim($currency)) === 'IQD' || str_starts_with(strtoupper(trim($currency)), 'IQD');
 
 $period = sanitizeInput('period', 'GET', 'month');
 if (!in_array($period, ['day', 'week', 'month', 'year'])) {
@@ -80,10 +83,10 @@ $report = getSalesReport($period);
                     $avgOrderValue = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
                     $paidRevenue = array_sum(array_column($report['sales_data'], 'paid_revenue'));
                     ?>
-                    <?= statsCard(t('total_revenue'), formatPrice($totalRevenue), 'fas fa-dollar-sign text-3xl', 'green') ?>
+                    <?= statsCard(t('total_revenue'), formatPrice($totalRevenue, $currency), 'fas fa-coins text-3xl', 'green') ?>
                     <?= statsCard(t('total_orders'), (string)$totalOrders, 'fas fa-shopping-bag text-3xl', 'blue') ?>
-                    <?= statsCard(t('paid_revenue'), formatPrice($paidRevenue), 'fas fa-check-circle text-3xl', 'purple') ?>
-                    <?= statsCard(t('avg_order_value'), formatPrice($avgOrderValue), 'fas fa-chart-bar text-3xl', 'orange') ?>
+                    <?= statsCard(t('paid_revenue'), formatPrice($paidRevenue, $currency), 'fas fa-check-circle text-3xl', 'purple') ?>
+                    <?= statsCard(t('avg_order_value'), formatPrice($avgOrderValue, $currency), 'fas fa-chart-bar text-3xl', 'orange') ?>
                 </div>
 
                 <!-- Sales Chart -->
@@ -220,6 +223,9 @@ $report = getSalesReport($period);
     <script>
         // Sales Chart
         const salesData = <?= json_encode($report['sales_data']) ?>;
+        const currency = <?= json_encode($currency) ?>;
+        const isIqd = <?= $isIqdCurrency ? 'true' : 'false' ?>;
+        const usdToIqdRate = <?= json_encode($usdToIqdRate) ?>;
         const ctx = document.getElementById('salesChart').getContext('2d');
         
         new Chart(ctx, {
@@ -308,7 +314,10 @@ $report = getSalesReport($period);
                         },
                         ticks: {
                             callback: function(value) {
-                                return '$' + value;
+                                const v = Number(value);
+                                const converted = isIqd ? (v * (usdToIqdRate || 1300)) : v;
+                                const formatted = Number(converted).toLocaleString(undefined, { maximumFractionDigits: 0 });
+                                return (isIqd ? (currency.trim() + ' ') : currency) + formatted;
                             },
                             font: {
                                 family: "'Inter', sans-serif"

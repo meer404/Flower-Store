@@ -53,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'site_name' => sanitizeInput('site_name', 'POST'),
             'site_email' => sanitizeInput('site_email', 'POST'),
             'currency' => sanitizeInput('currency', 'POST'),
+            'usd_to_iqd_rate' => sanitizeInput('usd_to_iqd_rate', 'POST'),
             'tax_rate' => sanitizeInput('tax_rate', 'POST'),
             'shipping_cost' => sanitizeInput('shipping_cost', 'POST'),
             'delivery_outer_fee' => sanitizeInput('delivery_outer_fee', 'POST'),
@@ -63,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             foreach ($settings as $key => $value) {
                 $type = 'string';
-                if (in_array($key, ['tax_rate', 'shipping_cost', 'delivery_outer_fee', 'max_upload_size'])) {
+                if (in_array($key, ['usd_to_iqd_rate', 'tax_rate', 'shipping_cost', 'delivery_outer_fee', 'max_upload_size'])) {
                     $type = 'number';
                 } elseif ($key === 'maintenance_mode') {
                     $type = 'boolean';
@@ -89,7 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $currentSettings = [
     'site_name' => getSystemSetting('site_name', 'Bloom & Vine'),
     'site_email' => getSystemSetting('site_email', 'info@bloomandvine.com'),
-    'currency' => getSystemSetting('currency', '$'),
+    'currency' => getSystemSetting('currency', 'IQD '),
+    'usd_to_iqd_rate' => getSystemSetting('usd_to_iqd_rate', 1300),
     'tax_rate' => getSystemSetting('tax_rate', 0),
     'shipping_cost' => getSystemSetting('shipping_cost', 0),
     'delivery_outer_fee' => getSystemSetting('delivery_outer_fee', 0),
@@ -182,6 +184,13 @@ $csrfToken = generateCSRFToken();
                                     <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('currency_symbol')) ?></label>
                                     <input type="text" name="currency" value="<?= e($currentSettings['currency']) ?>" required maxlength="5"
                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">USD → IQD Rate</label>
+                                    <input type="number" name="usd_to_iqd_rate" value="<?= e((string)$currentSettings['usd_to_iqd_rate']) ?>" min="1" step="1"
+                                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                    <p class="text-xs text-gray-500 mt-1">Used to convert stored USD prices to IQD for display.</p>
                                 </div>
                             </div>
                         </div>
@@ -318,7 +327,9 @@ $csrfToken = generateCSRFToken();
     const deliveryMapConfig = <?= json_encode([
         'store' => getStoreCoordinates(),
         'tiers' => $deliveryTiers,
-        'currency' => $currentSettings['currency']
+        'currency' => $currentSettings['currency'],
+        'isIqd' => (strtoupper(trim((string)$currentSettings['currency'])) === 'IQD' || str_starts_with(strtoupper(trim((string)$currentSettings['currency'])), 'IQD')),
+        'usdToIqdRate' => (float)getSystemSetting('usd_to_iqd_rate', 1300)
     ], JSON_UNESCAPED_SLASHES) ?>;
 
     const deliveryMapLabels = {
@@ -394,14 +405,21 @@ $csrfToken = generateCSRFToken();
                 draggable: true
             }).addTo(map);
 
-            handle.bindTooltip(`${deliveryMapLabels.distanceKm} ${maxKm.toFixed(1)} km\n${deliveryMapLabels.fee} ${deliveryMapConfig.currency}${parseFloat(feeInput?.value || '0').toFixed(2)}`,
+            function feeLabel(feeValue) {
+                const amount = deliveryMapConfig.isIqd ? (feeValue * (deliveryMapConfig.usdToIqdRate || 1300)) : feeValue;
+                const decimals = deliveryMapConfig.isIqd ? 0 : 2;
+                const formatted = Number(amount).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+                return `${deliveryMapConfig.currency}${deliveryMapConfig.isIqd ? ' ' : ''}${formatted}`;
+            }
+
+            handle.bindTooltip(`${deliveryMapLabels.distanceKm} ${maxKm.toFixed(1)} km\n${deliveryMapLabels.fee} ${feeLabel(parseFloat(feeInput?.value || '0'))}`,
                 {direction: 'top', offset: [0, -8]});
 
             handle.on('drag', () => {
                 const distanceMeters = map.distance(storeLatLng, handle.getLatLng());
                 circle.setRadius(distanceMeters);
                 updateRowFromRadius(index, distanceMeters);
-                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${radiusToKm(distanceMeters).toFixed(1)} km\n${deliveryMapLabels.fee} ${deliveryMapConfig.currency}${parseFloat(feeInput?.value || '0').toFixed(2)}`);
+                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${radiusToKm(distanceMeters).toFixed(1)} km\n${deliveryMapLabels.fee} ${feeLabel(parseFloat(feeInput?.value || '0'))}`);
             });
 
             maxInput?.addEventListener('input', () => {
@@ -409,12 +427,12 @@ $csrfToken = generateCSRFToken();
                 const radius = kmToRadiusMeters(value);
                 circle.setRadius(radius);
                 syncHandle(index);
-                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${value.toFixed(1)} km\n${deliveryMapLabels.fee} ${deliveryMapConfig.currency}${parseFloat(feeInput?.value || '0').toFixed(2)}`);
+                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${value.toFixed(1)} km\n${deliveryMapLabels.fee} ${feeLabel(parseFloat(feeInput?.value || '0'))}`);
             });
 
             feeInput?.addEventListener('input', () => {
                 const currentRadius = radiusToKm(circle.getRadius());
-                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${currentRadius.toFixed(1)} km\n${deliveryMapLabels.fee} ${deliveryMapConfig.currency}${parseFloat(feeInput.value || '0').toFixed(2)}`);
+                handle.setTooltipContent(`${deliveryMapLabels.distanceKm} ${currentRadius.toFixed(1)} km\n${deliveryMapLabels.fee} ${feeLabel(parseFloat(feeInput.value || '0'))}`);
             });
 
             tierState[index] = { row: { maxInput, feeInput }, circle, handle };

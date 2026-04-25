@@ -23,7 +23,9 @@ $availableExtras = getAvailableExtras();
 // Get cart items - supports compound keys like "12_v_3_5"
 $cartItems = [];
 $cartTotal = 0.0;
-$currency = (string)getSystemSetting('currency', '$');
+$currency = (string)getSystemSetting('currency', 'IQD ');
+$usdToIqdRate = (float)getSystemSetting('usd_to_iqd_rate', 1300);
+$isIqdCurrency = strtoupper(trim($currency)) === 'IQD' || str_starts_with(strtoupper(trim($currency)), 'IQD');
 
 if (isset($_SESSION['cart']) && is_array($_SESSION['cart']) && !empty($_SESSION['cart'])) {
     $cartKeys = array_keys($_SESSION['cart']);
@@ -303,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $customerBody = "<h1>" . t('thank_you_for_order') . "</h1>";
                             $customerBody .= "<p>" . t('order_details_below') . "</p>";
                             $customerBody .= "<p><strong>" . t('order_id') . ":</strong> {$orderId}</p>";
-                            $customerBody .= "<p><strong>" . t('grand_total') . ":</strong> {$currency}{$grandTotal}</p>";
+                            $customerBody .= "<p><strong>" . t('grand_total') . ":</strong> " . formatPrice((float)$grandTotal, $currency) . "</p>";
                             $customerBody .= "<p><strong>" . t('shipping_address') . ":</strong> {$shippingAddress}</p>";
                             $customerBody .= "<p>" . t('track_order_in_account') . "</p>";
                             sendEmail($customerEmail, $customerSubject, $customerBody);
@@ -316,7 +318,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $adminBody .= "<p>" . t('order_details_below') . "</p>";
                             $adminBody .= "<p><strong>" . t('order_id') . ":</strong> {$orderId}</p>";
                             $adminBody .= "<p><strong>" . t('customer') . ":</strong> {$user['full_name']} ({$user['email']})</p>";
-                            $adminBody .= "<p><strong>" . t('grand_total') . ":</strong> {$currency}{$grandTotal}</p>";
+                            $adminBody .= "<p><strong>" . t('grand_total') . ":</strong> " . formatPrice((float)$grandTotal, $currency) . "</p>";
                             $adminBody .= "<p><a href='" . getSiteURL() . "/admin/order_details.php?id={$orderId}'>" . t('view_order_details') . "</a></p>";
                             sendEmail($adminEmail, $adminSubject, $adminBody);
                             
@@ -394,7 +396,7 @@ $dir = getHtmlDir();
                     </div>
                     <div class="flex justify-between items-center text-sm text-luxury-textLight">
                         <span><?= e(t('extras_total')) ?></span>
-                        <span id="extras-total-amount">$0.00</span>
+                        <span id="extras-total-amount"><?= e(formatPrice(0.0, $currency)) ?></span>
                     </div>
                     <div class="flex justify-between items-center text-sm text-luxury-textLight pt-2 border-t border-luxury-border">
                         <span class="text-md md:text-lg text-luxury-primary"><?= e(t('subtotal')) ?>:</span>
@@ -647,7 +649,9 @@ $dir = getHtmlDir();
         'store' => getStoreCoordinates(),
         'tiers' => getDeliveryFeeTiers(),
         'outerFee' => getOuterZoneDeliveryFee(),
-        'currency' => $currency
+        'currency' => $currency,
+        'isIqd' => $isIqdCurrency,
+        'usdToIqdRate' => $usdToIqdRate
     ], JSON_UNESCAPED_SLASHES) ?>;
 
     const deliveryMessages = {
@@ -673,7 +677,10 @@ $dir = getHtmlDir();
     };
 
     function formatMoney(amount) {
-        return `${deliveryConfig.currency}${amount.toFixed(2)}`;
+        const a = deliveryConfig.isIqd ? (amount * (deliveryConfig.usdToIqdRate || 1300)) : amount;
+        const decimals = deliveryConfig.isIqd ? 0 : 2;
+        const formatted = Number(a).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        return `${deliveryConfig.currency}${deliveryConfig.isIqd ? ' ' : ''}${formatted}`;
     }
 
     function haversineKm(lat1, lng1, lat2, lng2) {
@@ -886,7 +893,7 @@ $dir = getHtmlDir();
             }
         });
         
-        // Update hidden input
+        // Update hidden input (store in base currency units, same as DB)
         extrasTotalInput.value = extrasTotal.toFixed(2);
         
         // Update display

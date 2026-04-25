@@ -276,10 +276,20 @@ function verifyCSRFToken(string $token): bool {
  * Format price with currency symbol
  * 
  * @param float $price Price to format
- * @param string $currency Currency symbol (default: $)
+ * @param string|null $currency Currency symbol (default: system setting)
  * @return string Formatted price string
  */
-function formatPrice(float $price, string $currency = '$'): string {
+function formatPrice(float $price, ?string $currency = null): string {
+    $currency = $currency ?? (string)getSystemSetting('currency', 'IQD');
+    $currencyTrim = strtoupper(trim($currency));
+
+    $isIqd = $currencyTrim === 'IQD' || str_starts_with($currencyTrim, 'IQD');
+    if ($isIqd) {
+        // Since we converted the database to IQD, we no longer multiply by a rate.
+        // IQD is typically shown without decimals.
+        return rtrim($currency) . ' ' . number_format($price, 0);
+    }
+
     return $currency . number_format($price, 2);
 }
 
@@ -326,10 +336,10 @@ function haversineDistanceKm(float $lat1, float $lng1, float $lat2, float $lng2)
  */
 function getDeliveryFeeTiers(): array {
     $defaultTiers = [
-        ['max' => 5.0, 'fee' => 1.0],
-        ['max' => 10.0, 'fee' => 3.0],
-        ['max' => 15.0, 'fee' => 6.0],
-        ['max' => 20.0, 'fee' => 9.0],
+        ['max' => 5.0, 'fee' => 1500.0],
+        ['max' => 10.0, 'fee' => 4000.0],
+        ['max' => 15.0, 'fee' => 8000.0],
+        ['max' => 20.0, 'fee' => 12000.0],
     ];
 
     $storedTiers = getSystemSetting('delivery_fee_tiers', null);

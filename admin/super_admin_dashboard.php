@@ -18,6 +18,7 @@ requirePermission('view_reports');
 $pdo = getDB();
 $lang = getCurrentLang();
 $dir = getHtmlDir();
+$currency = (string)getSystemSetting('currency', 'IQD ');
 
 // Get comprehensive statistics
 $stats = [];
@@ -115,7 +116,7 @@ $recentOrders = $stmt->fetchAll();
                         </div>
                         <div class="bg-white/10 backdrop-blur-sm px-8 py-6 rounded-2xl border border-white/20 hover:bg-white/20 transition-colors cursor-default">
                             <p class="text-sm text-red-200 mb-1"><?= e(t('total_system_revenue')) ?></p>
-                            <p class="text-4xl font-bold text-white font-luxury"><?= e(formatPrice($stats['total_revenue'])) ?></p>
+                            <p class="text-4xl font-bold text-white font-luxury"><?= e(formatPrice($stats['total_revenue'], $currency)) ?></p>
                         </div>
                     </div>
                 </div>
@@ -182,15 +183,15 @@ $recentOrders = $stmt->fetchAll();
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                         <?= statsCard('Total Orders', (string)$stats['total_orders'], 'fas fa-shopping-bag text-3xl', 'blue') ?>
-                        <?= statsCard('Total Revenue', formatPrice($stats['total_revenue']), 'fas fa-dollar-sign text-3xl', 'green') ?>
+                        <?= statsCard('Total Revenue', formatPrice($stats['total_revenue'], $currency), 'fas fa-coins text-3xl', 'green') ?>
                         <?= statsCard('Total Products', (string)$stats['total_products'], 'fas fa-box text-3xl', 'purple') ?>
                         <?= statsCard('Total Customers', (string)$stats['total_customers'], 'fas fa-users text-3xl', 'orange') ?>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <?= statsCard(t('todays_revenue'), formatPrice($stats['today_revenue']), 'fas fa-calendar-day text-3xl', 'gold') ?>
-                        <?= statsCard(t('week_revenue'), formatPrice($stats['week_revenue']), 'fas fa-calendar-week text-3xl', 'green') ?>
-                        <?= statsCard(t('month_revenue'), formatPrice($stats['month_revenue']), 'fas fa-calendar-alt text-3xl', 'purple') ?>
+                        <?= statsCard(t('todays_revenue'), formatPrice($stats['today_revenue'], $currency), 'fas fa-calendar-day text-3xl', 'gold') ?>
+                        <?= statsCard(t('week_revenue'), formatPrice($stats['week_revenue'], $currency), 'fas fa-calendar-week text-3xl', 'green') ?>
+                        <?= statsCard(t('month_revenue'), formatPrice($stats['month_revenue'], $currency), 'fas fa-calendar-alt text-3xl', 'purple') ?>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -230,7 +231,7 @@ $recentOrders = $stmt->fetchAll();
                                                 </div>
                                             </div>
                                             <div class="text-end">
-                                                <p class="font-bold text-green-600"><?= e(formatPrice((float)$order['grand_total'])) ?></p>
+                                                <p class="font-bold text-green-600"><?= e(formatPrice((float)$order['grand_total'], $currency)) ?></p>
                                                 <span class="inline-flex px-2 py-1 text-[10px] font-bold uppercase tracking-wide rounded-full <?= $order['payment_status'] === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' ?>">
                                                     <?= e($order['payment_status']) ?>
                                                 </span>

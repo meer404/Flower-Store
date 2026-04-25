@@ -167,7 +167,7 @@ $dir = getHtmlDir();
                         <!-- Price Range Filter -->
                         <div class="mb-6">
                             <label class="block text-sm font-bold text-luxury-primary mb-3 uppercase tracking-wider">
-                                <i class="fas fa-dollar-sign me-2"></i><?= e(t('price')) ?>
+                                <i class="fas fa-coins me-2"></i><?= e(t('price')) ?>
                             </label>
                             <div class="flex gap-2">
                                 <input type="number" name="min_price" value="<?= e((string)$minPrice) ?>" placeholder="<?= e(t('min_price')) ?>" min="0" step="1"
