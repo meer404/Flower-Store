@@ -12,6 +12,7 @@ $receivedState = sanitizeInput('state', 'GET');
 // CSRF protection using the OAuth state value.
 if ($expectedState === '' || $receivedState === '' || !hash_equals($expectedState, $receivedState)) {
     unset($_SESSION['google_oauth_state']);
+    error_log('Google OAuth state mismatch or missing state.');
     redirect('login.php', t('google_login_failed'), 'error');
 }
 
@@ -19,10 +20,16 @@ unset($_SESSION['google_oauth_state']);
 
 $code = sanitizeInput('code', 'GET');
 if ($code === '') {
+    error_log('Google OAuth missing authorization code.');
     redirect('login.php', t('google_login_failed'), 'error');
 }
 
 $config = loadGoogleOAuthConfig();
+
+if (empty($config['client_id']) || empty($config['client_secret']) || empty($config['redirect_uri'])) {
+    error_log('Google OAuth config missing required values during callback.');
+    redirect('login.php', t('google_login_failed'), 'error');
+}
 
 $client = new Google\Client();
 $client->setClientId($config['client_id']);
@@ -41,13 +48,19 @@ $client->setAccessToken($token);
 $idToken = $token['id_token'] ?? null;
 $payload = $idToken ? $client->verifyIdToken($idToken) : null;
 if (!is_array($payload) || empty($payload['email']) || empty($payload['email_verified'])) {
+    error_log('Google OAuth ID token verification failed.');
     redirect('login.php', t('google_login_failed'), 'error');
 }
 
 $email = (string)$payload['email'];
 
-$oauthService = new Google\Service\Oauth2($client);
-$userInfo = $oauthService->userinfo->get();
+try {
+    $oauthService = new Google\Service\Oauth2($client);
+    $userInfo = $oauthService->userinfo->get();
+} catch (Exception $e) {
+    error_log('Google OAuth userinfo error: ' . $e->getMessage());
+    redirect('login.php', t('google_login_failed'), 'error');
+}
 
 $fullName = trim((string)($userInfo->name ?? ''));
 $picture = trim((string)($userInfo->picture ?? ''));

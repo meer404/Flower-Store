@@ -14,6 +14,11 @@ if (isLoggedIn()) {
 
 $config = loadGoogleOAuthConfig();
 
+if (empty($config['client_id']) || empty($config['client_secret']) || empty($config['redirect_uri'])) {
+    error_log('Google OAuth config missing required values.');
+    redirect('login.php', t('google_login_failed'), 'error');
+}
+
 $state = bin2hex(random_bytes(16));
 $_SESSION['google_oauth_state'] = $state;
 $_SESSION['oauth_redirect'] = $redirectTarget;
