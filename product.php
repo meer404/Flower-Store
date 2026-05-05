@@ -30,6 +30,13 @@ if (!$product) {
     redirect('shop.php', e(t('product_not_found')), 'error');
 }
 
+if (!empty($product['expiry_date'])) {
+    $expiryDateObj = DateTimeImmutable::createFromFormat('Y-m-d', (string)$product['expiry_date']);
+    if ($expiryDateObj && $expiryDateObj <= new DateTimeImmutable('today')) {
+        redirect('shop.php', e(t('product_not_found')), 'error');
+    }
+}
+
 // Increment view count
 $stmt = $pdo->prepare('UPDATE products SET views = views + 1 WHERE id = :id');
 $stmt->execute(['id' => $productId]);
@@ -67,7 +74,7 @@ $reviewCount = $ratingData ? (int)$ratingData['review_count'] : 0;
 $stmt = $pdo->prepare('SELECT p.*, c.name_en as category_name_en, c.name_ku as category_name_ku 
                        FROM products p 
                        JOIN categories c ON p.category_id = c.id 
-                       WHERE p.category_id = :category_id AND p.id != :id AND p.stock_qty > 0 
+                       WHERE p.category_id = :category_id AND p.id != :id AND p.stock_qty > 0 AND (p.expiry_date IS NULL OR p.expiry_date > CURDATE())
                        ORDER BY p.is_featured DESC, p.created_at DESC 
                        LIMIT 4');
 $stmt->execute(['category_id' => $product['category_id'], 'id' => $productId]);

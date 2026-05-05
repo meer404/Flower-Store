@@ -71,6 +71,7 @@ return [
     'orders_management' => 'بەڕێوەبردنی داواکاریەکان',
     'add_new_product' => 'زیادکردنی بەرهەمی نوێ',
     'products_desc' => 'بەڕێوەبردنی هەموو کەتەلۆگی بەرهەمەکان',
+    'expired_products_desc' => 'بینین و بەڕێوەبردنی بەرهەمە تێکچووەکان',
     'orders_desc' => 'بەڕێوەبردن و بەدواداچوونی داواکاری کڕیاران',
     'all_products' => 'هەموو بەرهەمەکان',
     'total_products_count' => 'کۆی گشتی: :count بەرهەم',
@@ -103,6 +104,7 @@ return [
     'cart_table_product' => 'بەرهەم',
     'cart_table_action' => 'کردار',
     'cart_items_title' => 'کاڵاکانی سەبەتە',
+    'mark_as_expired' => 'دیاریکردنی بەرهەم وەک تێکچوو',
 
     // Authentication
     'login_title' => 'چوونەژوورەوە',
@@ -286,6 +288,9 @@ return [
     'yearly' => 'ساڵانە',
     'total_cost' => 'کۆی تێچوو',
     'net_profit' => 'قازانجی کۆتایی',
+    'loss_amount' => 'بڕی زەرەر',
+    'damaged_goods_cost' => 'تێچووی کاڵای زیانپێگەیشتوو',
+    'damaged_goods_hint' => 'کۆی دەستی بۆ کاڵای زیانپێگەیشتوو (بڕی کڕین).',
     'expired_products' => 'کاڵای تێکچوو',
     'units_sold' => 'دانە فرۆشراو',
     'profit_loss' => 'قازانج/زەرەر',

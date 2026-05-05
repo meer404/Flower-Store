@@ -76,12 +76,19 @@ try {
             redirect($fallbackRedirect, t('error'), 'error');
         }
 
-        $stmt = $pdo->prepare('SELECT id, stock_qty FROM products WHERE id = :id');
+        $stmt = $pdo->prepare('SELECT id, stock_qty, expiry_date FROM products WHERE id = :id');
         $stmt->execute(['id' => $productId]);
         $product = $stmt->fetch();
 
         if (!$product) {
             redirect($fallbackRedirect, t('error'), 'error');
+        }
+
+        if (!empty($product['expiry_date'])) {
+            $expiryDateObj = DateTimeImmutable::createFromFormat('Y-m-d', (string)$product['expiry_date']);
+            if ($expiryDateObj && $expiryDateObj <= new DateTimeImmutable('today')) {
+                redirect($fallbackRedirect, t('out_of_stock'), 'error');
+            }
         }
 
         $stockQty = (int)($product['stock_qty'] ?? 0);
@@ -118,12 +125,20 @@ try {
         $baseIdParts = explode('_v_', $targetKey);
         $baseId = (int)$baseIdParts[0];
 
-        $stmt = $pdo->prepare('SELECT id, stock_qty FROM products WHERE id = :id');
+        $stmt = $pdo->prepare('SELECT id, stock_qty, expiry_date FROM products WHERE id = :id');
         $stmt->execute(['id' => $baseId]);
         $product = $stmt->fetch();
         if (!$product) {
             unset($_SESSION['cart'][$targetKey]);
             redirect('cart.php', t('error'), 'error');
+        }
+
+        if (!empty($product['expiry_date'])) {
+            $expiryDateObj = DateTimeImmutable::createFromFormat('Y-m-d', (string)$product['expiry_date']);
+            if ($expiryDateObj && $expiryDateObj <= new DateTimeImmutable('today')) {
+                unset($_SESSION['cart'][$targetKey]);
+                redirect('cart.php', t('out_of_stock'), 'error');
+            }
         }
 
         $stockQty = (int)($product['stock_qty'] ?? 0);

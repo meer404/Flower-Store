@@ -31,7 +31,7 @@ $colors = $pdo->query('SELECT DISTINCT color FROM products WHERE color IS NOT NU
 $occasions = $pdo->query('SELECT DISTINCT occasion FROM products WHERE occasion IS NOT NULL AND occasion != "" ORDER BY occasion')->fetchAll(PDO::FETCH_COLUMN);
 
 // Build product query
-$whereConditions = ['p.stock_qty > 0'];
+$whereConditions = ['p.stock_qty > 0', '(p.expiry_date IS NULL OR p.expiry_date > CURDATE())'];
 $params = [];
 
 if (!empty($search)) {

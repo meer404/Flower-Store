@@ -65,6 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $costPrice = (float)str_replace(',', '', $costPriceRaw);
         $stockQty = (int)sanitizeInput('stock_qty', 'POST');
         $expiryDateInput = sanitizeInput('expiry_date', 'POST');
+        $markExpired = isset($_POST['is_expired_product']);
+        if ($markExpired) {
+            $expiryDateInput = (new DateTimeImmutable('today'))->format('Y-m-d');
+        }
         $color = sanitizeInput('color', 'POST');
         $occasion = sanitizeInput('occasion', 'POST');
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
@@ -74,7 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = t('product_error');
         } else {
             $expiryDate = null;
-            if ($expiryDateInput !== '') {
+            if ($markExpired) {
+                $expiryDate = (new DateTimeImmutable('today'))->format('Y-m-d');
+            } elseif ($expiryDateInput !== '') {
                 $expiryDateObject = DateTime::createFromFormat('Y-m-d', $expiryDateInput);
                 $expiryDate = ($expiryDateObject && $expiryDateObject->format('Y-m-d') === $expiryDateInput) ? $expiryDateInput : null;
                 if ($expiryDate === null) {
@@ -189,6 +195,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
+    }
+}
+
+$isExpiredChecked = false;
+if (!empty($product['expiry_date'])) {
+    $expiryDateObj = DateTimeImmutable::createFromFormat('Y-m-d', (string)$product['expiry_date']);
+    if ($expiryDateObj && $expiryDateObj <= new DateTimeImmutable('today')) {
+        $isExpiredChecked = true;
     }
 }
 
@@ -336,6 +350,20 @@ $dir = getHtmlDir();
                                             <input type="date" id="expiry_date" name="expiry_date"
                                                    value="<?= e($product['expiry_date'] ?? '') ?>"
                                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+
+                                        <div class="md:col-span-2">
+                                            <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                                                <div class="relative flex items-center">
+                                                    <input type="checkbox" id="is_expired_product" name="is_expired_product" value="1"
+                                                           <?= $isExpiredChecked ? 'checked' : '' ?>
+                                                           class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-red-600 checked:bg-red-600">
+                                                    <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                                    </div>
+                                                </div>
+                                                <span class="text-sm font-bold text-gray-700"><?= e(t('mark_as_expired')) ?></span>
+                                            </label>
                                         </div>
                                         
                                         <div class="md:col-span-2">
@@ -567,6 +595,31 @@ $dir = getHtmlDir();
             });
         }
         
+        const expiryCheckbox = document.getElementById('is_expired_product');
+        const expiryDateInput = document.getElementById('expiry_date');
+
+        function setTodayDateValue() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        if (expiryCheckbox && expiryDateInput) {
+            const syncExpiryState = () => {
+                if (expiryCheckbox.checked) {
+                    expiryDateInput.value = setTodayDateValue();
+                    expiryDateInput.setAttribute('disabled', 'disabled');
+                } else {
+                    expiryDateInput.removeAttribute('disabled');
+                }
+            };
+
+            expiryCheckbox.addEventListener('change', syncExpiryState);
+            syncExpiryState();
+        }
+
         function addVariantRow() {
             const container = document.getElementById('variantsContainer');
             const row = document.createElement('div');

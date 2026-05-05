@@ -32,6 +32,11 @@ $today = new DateTimeImmutable('today');
 $plPeriod = sanitizeInput('pl_period', 'GET', 'month');
 $plStartInput = sanitizeInput('pl_start', 'GET');
 $plEndInput = sanitizeInput('pl_end', 'GET');
+$damagedCostRaw = sanitizeInput('damaged_cost', 'GET');
+$damagedCost = (float)str_replace(',', '', $damagedCostRaw);
+if ($damagedCost < 0) {
+    $damagedCost = 0.0;
+}
 $plPeriods = ['day', 'week', 'month', 'year', 'custom'];
 
 if (!in_array($plPeriod, $plPeriods, true)) {
@@ -79,8 +84,11 @@ $profitSummary = [
     'total_revenue' => 0.0,
     'total_cost' => 0.0,
     'net_profit' => 0.0,
-    'expired_count' => 0
+    'expired_count' => 0,
+    'damaged_cost' => 0.0,
+    'loss_amount' => 0.0
 ];
+$salesCostTotal = 0.0;
 
 try {
     $stmt = $pdo->prepare('
@@ -121,7 +129,6 @@ foreach ($profitReport as $row) {
         if ($expiryDateObj <= $today) {
             $expiryStatus = 'expired';
             $expiryLoss = $stockQty * $costPrice;
-            $profitSummary['expired_count']++;
         } elseif ($expiryDateObj <= $warningDate) {
             $expiryStatus = 'warning';
         } else {
@@ -132,7 +139,7 @@ foreach ($profitReport as $row) {
     $profitValue = $revenue - $salesCost - $expiryLoss;
 
     $profitSummary['total_revenue'] += $revenue;
-    $profitSummary['total_cost'] += ($salesCost + $expiryLoss);
+    $salesCostTotal += $salesCost;
 
     $profitRows[] = [
         'id' => $row['id'],
@@ -150,7 +157,26 @@ foreach ($profitReport as $row) {
     ];
 }
 
+$profitSummary['damaged_cost'] = $damagedCost;
+
+$expiredInventoryLoss = 0.0;
+try {
+    $expiredLossStmt = $pdo->query('SELECT COALESCE(SUM(stock_qty * cost_price), 0) FROM products WHERE expiry_date IS NOT NULL AND expiry_date <= CURDATE()');
+    $expiredInventoryLoss = (float)$expiredLossStmt->fetchColumn();
+} catch (PDOException $e) {
+    error_log('Expired inventory loss error: ' . $e->getMessage());
+}
+
+$profitSummary['total_cost'] = $salesCostTotal + $expiredInventoryLoss + $damagedCost;
 $profitSummary['net_profit'] = $profitSummary['total_revenue'] - $profitSummary['total_cost'];
+$profitSummary['loss_amount'] = max(0.0, $profitSummary['total_cost'] - $profitSummary['total_revenue']);
+
+try {
+    $expiredCountStmt = $pdo->query('SELECT COUNT(*) FROM products WHERE expiry_date IS NOT NULL AND expiry_date <= CURDATE()');
+    $profitSummary['expired_count'] = (int)$expiredCountStmt->fetchColumn();
+} catch (PDOException $e) {
+    error_log('Expired count error: ' . $e->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($lang) ?>" dir="<?= e($dir) ?>">
@@ -321,7 +347,7 @@ $profitSummary['net_profit'] = $profitSummary['total_revenue'] - $profitSummary[
                     <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
                         <div class="bg-gray-50 p-1 rounded-xl flex flex-wrap items-center gap-1">
                             <?php foreach (['day' => t('daily'), 'week' => t('weekly'), 'month' => t('monthly'), 'year' => t('yearly'), 'custom' => t('custom_range')] as $key => $label): ?>
-                                <a href="?period=<?= e($period) ?>&pl_period=<?= e($key) ?>"
+                                <a href="?period=<?= e($period) ?>&pl_period=<?= e($key) ?>&damaged_cost=<?= e((string)$damagedCost) ?>"
                                    class="px-4 py-2 rounded-lg text-xs font-bold transition-all <?= $plPeriod === $key ? 'bg-white text-green-700 shadow-md transform scale-105' : 'text-gray-600 hover:bg-white hover:text-green-700' ?>">
                                     <?= e($label) ?>
                                 </a>
@@ -341,6 +367,12 @@ $profitSummary['net_profit'] = $profitSummary['total_revenue'] - $profitSummary[
                                 <input type="date" id="pl_end" name="pl_end" value="<?= e($plEndDateStr) ?>"
                                        class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
                             </div>
+                            <div>
+                                <label for="damaged_cost" class="block text-xs font-bold text-gray-500 mb-1"><?= e(t('damaged_goods_cost')) ?></label>
+                                <input type="text" id="damaged_cost" name="damaged_cost" value="<?= e((string)$damagedCost) ?>"
+                                       inputmode="decimal" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                                <p class="text-[11px] text-gray-400 mt-1"><?= e(t('damaged_goods_hint')) ?></p>
+                            </div>
                             <button type="submit"
                                     class="px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors">
                                 <?= e(t('apply')) ?>
@@ -352,10 +384,12 @@ $profitSummary['net_profit'] = $profitSummary['total_revenue'] - $profitSummary[
                     $netProfitColor = $profitSummary['net_profit'] > 0 ? 'green' : ($profitSummary['net_profit'] < 0 ? 'red' : 'gray');
                     ?>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
                         <?= statsCard(t('total_revenue'), formatPrice($profitSummary['total_revenue'], $currency), 'fas fa-coins text-3xl', 'green') ?>
                         <?= statsCard(t('total_cost'), formatPrice($profitSummary['total_cost'], $currency), 'fas fa-receipt text-3xl', 'orange') ?>
                         <?= statsCard(t('net_profit'), formatPrice($profitSummary['net_profit'], $currency), 'fas fa-balance-scale text-3xl', $netProfitColor) ?>
+                        <?= statsCard(t('loss_amount'), formatPrice($profitSummary['loss_amount'], $currency), 'fas fa-triangle-exclamation text-3xl', $profitSummary['loss_amount'] > 0 ? 'red' : 'gray') ?>
+                        <?= statsCard(t('damaged_goods_cost'), formatPrice($profitSummary['damaged_cost'], $currency), 'fas fa-box-open text-3xl', 'purple') ?>
                         <?= statsCard(t('expired_products'), (string)$profitSummary['expired_count'], 'fas fa-skull-crossbones text-3xl', 'red') ?>
                     </div>
 

@@ -17,7 +17,7 @@ $pdo = getDB();
 $stmt = $pdo->query('SELECT p.*, c.name_en as category_name_en, c.name_ku as category_name_ku 
                      FROM products p 
                      JOIN categories c ON p.category_id = c.id 
-                     WHERE p.is_featured = 1 AND p.stock_qty > 0 
+                     WHERE p.is_featured = 1 AND p.stock_qty > 0 AND (p.expiry_date IS NULL OR p.expiry_date > CURDATE())
                      ORDER BY p.created_at DESC 
                      LIMIT 8');
 $featuredProducts = $stmt->fetchAll();
@@ -84,7 +84,7 @@ $dir = getHtmlDir();
                 <!-- Stats -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 animate-fade-in" style="animation-delay: 0.3s">
                     <?php
-                    $totalProducts = $pdo->query('SELECT COUNT(*) FROM products WHERE stock_qty > 0')->fetchColumn();
+                    $totalProducts = $pdo->query('SELECT COUNT(*) FROM products WHERE stock_qty > 0 AND (expiry_date IS NULL OR expiry_date > CURDATE())')->fetchColumn();
                     $totalCustomers = $pdo->query('SELECT COUNT(*) FROM users WHERE role = "customer"')->fetchColumn();
                     ?>
                     <div class="text-center">

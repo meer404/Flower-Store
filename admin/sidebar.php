@@ -72,6 +72,15 @@ $csrfToken = generateCSRFToken();
                         <span class="flex-1"><?= e(t('products')) ?></span>
                     </a>
                 </li>
+                <li>
+                    <a href="<?= url('admin/expired_products.php') ?>" 
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group <?= $currentPage === 'expired_products.php' ? 'bg-red-50 text-red-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-red-600' ?>">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'expired_products.php' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400 group-hover:bg-red-100 group-hover:text-red-600' ?>">
+                            <i class="fas fa-skull-crossbones"></i>
+                        </div>
+                        <span class="flex-1"><?= e(t('expired_products')) ?></span>
+                    </a>
+                </li>
                 <?php endif; ?>
                 
                 <?php if ($isSuperAdmin || hasPermission('manage_categories')): ?>
