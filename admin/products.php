@@ -15,6 +15,65 @@ requireAdmin();
 requirePermission('manage_products');
 
 $pdo = getDB();
+$error = '';
+$success = '';
+
+// Handle delete
+$deleteId = (int)sanitizeInput('delete', 'GET', '0');
+$deleteToken = sanitizeInput('csrf_token', 'GET');
+if ($deleteId > 0) {
+    if (!verifyCSRFToken($deleteToken)) {
+        $error = t('product_error');
+    } else {
+        try {
+            $stmt = $pdo->prepare('SELECT image_url FROM products WHERE id = :id');
+            $stmt->execute(['id' => $deleteId]);
+            $productRow = $stmt->fetch();
+
+            if (!$productRow) {
+                $error = t('product_error');
+            } else {
+                $stmt = $pdo->prepare('SELECT COUNT(*) FROM order_items WHERE product_id = :id');
+                $stmt->execute(['id' => $deleteId]);
+                $orderCount = (int)$stmt->fetchColumn();
+
+                if ($orderCount > 0) {
+                    $error = t('product_delete_has_orders');
+                } else {
+                    $pdo->beginTransaction();
+
+                    $stmt = $pdo->prepare('SELECT image_url FROM product_images WHERE product_id = :id');
+                    $stmt->execute(['id' => $deleteId]);
+                    $galleryImages = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+                    $pdo->prepare('DELETE FROM product_images WHERE product_id = :id')->execute(['id' => $deleteId]);
+                    $pdo->prepare('DELETE FROM product_variants WHERE product_id = :id')->execute(['id' => $deleteId]);
+                    $pdo->prepare('DELETE FROM products WHERE id = :id')->execute(['id' => $deleteId]);
+
+                    $pdo->commit();
+
+                    $uploadDir = realpath(__DIR__ . '/../uploads');
+                    $imagePaths = array_filter(array_merge([$productRow['image_url'] ?? ''], $galleryImages));
+                    foreach ($imagePaths as $imagePath) {
+                        $imagePath = ltrim((string)$imagePath, '/');
+                        $fullPath = $uploadDir ? $uploadDir . DIRECTORY_SEPARATOR . $imagePath : null;
+                        if ($fullPath && strpos(realpath($fullPath) ?: '', $uploadDir) === 0 && is_file($fullPath)) {
+                            @unlink($fullPath);
+                        }
+                    }
+
+                    $success = t('product_deleted_success');
+                }
+            }
+        } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('Product delete error: ' . $e->getMessage());
+            $error = t('product_error');
+        }
+    }
+}
 
 // Pagination
 $page = max(1, (int)sanitizeInput('page', 'GET', '1'));
@@ -37,6 +96,7 @@ $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $products = $stmt->fetchAll();
 
+$csrfToken = generateCSRFToken();
 $lang = getCurrentLang();
 $dir = getHtmlDir();
 ?>
@@ -78,6 +138,20 @@ $dir = getHtmlDir();
                         </a>
                     </div>
                 </div>
+
+                <?php if ($error): ?>
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl mb-6 shadow-sm flex items-center gap-3">
+                        <i class="fas fa-exclamation-triangle text-xl"></i>
+                        <div><?= e($error) ?></div>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($success): ?>
+                    <div class="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-2xl mb-6 shadow-sm flex items-center gap-3">
+                        <i class="fas fa-check-circle text-xl"></i>
+                        <div><?= e($success) ?></div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Products Table Card -->
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
@@ -149,6 +223,11 @@ $dir = getHtmlDir();
                                                    target="_blank"
                                                    class="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors" title="<?= e(t('view')) ?>">
                                                     <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="?delete=<?= e((string)$product['id']) ?>&csrf_token=<?= e($csrfToken) ?>" 
+                                                   onclick="return confirm('<?= e(t('delete_product_confirm')) ?>')"
+                                                   class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="<?= e(t('delete')) ?>">
+                                                    <i class="fas fa-trash-alt"></i>
                                                 </a>
                                             </div>
                                         </td>

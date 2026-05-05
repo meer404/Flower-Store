@@ -59,8 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $descriptionEn = sanitizeInput('description_en', 'POST');
         $descriptionKu = sanitizeInput('description_ku', 'POST');
         $categoryId = (int)sanitizeInput('category_id', 'POST');
-        $price = (float)sanitizeInput('price', 'POST');
-        $costPrice = (float)sanitizeInput('cost_price', 'POST');
+        $priceRaw = sanitizeInput('price', 'POST');
+        $costPriceRaw = sanitizeInput('cost_price', 'POST');
+        $price = (float)str_replace(',', '', $priceRaw);
+        $costPrice = (float)str_replace(',', '', $costPriceRaw);
         $stockQty = (int)sanitizeInput('stock_qty', 'POST');
         $expiryDateInput = sanitizeInput('expiry_date', 'POST');
         $color = sanitizeInput('color', 'POST');
@@ -167,12 +169,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmtVar = $pdo->prepare('INSERT INTO product_variants (product_id, variant_type, name_en, name_ku, price_adjustment) VALUES (?, ?, ?, ?, ?)');
                     foreach ($_POST['variants'] as $v) {
                         if (!empty($v['name_en']) && !empty($v['name_ku']) && in_array($v['type'], ['size', 'addon'])) {
+                            $variantPriceRaw = (string)($v['price'] ?? '0');
+                            $variantPrice = (float)str_replace(',', '', $variantPriceRaw);
                             $stmtVar->execute([
                                 $productId, 
                                 $v['type'], 
                                 $v['name_en'], 
                                 $v['name_ku'], 
-                                (float)($v['price'] ?? 0)
+                                $variantPrice
                             ]);
                         }
                     }
@@ -297,7 +301,7 @@ $dir = getHtmlDir();
                                                 <?= e(t('price')) ?> (<?= e($currency) ?>) <span class="text-red-500">*</span>
                                             </label>
                                             <div>
-                                                <input type="number" id="price" name="price" step="0.01" min="0" required
+                                                      <input type="text" id="price" name="price" inputmode="decimal" required data-format="number"
                                                        value="<?= e((string)$product['price']) ?>"
                                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                             </div>
@@ -309,7 +313,7 @@ $dir = getHtmlDir();
                                                 <?= e(t('cost_price')) ?> (<?= e($currency) ?>)
                                             </label>
                                             <div>
-                                                <input type="number" id="cost_price" name="cost_price" step="0.01" min="0"
+                                                      <input type="text" id="cost_price" name="cost_price" inputmode="decimal" data-format="number"
                                                        value="<?= e((string)($product['cost_price'] ?? '0.00')) ?>"
                                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                             </div>
@@ -372,7 +376,7 @@ $dir = getHtmlDir();
                                                     </div>
                                                     <div class="flex-[0.5]">
                                                         <label class="block text-xs font-bold text-gray-700 mb-1">Price (+)</label>
-                                                        <input type="number" step="0.01" name="variants[<?= $index ?>][price]" value="<?= e((string)$v['price_adjustment']) ?>" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                                        <input type="text" inputmode="decimal" data-format="number" name="variants[<?= $index ?>][price]" value="<?= e((string)$v['price_adjustment']) ?>" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                                                     </div>
                                                     <div>
                                                         <button type="button" onclick="this.closest('.variant-row').remove()" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-colors"><i class="fas fa-trash"></i></button>
@@ -515,6 +519,53 @@ $dir = getHtmlDir();
     
     <script>
         let variantIndex = <?= count($productVariants ?? []) ?>;
+        const numberFormatInputs = Array.from(document.querySelectorAll('[data-format="number"]'));
+
+        function stripNumberFormatting(value) {
+            return value.replace(/,/g, '').replace(/[^0-9.]/g, '');
+        }
+
+        function formatNumberInput(value) {
+            const cleaned = stripNumberFormatting(value);
+            if (cleaned === '') {
+                return '';
+            }
+
+            const parts = cleaned.split('.');
+            const intPart = parts[0];
+            const decPart = parts.slice(1).join('');
+            const intFormatted = intPart.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+            if (decPart.length > 0) {
+                return `${intFormatted === '' ? '0' : intFormatted}.${decPart}`;
+            }
+
+            return intFormatted;
+        }
+
+        function attachNumberFormatter(input) {
+            const applyFormat = () => {
+                const formatted = formatNumberInput(input.value);
+                if (formatted !== input.value) {
+                    input.value = formatted;
+                }
+            };
+
+            input.addEventListener('input', applyFormat);
+            input.addEventListener('blur', applyFormat);
+            applyFormat();
+        }
+
+        numberFormatInputs.forEach(attachNumberFormatter);
+
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', () => {
+                numberFormatInputs.forEach((input) => {
+                    input.value = stripNumberFormatting(input.value);
+                });
+            });
+        }
         
         function addVariantRow() {
             const container = document.getElementById('variantsContainer');
@@ -538,13 +589,18 @@ $dir = getHtmlDir();
                 </div>
                 <div class="flex-[0.5]">
                     <label class="block text-xs font-bold text-gray-700 mb-1">Price (+)</label>
-                    <input type="number" step="0.01" name="variants[${variantIndex}][price]" value="0.00" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <input type="text" inputmode="decimal" data-format="number" name="variants[${variantIndex}][price]" value="0.00" required class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 </div>
                 <div>
                     <button type="button" onclick="this.closest('.variant-row').remove()" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-colors"><i class="fas fa-trash"></i></button>
                 </div>
             `;
             container.appendChild(row);
+            const newInput = row.querySelector('[data-format="number"]');
+            if (newInput) {
+                attachNumberFormatter(newInput);
+                numberFormatInputs.push(newInput);
+            }
             variantIndex++;
         }
     </script>

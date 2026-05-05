@@ -199,6 +199,9 @@ return [
     'organization' => 'Organization',
     'upload_and_gallery' => 'Upload & Gallery',
     'featured_badge' => 'Featured Badge',
+    'delete_product_confirm' => 'Delete this product?',
+    'product_deleted_success' => 'Product deleted successfully!',
+    'product_delete_has_orders' => 'Cannot delete product with orders',
 
     // Categories
     'category_added_success' => 'Category added successfully!',

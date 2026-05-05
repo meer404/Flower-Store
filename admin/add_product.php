@@ -35,8 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $descriptionEn = sanitizeInput('description_en', 'POST');
         $descriptionKu = sanitizeInput('description_ku', 'POST');
         $categoryId = (int)sanitizeInput('category_id', 'POST');
-        $price = (float)sanitizeInput('price', 'POST');
-        $costPrice = (float)sanitizeInput('cost_price', 'POST');
+        $priceRaw = sanitizeInput('price', 'POST');
+        $costPriceRaw = sanitizeInput('cost_price', 'POST');
+        $price = (float)str_replace(',', '', $priceRaw);
+        $costPrice = (float)str_replace(',', '', $costPriceRaw);
         $stockQty = (int)sanitizeInput('stock_qty', 'POST');
         $expiryDateInput = sanitizeInput('expiry_date', 'POST');
         $color = sanitizeInput('color', 'POST');
@@ -229,7 +231,7 @@ $dir = getHtmlDir();
                                                 <?= e(t('price')) ?> (<?= e($currency) ?>) <span class="text-red-500">*</span>
                                             </label>
                                             <div>
-                                                <input type="number" id="price" name="price" step="0.01" min="0" required
+                                                      <input type="text" id="price" name="price" inputmode="decimal" required data-format="number"
                                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                             </div>
                                         </div>
@@ -240,7 +242,7 @@ $dir = getHtmlDir();
                                                 <?= e(t('cost_price')) ?> (<?= e($currency) ?>)
                                             </label>
                                             <div>
-                                                <input type="number" id="cost_price" name="cost_price" step="0.01" min="0"
+                                                      <input type="text" id="cost_price" name="cost_price" inputmode="decimal" data-format="number"
                                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                             </div>
                                         </div>
@@ -348,5 +350,54 @@ $dir = getHtmlDir();
             <?php include __DIR__ . '/footer.php'; ?>
         </div>
     </div>
+    <script>
+        const numberFormatInputs = Array.from(document.querySelectorAll('[data-format="number"]'));
+
+        function stripNumberFormatting(value) {
+            return value.replace(/,/g, '').replace(/[^0-9.]/g, '');
+        }
+
+        function formatNumberInput(value) {
+            const cleaned = stripNumberFormatting(value);
+            if (cleaned === '') {
+                return '';
+            }
+
+            const parts = cleaned.split('.');
+            const intPart = parts[0];
+            const decPart = parts.slice(1).join('');
+            const intFormatted = intPart.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+            if (decPart.length > 0) {
+                return `${intFormatted === '' ? '0' : intFormatted}.${decPart}`;
+            }
+
+            return intFormatted;
+        }
+
+        function attachNumberFormatter(input) {
+            const applyFormat = () => {
+                const formatted = formatNumberInput(input.value);
+                if (formatted !== input.value) {
+                    input.value = formatted;
+                }
+            };
+
+            input.addEventListener('input', applyFormat);
+            input.addEventListener('blur', applyFormat);
+            applyFormat();
+        }
+
+        numberFormatInputs.forEach(attachNumberFormatter);
+
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', () => {
+                numberFormatInputs.forEach((input) => {
+                    input.value = stripNumberFormatting(input.value);
+                });
+            });
+        }
+    </script>
 </body>
 </html>
