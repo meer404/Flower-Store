@@ -28,6 +28,51 @@ if (!in_array($period, ['day', 'week', 'month', 'year'])) {
 
 $report = getSalesReport($period);
 
+$today = new DateTimeImmutable('today');
+$plPeriod = sanitizeInput('pl_period', 'GET', 'month');
+$plStartInput = sanitizeInput('pl_start', 'GET');
+$plEndInput = sanitizeInput('pl_end', 'GET');
+$plPeriods = ['day', 'week', 'month', 'year', 'custom'];
+
+if (!in_array($plPeriod, $plPeriods, true)) {
+    $plPeriod = 'month';
+}
+
+switch ($plPeriod) {
+    case 'day':
+        $plStartDate = $today;
+        $plEndDate = $today;
+        break;
+    case 'week':
+        $plStartDate = $today->modify('monday this week');
+        $plEndDate = $today->modify('sunday this week');
+        break;
+    case 'year':
+        $plStartDate = $today->setDate((int)$today->format('Y'), 1, 1);
+        $plEndDate = $today->setDate((int)$today->format('Y'), 12, 31);
+        break;
+    case 'custom':
+        $plStartDate = $plStartInput !== '' ? DateTimeImmutable::createFromFormat('Y-m-d', $plStartInput) : false;
+        $plEndDate = $plEndInput !== '' ? DateTimeImmutable::createFromFormat('Y-m-d', $plEndInput) : false;
+        $plStartValid = $plStartDate && $plStartDate->format('Y-m-d') === $plStartInput;
+        $plEndValid = $plEndDate && $plEndDate->format('Y-m-d') === $plEndInput;
+
+        if (!$plStartValid || !$plEndValid || $plStartDate > $plEndDate) {
+            $plPeriod = 'month';
+            $plStartDate = $today->modify('first day of this month');
+            $plEndDate = $today->modify('last day of this month');
+        }
+        break;
+    case 'month':
+    default:
+        $plStartDate = $today->modify('first day of this month');
+        $plEndDate = $today->modify('last day of this month');
+        break;
+}
+
+$plStartDateStr = $plStartDate->format('Y-m-d');
+$plEndDateStr = $plEndDate->format('Y-m-d');
+
 $profitRows = [];
 $profitReport = [];
 $profitSummary = [
@@ -43,20 +88,22 @@ try {
                COALESCE(SUM(oi.quantity), 0) AS units_sold,
                COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS revenue,
                COALESCE(SUM(oi.quantity * p.cost_price), 0) AS total_cost
-        FROM products p
-        LEFT JOIN order_items oi ON oi.product_id = p.id
-        WHERE oi.id IS NOT NULL OR p.expiry_date IS NOT NULL
+        FROM orders o
+        INNER JOIN order_items oi ON oi.order_id = o.id
+        INNER JOIN products p ON p.id = oi.product_id
+        WHERE o.order_date BETWEEN :start_date AND :end_date
         GROUP BY p.id, p.name_en, p.name_ku, p.price, p.cost_price, p.stock_qty, p.expiry_date
         ORDER BY revenue DESC, p.name_en
     ');
-    $stmt->execute();
+    $stmt->execute([
+        'start_date' => $plStartDateStr,
+        'end_date' => $plEndDateStr
+    ]);
     $profitReport = $stmt->fetchAll();
 } catch (PDOException $e) {
     error_log('Profit report error: ' . $e->getMessage());
     $profitReport = [];
 }
-
-$today = new DateTimeImmutable('today');
 $warningDate = $today->modify('+7 days');
 
 foreach ($profitReport as $row) {
@@ -269,6 +316,36 @@ $profitSummary['net_profit'] = $profitSummary['total_revenue'] - $profitSummary[
                             </span>
                             <?= e(t('profit_loss_report')) ?>
                         </h2>
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+                        <div class="bg-gray-50 p-1 rounded-xl flex flex-wrap items-center gap-1">
+                            <?php foreach (['day' => t('daily'), 'week' => t('weekly'), 'month' => t('monthly'), 'year' => t('yearly'), 'custom' => t('custom_range')] as $key => $label): ?>
+                                <a href="?period=<?= e($period) ?>&pl_period=<?= e($key) ?>"
+                                   class="px-4 py-2 rounded-lg text-xs font-bold transition-all <?= $plPeriod === $key ? 'bg-white text-green-700 shadow-md transform scale-105' : 'text-gray-600 hover:bg-white hover:text-green-700' ?>">
+                                    <?= e($label) ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <form method="GET" class="flex flex-wrap items-end gap-3">
+                            <input type="hidden" name="period" value="<?= e($period) ?>">
+                            <input type="hidden" name="pl_period" value="custom">
+                            <div>
+                                <label for="pl_start" class="block text-xs font-bold text-gray-500 mb-1"><?= e(t('start_date')) ?></label>
+                                <input type="date" id="pl_start" name="pl_start" value="<?= e($plStartDateStr) ?>"
+                                       class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                            </div>
+                            <div>
+                                <label for="pl_end" class="block text-xs font-bold text-gray-500 mb-1"><?= e(t('end_date')) ?></label>
+                                <input type="date" id="pl_end" name="pl_end" value="<?= e($plEndDateStr) ?>"
+                                       class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                            </div>
+                            <button type="submit"
+                                    class="px-4 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors">
+                                <?= e(t('apply')) ?>
+                            </button>
+                        </form>
                     </div>
 
                     <?php

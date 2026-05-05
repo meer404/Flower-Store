@@ -15,6 +15,7 @@ requireAdmin();
 requirePermission('manage_products');
 
 $pdo = getDB();
+$currency = (string)getSystemSetting('currency', 'IQD');
 $error = '';
 $success = '';
 
@@ -225,28 +226,22 @@ $dir = getHtmlDir();
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label for="price" class="block text-sm font-bold text-gray-700 mb-2">
-                                                <?= e(t('price')) ?> ($) <span class="text-red-500">*</span>
+                                                <?= e(t('price')) ?> (<?= e($currency) ?>) <span class="text-red-500">*</span>
                                             </label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <span class="text-gray-500 font-bold">$</span>
-                                                </div>
+                                            <div>
                                                 <input type="number" id="price" name="price" step="0.01" min="0" required
-                                                       class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                             </div>
                                         </div>
 
                                         <!-- INSERT HERE: Cost Price Field -->
                                         <div>
                                             <label for="cost_price" class="block text-sm font-bold text-gray-700 mb-2">
-                                                <?= e(t('cost_price')) ?> ($)
+                                                <?= e(t('cost_price')) ?> (<?= e($currency) ?>)
                                             </label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <span class="text-gray-500 font-bold">$</span>
-                                                </div>
+                                            <div>
                                                 <input type="number" id="cost_price" name="cost_price" step="0.01" min="0"
-                                                       class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                             </div>
                                         </div>
                                         

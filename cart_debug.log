@@ -74,3 +74,4 @@
 {"ts":"2026-05-05 20:43:31","method":"POST","uri":"/Flower-Store/cart_action.php","referer":"http://localhost/Flower-Store/shop","action":"add","product_id":6,"quantity":1,"post":{"action":"add","product_id":"6"},"get":[]}
 {"ts":"2026-05-05 20:43:34","method":"POST","uri":"/Flower-Store/cart_action.php","referer":"http://localhost/Flower-Store/cart","action":"remove","product_id":0,"quantity":1,"post":{"action":"remove","cart_key":"7","csrf_token":"a3ac14ee8510954ae2fbe1f4a1d81bb0b1483612703e2eaafd906c536a1ef37d"},"get":[]}
 {"ts":"2026-05-05 20:53:45","method":"POST","uri":"/flower-store/cart_action.php","referer":"http://localhost/flower-store/shop","action":"add","product_id":7,"quantity":1,"post":{"action":"add","product_id":"7"},"get":[]}
+{"ts":"2026-05-05 21:12:37","method":"POST","uri":"/flower-store/cart_action.php","referer":"http://localhost/flower-store/shop","action":"add","product_id":8,"quantity":1,"post":{"action":"add","product_id":"8"},"get":[]}
