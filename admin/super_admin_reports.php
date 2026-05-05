@@ -384,7 +384,7 @@ try {
                     $netProfitColor = $profitSummary['net_profit'] > 0 ? 'green' : ($profitSummary['net_profit'] < 0 ? 'red' : 'gray');
                     ?>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                         <?= statsCard(t('total_revenue'), formatPrice($profitSummary['total_revenue'], $currency), 'fas fa-coins text-3xl', 'green') ?>
                         <?= statsCard(t('total_cost'), formatPrice($profitSummary['total_cost'], $currency), 'fas fa-receipt text-3xl', 'orange') ?>
                         <?= statsCard(t('net_profit'), formatPrice($profitSummary['net_profit'], $currency), 'fas fa-balance-scale text-3xl', $netProfitColor) ?>
