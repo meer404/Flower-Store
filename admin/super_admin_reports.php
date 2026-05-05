@@ -382,12 +382,13 @@ try {
 
                     <?php
                     $netProfitColor = $profitSummary['net_profit'] > 0 ? 'green' : ($profitSummary['net_profit'] < 0 ? 'red' : 'gray');
+                    $netProfitDisplay = max(0.0, $profitSummary['net_profit']);
                     ?>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                         <?= statsCard(t('total_revenue'), formatPrice($profitSummary['total_revenue'], $currency), 'fas fa-coins text-3xl', 'green') ?>
                         <?= statsCard(t('total_cost'), formatPrice($profitSummary['total_cost'], $currency), 'fas fa-receipt text-3xl', 'orange') ?>
-                        <?= statsCard(t('net_profit'), formatPrice($profitSummary['net_profit'], $currency), 'fas fa-balance-scale text-3xl', $netProfitColor) ?>
+                        <?= statsCard(t('net_profit'), formatPrice($netProfitDisplay, $currency), 'fas fa-balance-scale text-3xl', $netProfitColor) ?>
                         <?= statsCard(t('loss_amount'), formatPrice($profitSummary['loss_amount'], $currency), 'fas fa-triangle-exclamation text-3xl', $profitSummary['loss_amount'] > 0 ? 'red' : 'gray') ?>
                         <?= statsCard(t('damaged_goods_cost'), formatPrice($profitSummary['damaged_cost'], $currency), 'fas fa-box-open text-3xl', 'purple') ?>
                         <?= statsCard(t('expired_products'), (string)$profitSummary['expired_count'], 'fas fa-skull-crossbones text-3xl', 'red') ?>
