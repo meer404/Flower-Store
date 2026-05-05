@@ -223,6 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         
                         // Verify stock availability before creating order
                         $stockOk = true;
+                        $insufficientStockQty = null;
                         foreach ($cartItems as $item) {
                             $stmt = $pdo->prepare('SELECT stock_qty FROM products WHERE id = :id FOR UPDATE');
                             $stmt->execute(['id' => $item['id']]);
@@ -230,13 +231,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             
                             if (!$product || (int)$product['stock_qty'] < $item['cart_quantity']) {
                                 $stockOk = false;
+                                $insufficientStockQty = (int)($product['stock_qty'] ?? 0);
                                 break;
                             }
                         }
                         
                         if (!$stockOk) {
                             $pdo->rollBack();
-                            $error = t('order_error') . ' - ' . t('insufficient_stock');
+                            if ($insufficientStockQty !== null) {
+                                $error = t('order_error') . ' - ' . t('insufficient_stock_available', ['available' => $insufficientStockQty]);
+                            } else {
+                                $error = t('order_error') . ' - ' . t('insufficient_stock');
+                            }
                         } else {
                             // Create order with payment details
                             $stmt = $pdo->prepare('

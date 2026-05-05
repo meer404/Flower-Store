@@ -96,17 +96,26 @@ try {
             redirect($fallbackRedirect, t('out_of_stock'), 'error');
         }
 
-        $addQty = min($quantity, $stockQty);
-        
         // Construct cart key
         sort($variants);
         $cartKey = empty($variants) ? (string)$productId : $productId . '_v_' . implode('_', $variants);
         if ($cartKeyParam !== '') {
             $cartKey = $cartKeyParam; // Override if explicitly provided
         }
-        
+
         $currentQty = (int)($_SESSION['cart'][$cartKey] ?? 0);
-        $_SESSION['cart'][$cartKey] = min($currentQty + $addQty, $stockQty);
+        $availableToAdd = max(0, $stockQty - $currentQty);
+        if ($availableToAdd <= 0) {
+            redirect($fallbackRedirect, t('insufficient_stock_available', ['available' => $stockQty]), 'error');
+        }
+
+        if ($quantity > $availableToAdd) {
+            $_SESSION['cart'][$cartKey] = $stockQty;
+            redirect('cart.php', t('insufficient_stock_available', ['available' => $stockQty]), 'error');
+        }
+
+        $addQty = min($quantity, $availableToAdd);
+        $_SESSION['cart'][$cartKey] = $currentQty + $addQty;
 
         redirect('cart.php', t('success'), 'success');
     }
@@ -142,7 +151,17 @@ try {
         }
 
         $stockQty = (int)($product['stock_qty'] ?? 0);
-        $newQty = max(1, min($quantity, max(1, $stockQty)));
+        if ($stockQty <= 0) {
+            unset($_SESSION['cart'][$targetKey]);
+            redirect('cart.php', t('out_of_stock'), 'error');
+        }
+
+        if ($quantity > $stockQty) {
+            $_SESSION['cart'][$targetKey] = $stockQty;
+            redirect('cart.php', t('insufficient_stock_available', ['available' => $stockQty]), 'error');
+        }
+
+        $newQty = max(1, $quantity);
         $_SESSION['cart'][$targetKey] = $newQty;
         redirect('cart.php', t('success'), 'success');
     }

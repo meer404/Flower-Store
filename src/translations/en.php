@@ -438,6 +438,7 @@ return [
     'visa_start_4' => 'Visa cards must start with 4',
     'mastercard_start_5' => 'Mastercard must start with 51-55',
     'insufficient_stock' => 'Insufficient stock for one or more products',
+    'insufficient_stock_available' => 'We only have :available in stock',
     'enter_shipping_address' => 'Enter your complete shipping address',
     'delivery_date_hint' => 'Please select a date for flower delivery. Minimum delivery time is 1 day.',
     'name_on_card' => 'Name on card',
