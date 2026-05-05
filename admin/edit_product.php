@@ -59,60 +59,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $descriptionKu = sanitizeInput('description_ku', 'POST');
         $categoryId = (int)sanitizeInput('category_id', 'POST');
         $price = (float)sanitizeInput('price', 'POST');
+        $costPrice = (float)sanitizeInput('cost_price', 'POST');
         $stockQty = (int)sanitizeInput('stock_qty', 'POST');
+        $expiryDateInput = sanitizeInput('expiry_date', 'POST');
         $color = sanitizeInput('color', 'POST');
         $occasion = sanitizeInput('occasion', 'POST');
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
         $sku = sanitizeInput('sku', 'POST');
         
-        if (empty($nameEn) || empty($nameKu) || $categoryId <= 0 || $price <= 0) {
+        if (empty($nameEn) || empty($nameKu) || $categoryId <= 0 || $price <= 0 || $costPrice < 0) {
             $error = t('product_error');
         } else {
-            try {
-                // Handle main image upload
-                $imageUrl = $product['image_url'];
-                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                    $uploadDir = __DIR__ . '/../uploads/';
-                    $file = $_FILES['image'];
-                    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                    $maxSize = 5 * 1024 * 1024;
-                    
-                    if (in_array($file['type'], $allowedTypes, true) && $file['size'] <= $maxSize) {
-                        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-                        $filename = uniqid('product_', true) . '_' . time() . '.' . $extension;
-                        $filepath = $uploadDir . $filename;
+            $expiryDate = null;
+            if ($expiryDateInput !== '') {
+                $expiryDateObject = DateTime::createFromFormat('Y-m-d', $expiryDateInput);
+                $expiryDate = ($expiryDateObject && $expiryDateObject->format('Y-m-d') === $expiryDateInput) ? $expiryDateInput : null;
+                if ($expiryDate === null) {
+                    $error = t('product_error');
+                }
+            }
+
+            if ($error) {
+                // Skip update when inputs are invalid.
+            } else {
+                try {
+                    // Handle main image upload
+                    $imageUrl = $product['image_url'];
+                    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                        $uploadDir = __DIR__ . '/../uploads/';
+                        $file = $_FILES['image'];
+                        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                        $maxSize = 5 * 1024 * 1024;
                         
-                        if (move_uploaded_file($file['tmp_name'], $filepath)) {
-                            $imageUrl = 'uploads/' . $filename;
+                        if (in_array($file['type'], $allowedTypes, true) && $file['size'] <= $maxSize) {
+                            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+                            $filename = uniqid('product_', true) . '_' . time() . '.' . $extension;
+                            $filepath = $uploadDir . $filename;
+                            
+                            if (move_uploaded_file($file['tmp_name'], $filepath)) {
+                                $imageUrl = 'uploads/' . $filename;
+                            }
                         }
                     }
-                }
-                
-                // Update product
-                $stmt = $pdo->prepare('
-                    UPDATE products 
-                    SET category_id = :category_id, name_en = :name_en, name_ku = :name_ku, 
-                        description_en = :description_en, description_ku = :description_ku, 
-                        price = :price, stock_qty = :stock_qty, color = :color, occasion = :occasion, image_url = :image_url, 
-                        is_featured = :is_featured, sku = :sku
-                    WHERE id = :id
-                ');
-                
-                $stmt->execute([
-                    'category_id' => $categoryId,
-                    'name_en' => $nameEn,
-                    'name_ku' => $nameKu,
-                    'description_en' => $descriptionEn,
-                    'description_ku' => $descriptionKu,
-                    'price' => $price,
-                    'stock_qty' => $stockQty,
-                    'color' => $color ?: null,
-                    'occasion' => $occasion ?: null,
-                    'image_url' => $imageUrl,
-                    'is_featured' => $isFeatured,
-                    'sku' => $sku ?: null,
-                    'id' => $productId
-                ]);
+                    
+                    // Update product
+                    $stmt = $pdo->prepare('
+                        UPDATE products 
+                        SET category_id = :category_id, name_en = :name_en, name_ku = :name_ku, 
+                            description_en = :description_en, description_ku = :description_ku, 
+                            price = :price, cost_price = :cost_price, stock_qty = :stock_qty, expiry_date = :expiry_date,
+                            color = :color, occasion = :occasion, image_url = :image_url, 
+                            is_featured = :is_featured, sku = :sku
+                        WHERE id = :id
+                    ');
+                    
+                    $stmt->execute([
+                        'category_id' => $categoryId,
+                        'name_en' => $nameEn,
+                        'name_ku' => $nameKu,
+                        'description_en' => $descriptionEn,
+                        'description_ku' => $descriptionKu,
+                        'price' => $price,
+                        'cost_price' => $costPrice,
+                        'stock_qty' => $stockQty,
+                        'expiry_date' => $expiryDate,
+                        'color' => $color ?: null,
+                        'occasion' => $occasion ?: null,
+                        'image_url' => $imageUrl,
+                        'is_featured' => $isFeatured,
+                        'sku' => $sku ?: null,
+                        'id' => $productId
+                    ]);
                 
                 // Handle gallery images
                 if (isset($_FILES['gallery_images']) && is_array($_FILES['gallery_images']['name'])) {
@@ -161,9 +178,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 redirect('products.php', t('product_updated'), 'success');
-            } catch (PDOException $e) {
-                error_log('Product update error: ' . $e->getMessage());
-                $error = t('product_error');
+                } catch (PDOException $e) {
+                    error_log('Product update error: ' . $e->getMessage());
+                    $error = t('product_error');
+                }
             }
         }
     }
@@ -286,6 +304,21 @@ $dir = getHtmlDir();
                                                        class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                             </div>
                                         </div>
+
+                                        <!-- INSERT HERE: Cost Price Field -->
+                                        <div>
+                                            <label for="cost_price" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('cost_price')) ?> ($)
+                                            </label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span class="text-gray-500 font-bold">$</span>
+                                                </div>
+                                                <input type="number" id="cost_price" name="cost_price" step="0.01" min="0"
+                                                       value="<?= e((string)($product['cost_price'] ?? '0.00')) ?>"
+                                                       class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                            </div>
+                                        </div>
                                         
                                         <div>
                                             <label for="stock_qty" class="block text-sm font-bold text-gray-700 mb-2">
@@ -293,6 +326,16 @@ $dir = getHtmlDir();
                                             </label>
                                             <input type="number" id="stock_qty" name="stock_qty" min="0" required
                                                    value="<?= e((string)$product['stock_qty']) ?>"
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+
+                                        <!-- INSERT HERE: Expiry Date Field -->
+                                        <div>
+                                            <label for="expiry_date" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('expiry_date')) ?>
+                                            </label>
+                                            <input type="date" id="expiry_date" name="expiry_date"
+                                                   value="<?= e($product['expiry_date'] ?? '') ?>"
                                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                         </div>
                                         

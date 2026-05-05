@@ -27,6 +27,83 @@ if (!in_array($period, ['day', 'week', 'month', 'year'])) {
 }
 
 $report = getSalesReport($period);
+
+$profitRows = [];
+$profitReport = [];
+$profitSummary = [
+    'total_revenue' => 0.0,
+    'total_cost' => 0.0,
+    'net_profit' => 0.0,
+    'expired_count' => 0
+];
+
+try {
+    $stmt = $pdo->prepare('
+        SELECT p.id, p.name_en, p.name_ku, p.price, p.cost_price, p.stock_qty, p.expiry_date,
+               COALESCE(SUM(oi.quantity), 0) AS units_sold,
+               COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS revenue,
+               COALESCE(SUM(oi.quantity * p.cost_price), 0) AS total_cost
+        FROM products p
+        LEFT JOIN order_items oi ON oi.product_id = p.id
+        WHERE oi.id IS NOT NULL OR p.expiry_date IS NOT NULL
+        GROUP BY p.id, p.name_en, p.name_ku, p.price, p.cost_price, p.stock_qty, p.expiry_date
+        ORDER BY revenue DESC, p.name_en
+    ');
+    $stmt->execute();
+    $profitReport = $stmt->fetchAll();
+} catch (PDOException $e) {
+    error_log('Profit report error: ' . $e->getMessage());
+    $profitReport = [];
+}
+
+$today = new DateTimeImmutable('today');
+$warningDate = $today->modify('+7 days');
+
+foreach ($profitReport as $row) {
+    $unitsSold = (int)$row['units_sold'];
+    $revenue = (float)$row['revenue'];
+    $salesCost = (float)$row['total_cost'];
+    $costPrice = (float)$row['cost_price'];
+    $stockQty = (int)$row['stock_qty'];
+    $expiryDate = $row['expiry_date'];
+    $expiryLoss = 0.0;
+    $expiryStatus = 'none';
+
+    if ($expiryDate) {
+        $expiryDateObj = new DateTimeImmutable((string)$expiryDate);
+        if ($expiryDateObj <= $today) {
+            $expiryStatus = 'expired';
+            $expiryLoss = $stockQty * $costPrice;
+            $profitSummary['expired_count']++;
+        } elseif ($expiryDateObj <= $warningDate) {
+            $expiryStatus = 'warning';
+        } else {
+            $expiryStatus = 'valid';
+        }
+    }
+
+    $profitValue = $revenue - $salesCost - $expiryLoss;
+
+    $profitSummary['total_revenue'] += $revenue;
+    $profitSummary['total_cost'] += ($salesCost + $expiryLoss);
+
+    $profitRows[] = [
+        'id' => $row['id'],
+        'name_en' => $row['name_en'],
+        'name_ku' => $row['name_ku'],
+        'price' => (float)$row['price'],
+        'cost_price' => $costPrice,
+        'units_sold' => $unitsSold,
+        'revenue' => $revenue,
+        'total_cost' => $salesCost + $expiryLoss,
+        'profit_value' => $profitValue,
+        'expiry_date' => $expiryDate,
+        'expiry_loss' => $expiryLoss,
+        'expiry_status' => $expiryStatus
+    ];
+}
+
+$profitSummary['net_profit'] = $profitSummary['total_revenue'] - $profitSummary['total_cost'];
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($lang) ?>" dir="<?= e($dir) ?>">
@@ -180,6 +257,101 @@ $report = getSalesReport($period);
                                 </div>
                             <?php endif; ?>
                         </div>
+                    </div>
+                </div>
+
+                <!-- INSERT HERE: Profit & Loss Report -->
+                <div class="bg-white rounded-2xl shadow-xl p-8 mt-8 border border-gray-100">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+                                <i class="fas fa-chart-pie"></i>
+                            </span>
+                            <?= e(t('profit_loss_report')) ?>
+                        </h2>
+                    </div>
+
+                    <?php
+                    $netProfitColor = $profitSummary['net_profit'] > 0 ? 'green' : ($profitSummary['net_profit'] < 0 ? 'red' : 'gray');
+                    ?>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <?= statsCard(t('total_revenue'), formatPrice($profitSummary['total_revenue'], $currency), 'fas fa-coins text-3xl', 'green') ?>
+                        <?= statsCard(t('total_cost'), formatPrice($profitSummary['total_cost'], $currency), 'fas fa-receipt text-3xl', 'orange') ?>
+                        <?= statsCard(t('net_profit'), formatPrice($profitSummary['net_profit'], $currency), 'fas fa-balance-scale text-3xl', $netProfitColor) ?>
+                        <?= statsCard(t('expired_products'), (string)$profitSummary['expired_count'], 'fas fa-skull-crossbones text-3xl', 'red') ?>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('product')) ?> (EN/KU)</th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('cost_price')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('sell_price')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('units_sold')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('revenue')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('total_cost')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('profit_loss')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('expiry_date')) ?></th>
+                                    <th class="px-6 py-4 text-start text-xs font-bold text-gray-500 uppercase tracking-wider"><?= e(t('status')) ?></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <?php if (empty($profitRows)): ?>
+                                    <tr>
+                                        <td colspan="9" class="px-6 py-8 text-center text-gray-400"><?= e(t('no_data_available')) ?></td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($profitRows as $row): ?>
+                                        <?php
+                                        $profitValue = (float)$row['profit_value'];
+                                        $profitClass = $profitValue > 0 ? 'text-green-600' : ($profitValue < 0 ? 'text-red-600' : 'text-gray-500');
+                                        $profitLabel = $profitValue > 0 ? t('profit') : ($profitValue < 0 ? t('loss') : t('break_even'));
+
+                                        $expiryDateDisplay = $row['expiry_date'] ? (string)$row['expiry_date'] : t('not_set');
+
+                                        $expiryLabel = t('no_expiry');
+                                        $expiryBadge = 'bg-gray-100 text-gray-700';
+                                        if ($row['expiry_status'] === 'expired') {
+                                            $expiryLabel = t('expired');
+                                            $expiryBadge = 'bg-red-100 text-red-700';
+                                        } elseif ($row['expiry_status'] === 'warning') {
+                                            $expiryLabel = t('expiring_soon');
+                                            $expiryBadge = 'bg-yellow-100 text-yellow-700';
+                                        } elseif ($row['expiry_status'] === 'valid') {
+                                            $expiryLabel = t('valid');
+                                            $expiryBadge = 'bg-green-100 text-green-700';
+                                        }
+                                        ?>
+                                        <tr class="hover:bg-green-50/10 transition-colors">
+                                            <td class="px-6 py-4">
+                                                <div class="font-semibold text-gray-800"><?= e($row['name_en']) ?></div>
+                                                <div class="text-xs text-gray-500"><?= e($row['name_ku']) ?></div>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm font-semibold text-gray-700"><?= e(formatPrice($row['cost_price'], $currency)) ?></td>
+                                            <td class="px-6 py-4 text-sm font-semibold text-gray-700"><?= e(formatPrice($row['price'], $currency)) ?></td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold"><?= e((string)$row['units_sold']) ?></span>
+                                            </td>
+                                            <td class="px-6 py-4 font-bold text-green-600"><?= e(formatPrice($row['revenue'], $currency)) ?></td>
+                                            <td class="px-6 py-4 font-bold text-orange-600"><?= e(formatPrice($row['total_cost'], $currency)) ?></td>
+                                            <td class="px-6 py-4">
+                                                <div class="font-bold <?= $profitClass ?>"><?= e(formatPrice($profitValue, $currency)) ?></div>
+                                                <div class="text-xs text-gray-500"><?= e($profitLabel) ?></div>
+                                                <?php if ($row['expiry_loss'] > 0): ?>
+                                                    <div class="text-xs text-red-500 mt-1"><?= e(t('expiry_loss')) ?>: <?= e(formatPrice($row['expiry_loss'], $currency)) ?></div>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-600"><?= e($expiryDateDisplay) ?></td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-2 py-1 rounded text-xs font-bold <?= $expiryBadge ?>"><?= e($expiryLabel) ?></span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

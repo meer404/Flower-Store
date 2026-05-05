@@ -35,15 +35,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $descriptionKu = sanitizeInput('description_ku', 'POST');
         $categoryId = (int)sanitizeInput('category_id', 'POST');
         $price = (float)sanitizeInput('price', 'POST');
+        $costPrice = (float)sanitizeInput('cost_price', 'POST');
         $stockQty = (int)sanitizeInput('stock_qty', 'POST');
+        $expiryDateInput = sanitizeInput('expiry_date', 'POST');
         $color = sanitizeInput('color', 'POST');
         $occasion = sanitizeInput('occasion', 'POST');
         $isFeatured = isset($_POST['is_featured']) ? 1 : 0;
         
         // Validate required fields
-        if (empty($nameEn) || empty($nameKu) || empty($descriptionEn) || empty($descriptionKu) || $categoryId <= 0 || $price <= 0) {
+        if (empty($nameEn) || empty($nameKu) || empty($descriptionEn) || empty($descriptionKu) || $categoryId <= 0 || $price <= 0 || $costPrice < 0) {
             $error = t('product_error');
         } else {
+            $expiryDate = null;
+            if ($expiryDateInput !== '') {
+                $expiryDateObject = DateTime::createFromFormat('Y-m-d', $expiryDateInput);
+                $expiryDate = ($expiryDateObject && $expiryDateObject->format('Y-m-d') === $expiryDateInput) ? $expiryDateInput : null;
+                if ($expiryDate === null) {
+                    $error = t('product_error');
+                }
+            }
+
             // Handle file upload
             $imageUrl = null;
             
@@ -80,8 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$error) {
                 try {
                     $stmt = $pdo->prepare('
-                        INSERT INTO products (category_id, name_en, name_ku, description_en, description_ku, price, stock_qty, color, occasion, image_url, is_featured)
-                        VALUES (:category_id, :name_en, :name_ku, :description_en, :description_ku, :price, :stock_qty, :color, :occasion, :image_url, :is_featured)
+                        INSERT INTO products (category_id, name_en, name_ku, description_en, description_ku, price, cost_price, stock_qty, expiry_date, color, occasion, image_url, is_featured)
+                        VALUES (:category_id, :name_en, :name_ku, :description_en, :description_ku, :price, :cost_price, :stock_qty, :expiry_date, :color, :occasion, :image_url, :is_featured)
                     ');
                     
                     $stmt->execute([
@@ -91,7 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'description_en' => $descriptionEn,
                         'description_ku' => $descriptionKu,
                         'price' => $price,
+                        'cost_price' => $costPrice,
                         'stock_qty' => $stockQty,
+                        'expiry_date' => $expiryDate,
                         'color' => $color ?: null,
                         'occasion' => $occasion ?: null,
                         'image_url' => $imageUrl,
@@ -222,12 +235,35 @@ $dir = getHtmlDir();
                                                        class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                             </div>
                                         </div>
+
+                                        <!-- INSERT HERE: Cost Price Field -->
+                                        <div>
+                                            <label for="cost_price" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('cost_price')) ?> ($)
+                                            </label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <span class="text-gray-500 font-bold">$</span>
+                                                </div>
+                                                <input type="number" id="cost_price" name="cost_price" step="0.01" min="0"
+                                                       class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                            </div>
+                                        </div>
                                         
                                         <div>
                                             <label for="stock_qty" class="block text-sm font-bold text-gray-700 mb-2">
                                                 <?= e(t('stock_quantity')) ?> <span class="text-red-500">*</span>
                                             </label>
                                             <input type="number" id="stock_qty" name="stock_qty" min="0" required
+                                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
+                                        </div>
+
+                                        <!-- INSERT HERE: Expiry Date Field -->
+                                        <div>
+                                            <label for="expiry_date" class="block text-sm font-bold text-gray-700 mb-2">
+                                                <?= e(t('expiry_date')) ?>
+                                            </label>
+                                            <input type="date" id="expiry_date" name="expiry_date"
                                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                         </div>
                                     </div>

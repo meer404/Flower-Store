@@ -6,10 +6,26 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+const rawEnv = (process.env.FIB_ENVIRONMENT || 'stage').toLowerCase();
+const environmentMap = {
+  live: 'production',
+  prod: 'production',
+  production: 'production',
+  stage: 'stage',
+  staging: 'stage',
+};
+const environment = environmentMap[rawEnv];
+
+if (!environment) {
+  throw new Error(
+    `[FibPay] Unknown environment "${rawEnv}". Use "stage" or "production".`
+  );
+}
+
 const fib = new FibPay({
   clientId: process.env.FIB_CLIENT_ID,
   clientSecret: process.env.FIB_CLIENT_SECRET,
-  environment: process.env.FIB_ENVIRONMENT || 'stage',
+  environment,
 });
 
 const action = process.argv[2];
