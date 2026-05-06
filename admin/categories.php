@@ -17,6 +17,7 @@ requirePermission('manage_categories');
 $pdo = getDB();
 $error = '';
 $success = '';
+$editingCategory = null;
 
 // Handle add/edit category
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -74,6 +75,22 @@ if ($deleteId > 0) {
     }
 }
 
+// Handle edit selection
+$editId = (int)sanitizeInput('edit', 'GET', '0');
+if ($editId > 0) {
+    try {
+        $stmt = $pdo->prepare('SELECT * FROM categories WHERE id = :id');
+        $stmt->execute(['id' => $editId]);
+        $editingCategory = $stmt->fetch();
+        if (!$editingCategory) {
+            $error = t('error');
+        }
+    } catch (PDOException $e) {
+        error_log('Category edit load error: ' . $e->getMessage());
+        $error = t('error');
+    }
+}
+
 // Get all categories
 $stmt = $pdo->query('SELECT c.*, COUNT(p.id) as product_count 
                      FROM categories c 
@@ -85,6 +102,13 @@ $categories = $stmt->fetchAll();
 $csrfToken = generateCSRFToken();
 $lang = getCurrentLang();
 $dir = getHtmlDir();
+$formAction = $editingCategory ? 'edit' : 'add';
+$formNameEn = $editingCategory['name_en'] ?? '';
+$formNameKu = $editingCategory['name_ku'] ?? '';
+$formSlug = $editingCategory['slug'] ?? '';
+$formTitle = $editingCategory ? (t('edit') . ' ' . t('category')) : t('add_new_category');
+$formButton = $editingCategory ? t('edit') : t('add_category_btn');
+$formIcon = $editingCategory ? 'fa-pen-to-square' : 'fa-plus-circle';
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($lang) ?>" dir="<?= e($dir) ?>">
@@ -138,22 +162,25 @@ $dir = getHtmlDir();
                     <div class="lg:col-span-1">
                         <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
                             <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                <i class="fas fa-plus-circle text-orange-600"></i>
-                                <?= e(t('add_new_category')) ?>
+                                <i class="fas <?= e($formIcon) ?> text-orange-600"></i>
+                                <?= e($formTitle) ?>
                             </h2>
                             <form method="POST" action="" class="space-y-5">
                                 <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
-                                <input type="hidden" name="action" value="add">
+                                <input type="hidden" name="action" value="<?= e($formAction) ?>">
+                                <?php if ($editingCategory): ?>
+                                    <input type="hidden" name="id" value="<?= e((string)$editingCategory['id']) ?>">
+                                <?php endif; ?>
                                 
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('name_en')) ?></label>
-                                    <input type="text" name="name_en" required
+                                     <input type="text" name="name_en" value="<?= e($formNameEn) ?>" required
                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                 </div>
                                 
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2"><?= e(t('name_ku')) ?></label>
-                                    <input type="text" name="name_ku" required
+                                     <input type="text" name="name_ku" value="<?= e($formNameKu) ?>" required
                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                 </div>
                                 
@@ -163,7 +190,7 @@ $dir = getHtmlDir();
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <span class="text-gray-400">/</span>
                                         </div>
-                                        <input type="text" name="slug" required
+                                             <input type="text" name="slug" value="<?= e($formSlug) ?>" required
                                                placeholder="e.g., weddings"
                                                class="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white">
                                     </div>
@@ -172,8 +199,14 @@ $dir = getHtmlDir();
                                 
                                 <button type="submit" 
                                         class="w-full bg-orange-600 text-white py-3 px-4 rounded-xl hover:bg-orange-700 transition-all duration-300 font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                                    <i class="fas fa-save me-2"></i><?= e(t('add_category_btn')) ?>
+                                    <i class="fas fa-save me-2"></i><?= e($formButton) ?>
                                 </button>
+                                <?php if ($editingCategory): ?>
+                                    <a href="categories.php"
+                                       class="block w-full text-center bg-gray-100 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-200 transition-all duration-300 font-bold">
+                                        <i class="fas fa-ban me-2"></i><?= e(t('cancel')) ?>
+                                    </a>
+                                <?php endif; ?>
                             </form>
                         </div>
                     </div>
