@@ -280,7 +280,7 @@ $dir = getHtmlDir();
                     <!-- Left Column: Order Items & Totals -->
                     <div class="lg:col-span-2 space-y-8">
                         <!-- Items -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-hide">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                             <div class="px-6 py-4 border-b border-gray-100 font-bold text-gray-800 flex items-center gap-2">
                                 <i class="fas fa-shopping-bag text-blue-600"></i><?= e(t('order_items')) ?>
                             </div>
@@ -415,7 +415,7 @@ $dir = getHtmlDir();
 
                         <!-- Admin Actions -->
                         <?php if (isSuperAdmin() || hasPermission('manage_orders')): ?>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-show print-keep">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-hide">
                             <div class="px-6 py-4 border-b border-gray-100 font-bold text-gray-800 flex items-center gap-2">
                                 <i class="fas fa-cog text-blue-600"></i><?= e(t('admin_actions')) ?>
                             </div>
@@ -442,7 +442,7 @@ $dir = getHtmlDir();
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="receipt-footer">
+                <div class="receipt-footer hidden print:block">
                     <?= e(t('thank_you') ?? 'Thank you for your order') ?> · Bloom & Vine
                 </div>
             </main>
