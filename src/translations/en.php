@@ -550,6 +550,8 @@ return [
     'sidebar_overview' => 'Overview',
     'sidebar_admins' => 'Admins',
     'sidebar_settings' => 'Settings',
+    'contact_messages' => 'Contact Messages',
+    'orders' => 'Orders',
     'dashboard' => 'Dashboard',
     'products' => 'Products',
     'categories' => 'Categories',

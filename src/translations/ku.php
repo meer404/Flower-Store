@@ -549,6 +549,8 @@ return [
     'sidebar_overview' => 'پوختە',
     'sidebar_admins' => 'بەڕێوەبەران',
     'sidebar_settings' => 'ڕێکخستنەکان',
+    'contact_messages' => 'پەیامەکان',
+    'orders' => 'داواکاریەکان',
     'dashboard' => 'داشبۆرد',
     'products' => 'بەرهەمەکان',
     'categories' => 'پۆلەکان',

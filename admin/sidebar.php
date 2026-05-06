@@ -125,7 +125,7 @@ $csrfToken = generateCSRFToken();
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors <?= $currentPage === 'contact_messages.php' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-600' ?>">
                             <i class="fas fa-envelope"></i>
                         </div>
-                        <span class="flex-1">Contact Messages</span>
+                        <span class="flex-1"><?= e(t('contact_messages')) ?></span>
                     </a>
                 </li>
             </ul>
