@@ -4,18 +4,15 @@
 RewriteEngine On
 
 # Adjust this if the folder name in the URL is different
-RewriteBase /
+RewriteBase /Flower-Store/
 
 # Prevent directory listing
 Options -Indexes -MultiViews
 
 # Clean URLs: redirect .php to extensionless (only for GET requests)
-# Skip OAuth files to prevent redirect loop with query strings
 RewriteCond %{REQUEST_METHOD} GET [NC]
-RewriteCond %{THE_REQUEST} \s/+(.+)\.php[?\s] [NC]
-RewriteCond %{REQUEST_URI} !google_login\.php [NC]
-RewriteCond %{REQUEST_URI} !google_callback\.php [NC]
-RewriteRule ^(.+)\.php$ /$1 [R=302,L,QSA]
+RewriteCond %{THE_REQUEST} \s/+(.+)\.php(?:[?\s]|$) [NC]
+RewriteRule ^ /%1 [R=301,L]
 
 # Map extensionless URLs to .php files
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -40,4 +37,3 @@ RewriteRule ^(.+)$ $1.php [L]
     php_value upload_max_filesize 10M
     php_value post_max_size 10M
 </IfModule>
-
