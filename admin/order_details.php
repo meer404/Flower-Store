@@ -322,10 +322,7 @@ $dir = getHtmlDir();
                                     <span><?= e(t('subtotal')) ?></span>
                                     <span><?= e(formatPrice((float)$order['grand_total'])) // Simplified as we don't store subtotal/tax separate in order table generally ?></span>
                                 </div>
-                                <div class="flex justify-between text-gray-600">
-                                    <span><?= e(t('shipping') ?? 'Shipping') ?></span>
-                                    <span class="text-green-600"><?= e(t('free') ?? 'Free') ?></span>
-                                </div>
+                                
                                 <div class="flex justify-between font-bold text-xl text-gray-800 border-t border-gray-200 pt-3">
                                     <span><?= e(t('total')) ?></span>
                                     <span class="text-blue-600"><?= e(formatPrice((float)$order['grand_total'])) ?></span>
