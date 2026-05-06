@@ -33,23 +33,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isSuperAdmin() || hasPermission('m
     }
 
     $newStatus = sanitizeInput('order_status');
-    $newPaymentStatus = sanitizeInput('payment_status');
-    $trackingNumber = sanitizeInput('tracking_number');
+    $newPaymentStatus = 'paid';
 
-    $allowedStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-    $allowedPaymentStatuses = ['pending', 'paid'];
-
-    if (!in_array($newStatus, $allowedStatuses, true) || !in_array($newPaymentStatus, $allowedPaymentStatuses, true)) {
+    $allowedStatuses = ['pending', 'processing', 'delivered', 'cancelled'];
+    if (!in_array($newStatus, $allowedStatuses, true)) {
         redirect("order_details.php?id={$id}", t('error'), 'error');
     }
     
     // Update order
-    $updateStmt = $pdo->prepare('UPDATE orders SET order_status = :status, payment_status = :payment_status, tracking_number = :tracking_number WHERE id = :id');
+    $updateStmt = $pdo->prepare('UPDATE orders SET order_status = :status, payment_status = :payment_status WHERE id = :id');
     try {
         $updateStmt->execute([
             'status' => $newStatus,
             'payment_status' => $newPaymentStatus,
-            'tracking_number' => $trackingNumber,
             'id' => $id
         ]);
         
@@ -106,6 +102,121 @@ $dir = getHtmlDir();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
+    <style>
+        @media print {
+            @page {
+                size: A4;
+                margin: 16mm;
+            }
+
+            body {
+                background: transparent !important;
+            }
+
+            .sidebar,
+            header,
+            .fa-arrow-left,
+            .fa-print,
+            .print-hide,
+            .receipt-footer,
+            footer,
+            button,
+            a[href^="javascript:"] {
+                display: none !important;
+            }
+
+            .flex,
+            .min-h-screen {
+                min-height: auto !important;
+            }
+
+            main {
+                padding: 0 !important;
+            }
+
+            .shadow-sm,
+            .shadow-lg,
+            .shadow-blue-200 {
+                box-shadow: none !important;
+            }
+
+            .border,
+            .border-gray-100,
+            .border-gray-200 {
+                border-color: #e5e7eb !important;
+            }
+
+            .bg-gray-50,
+            .bg-white {
+                background: #ffffff !important;
+            }
+
+            .text-blue-600,
+            .text-blue-700,
+            .text-green-600,
+            .text-orange-700,
+            .text-red-100,
+            .text-red-700,
+            .text-purple-700 {
+                color: #111827 !important;
+            }
+
+            .rounded-2xl,
+            .rounded-lg,
+            .rounded-full {
+                border-radius: 6px !important;
+            }
+
+            .grid {
+                display: block !important;
+            }
+
+            .lg\:col-span-2 {
+                width: 100% !important;
+            }
+
+            .space-y-8 > * + * {
+                margin-top: 16px !important;
+            }
+
+            .print-show {
+                display: block !important;
+            }
+
+            .print-keep {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .receipt-header {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                border-bottom: 2px solid #111827 !important;
+                padding-bottom: 8px !important;
+                margin-bottom: 16px !important;
+            }
+
+            .receipt-meta {
+                font-size: 12px !important;
+                color: #374151 !important;
+            }
+
+            .receipt-total {
+                font-size: 18px !important;
+                font-weight: 700 !important;
+                border-top: 2px solid #111827 !important;
+                padding-top: 8px !important;
+            }
+
+            .receipt-footer {
+                margin-top: 12px !important;
+                font-size: 11px !important;
+                color: #4b5563 !important;
+                text-align: center !important;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
     <div class="flex min-h-screen">
@@ -120,7 +231,7 @@ $dir = getHtmlDir();
             <!-- Main Content -->
             <main class="flex-1 p-4 md:p-8">
                 <!-- Header -->
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 receipt-header">
                     <div>
                         <div class="flex items-center gap-3 mb-2">
                             <a href="orders.php" class="text-gray-400 hover:text-blue-600 transition-colors">
@@ -133,7 +244,6 @@ $dir = getHtmlDir();
                             $statusColors = [
                                 'pending' => 'bg-orange-100 text-orange-700',
                                 'processing' => 'bg-blue-100 text-blue-700',
-                                'shipped' => 'bg-purple-100 text-purple-700',
                                 'delivered' => 'bg-green-100 text-green-700',
                                 'cancelled' => 'bg-red-100 text-red-700'
                             ];
@@ -144,12 +254,15 @@ $dir = getHtmlDir();
                                 <?= e(ucfirst($orderStatus)) ?>
                             </span>
                         </div>
-                        <p class="text-gray-500">
+                        <p class="text-gray-500 receipt-meta">
                             <?= e(date('F j, Y \a\t g:i A', strtotime($order['order_date']))) ?>
+                        </p>
+                        <p class="text-gray-500 receipt-meta">
+                            <?= e(t('payment_method')) ?>: <?= e($order['payment_method'] === 'fib' ? 'First Iraqi Bank (FIB)' : ucfirst((string)$order['payment_method'])) ?>
                         </p>
                     </div>
                     
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 print-hide">
 			<a href="javascript:window.print()" class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-all font-semibold text-sm shadow-sm flex items-center gap-2">
                             <i class="fas fa-print"></i> <?= e(t('print') ?? 'Print') ?>
                         </a>
@@ -167,7 +280,7 @@ $dir = getHtmlDir();
                     <!-- Left Column: Order Items & Totals -->
                     <div class="lg:col-span-2 space-y-8">
                         <!-- Items -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-hide">
                             <div class="px-6 py-4 border-b border-gray-100 font-bold text-gray-800 flex items-center gap-2">
                                 <i class="fas fa-shopping-bag text-blue-600"></i><?= e(t('order_items')) ?>
                             </div>
@@ -224,7 +337,7 @@ $dir = getHtmlDir();
                     <!-- Right Column: Info & Actions -->
                     <div class="space-y-8">
                         <!-- Customer Info -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-show print-keep">
                             <div class="px-6 py-4 border-b border-gray-100 font-bold text-gray-800 flex items-center gap-2">
                                 <i class="fas fa-user text-blue-600"></i><?= e(t('customer_info')) ?>
                             </div>
@@ -248,7 +361,7 @@ $dir = getHtmlDir();
                                     $mapUrl = 'https://www.google.com/maps?q=' . rawurlencode($order['customer_lat'] . ',' . $order['customer_lng']);
                                     $mapEmbedUrl = $mapUrl . '&output=embed';
                                     ?>
-                                    <div>
+                                    <div class="print-hide">
                                         <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1"><?= e(t('customer_location')) ?></h4>
                                         <p class="font-medium text-gray-800 mb-1">
                                             <?= e(t('latitude')) ?>: <?= e((string)$order['customer_lat']) ?>
@@ -274,7 +387,7 @@ $dir = getHtmlDir();
                         </div>
 
                         <!-- Payment Info -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-hide">
                             <div class="px-6 py-4 border-b border-gray-100 font-bold text-gray-800 flex items-center gap-2">
                                 <i class="fas fa-credit-card text-blue-600"></i><?= e(t('payment_method')) ?>
                             </div>
@@ -305,7 +418,7 @@ $dir = getHtmlDir();
 
                         <!-- Admin Actions -->
                         <?php if (isSuperAdmin() || hasPermission('manage_orders')): ?>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print-show print-keep">
                             <div class="px-6 py-4 border-b border-gray-100 font-bold text-gray-800 flex items-center gap-2">
                                 <i class="fas fa-cog text-blue-600"></i><?= e(t('admin_actions')) ?>
                             </div>
@@ -315,7 +428,7 @@ $dir = getHtmlDir();
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1"><?= e(t('order_status_label')) ?></label>
                                         <select name="order_status" class="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
-                                            <?php foreach (['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as $status): ?>
+                                            <?php foreach (['pending', 'processing', 'delivered', 'cancelled'] as $status): ?>
                                                 <option value="<?= $status ?>" <?= strtolower($order['order_status']) === $status ? 'selected' : '' ?>>
                                                     <?= e(ucfirst($status)) ?>
                                                 </option>
@@ -323,25 +436,6 @@ $dir = getHtmlDir();
                                         </select>
                                     </div>
                                     
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1"><?= e(t('payment_status_label')) ?></label>
-                                        <select name="payment_status" class="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
-                                            <?php foreach (['pending', 'paid'] as $status): ?>
-                                                <option value="<?= $status ?>" <?= strtolower($order['payment_status']) === $status ? 'selected' : '' ?>>
-                                                    <?= e(ucfirst($status)) ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1"><?= e(t('tracking_number')) ?></label>
-                                        <input type="text" name="tracking_number" 
-                                               value="<?= e($order['tracking_number'] ?? '') ?>"
-                                               class="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                                               placeholder="<?= e(t('enter_tracking_number')) ?>">
-                                    </div>
-
                                     <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
                                         <?= e(t('update_order_status')) ?>
                                     </button>
@@ -350,6 +444,9 @@ $dir = getHtmlDir();
                         </div>
                         <?php endif; ?>
                     </div>
+                </div>
+                <div class="receipt-footer">
+                    <?= e(t('thank_you') ?? 'Thank you for your order') ?> · Bloom & Vine
                 </div>
             </main>
                         
