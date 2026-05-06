@@ -19,13 +19,17 @@ $pdo = getDB();
 $canManageProducts = hasPermission('manage_products');
 $canManageCategories = hasPermission('manage_categories');
 $canViewReports = hasPermission('view_reports');
+$currency = (string)getSystemSetting('currency', 'IQD ');
+
+$report = getSalesReport('month');
+$totalRevenue = array_sum(array_column($report['sales_data'], 'total_revenue'));
 
 // Get order statistics
 $stats = [
     'pending' => $pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'pending'")->fetchColumn(),
     'processing' => $pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'processing'")->fetchColumn(),
     'completed' => $pdo->query("SELECT COUNT(*) FROM orders WHERE order_status = 'delivered'")->fetchColumn(),
-    'revenue' => $pdo->query("SELECT SUM(grand_total) FROM orders WHERE payment_status = 'paid'")->fetchColumn()
+    'revenue' => $totalRevenue
 ];
 
 // Fallback to 0 if null (e.g. no revenue yet)
@@ -80,7 +84,7 @@ $dir = getHtmlDir();
                         </div>
                         <div class="bg-white/10 backdrop-blur-sm px-8 py-6 rounded-2xl border border-white/20 hover:bg-white/20 transition-colors cursor-default">
                             <p class="text-sm text-purple-200 mb-1"><?= e(t('total_revenue')) ?></p>
-                            <p class="text-4xl font-bold text-white font-luxury"><?= e(formatPrice($totalSales)) ?></p>
+                            <p class="text-4xl font-bold text-white font-luxury"><?= e(formatPrice($totalSales, $currency)) ?></p>
                         </div>
                     </div>
                 </div>
@@ -182,7 +186,7 @@ $dir = getHtmlDir();
                     <?= statsCard(t('pending_orders'), (string)$stats['pending'], 'fas fa-clock', 'orange') ?>
                     <?= statsCard(t('processing_orders'), (string)$stats['processing'], 'fas fa-spinner', 'blue') ?>
                     <?= statsCard(t('completed_orders'), (string)$stats['completed'], 'fas fa-check-circle', 'green') ?>
-                    <?= statsCard(t('total_revenue'), formatPrice((float)$stats['revenue']), 'fas fa-wallet', 'purple') ?>
+                    <?= statsCard(t('total_revenue'), formatPrice((float)$stats['revenue'], $currency), 'fas fa-wallet', 'purple') ?>
                 </div>
 
                 <?php if ($canViewReports): ?>
