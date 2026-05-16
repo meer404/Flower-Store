@@ -32,7 +32,10 @@ try {
 // Polling for status via AJAX
 if (isset($_GET['check_status'])) {
     header('Content-Type: application/json');
-    echo json_encode(['status' => $fibPayment['status']]);
+    echo json_encode([
+        'status'          => $fibPayment['status'] ?? 'UNPAID',
+        'decliningReason' => $fibPayment['decliningReason'] ?? null,
+    ]);
     exit;
 }
 
@@ -133,7 +136,7 @@ $currency = (string)getSystemSetting('currency', 'IQD ');
                 const data = await response.json();
                 
                 if (data.status === 'PAID') {
-                    // Success state
+                    clearInterval(pollInterval);
                     document.body.innerHTML = `
                         <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center border border-luxury-border">
                             <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -147,9 +150,12 @@ $currency = (string)getSystemSetting('currency', 'IQD ');
                         window.location.href = 'order_details.php?id=<?= $orderId ?>&payment=success';
                     }, 2000);
                 } else if (data.status === 'DECLINED') {
-                    window.location.href = 'checkout.php?error=payment_failed';
-                } else if (data.status === 'EXPIRED') {
-                    window.location.href = 'checkout.php?error=payment_expired';
+                    clearInterval(pollInterval);
+                    if (data.decliningReason === 'PAYMENT_EXPIRATION') {
+                        window.location.href = 'checkout.php?error=payment_expired';
+                    } else {
+                        window.location.href = 'checkout.php?error=payment_failed';
+                    }
                 }
             } catch (e) {
                 console.error('Polling error:', e);

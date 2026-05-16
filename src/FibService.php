@@ -1,75 +1,133 @@
 <?php
 declare(strict_types=1);
 
-/**
- * FIB Payment Service
- * Wraps the Node.js fibpay SDK bridge
- */
+require_once __DIR__ . '/config/env.php';
+
 class FibService {
-    /**
-     * Run the Node.js bridge command
-     * 
-     * @param array $args CLI arguments
-     * @return array Response data
-     * @throws Exception on error
-     */
-    private static function runBridge(array $args): array {
-        // Find node executable - try to find it in common paths if not in PATH
-        $node = 'node';
-        
-        $bridgePath = realpath(__DIR__ . '/../fib-payment/fib-bridge.js');
-        if (!$bridgePath) {
-            throw new Exception("FIB bridge script not found at " . __DIR__ . '/../fib-payment/fib-bridge.js');
+    private static ?string $cachedToken = null;
+    private static int $tokenExpiresAt = 0;
+
+    private static function baseUrl(): string {
+        return rtrim((string)env('FIB_BASE_URL', 'https://fib.stage.fib.iq'), '/');
+    }
+
+    private static function getAccessToken(): string {
+        if (self::$cachedToken !== null && time() < self::$tokenExpiresAt) {
+            return self::$cachedToken;
         }
 
-        $command = $node . ' ' . escapeshellarg($bridgePath) . ' ' . implode(' ', array_map('escapeshellarg', $args));
-        
-        $output = [];
-        $returnVar = 0;
-        exec($command . ' 2>&1', $output, $returnVar);
-        
-        $rawOutput = implode("\n", $output);
-        
-        // Extract JSON part using markers
-        $json = $rawOutput;
-        if (preg_match('/---FIB-JSON-START---(.*?)---FIB-JSON-END---/s', $rawOutput, $matches)) {
-            $json = $matches[1];
+        $body = http_build_query([
+            'grant_type'    => 'client_credentials',
+            'client_id'     => (string)env('FIB_CLIENT_ID'),
+            'client_secret' => (string)env('FIB_CLIENT_SECRET'),
+        ]);
+
+        $ch = curl_init(self::baseUrl() . '/auth/realms/fib-online-shop/protocol/openid-connect/token');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
+            CURLOPT_TIMEOUT        => 15,
+        ]);
+
+        $response  = curl_exec($ch);
+        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            throw new Exception("FIB auth error: $curlError");
         }
 
-        $data = json_decode($json, true);
-        
-        if ($returnVar !== 0 || $data === null) {
-            $errorMsg = isset($data['error']) ? $data['error'] : 'Unknown bridge error';
-            if (isset($data['body'])) {
-                $errorMsg .= ' - ' . json_encode($data['body']);
-            }
-            if ($data === null) {
-                $errorMsg = "Invalid JSON from bridge: " . $rawOutput;
-            }
-            throw new Exception("FIB Error: " . $errorMsg);
+        $data = json_decode((string)$response, true);
+
+        if ($httpCode >= 400 || !isset($data['access_token'])) {
+            $msg = $data['error_description'] ?? $data['error'] ?? "HTTP $httpCode";
+            throw new Exception("FIB authentication failed: $msg");
         }
-        
+
+        // Subtract 30s buffer to avoid using a token right at expiry
+        self::$cachedToken    = $data['access_token'];
+        self::$tokenExpiresAt = time() + (int)($data['expires_in'] ?? 300) - 30;
+
+        return self::$cachedToken;
+    }
+
+    private static function request(string $method, string $path, ?array $body = null): ?array {
+        $token   = self::getAccessToken();
+        $headers = [
+            'Authorization: Bearer ' . $token,
+            'Accept: application/json',
+        ];
+
+        $ch = curl_init(self::baseUrl() . $path);
+        $opts = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_TIMEOUT        => 15,
+        ];
+
+        if ($body !== null) {
+            $json       = json_encode($body);
+            $headers[]  = 'Content-Type: application/json';
+            $headers[]  = 'Content-Length: ' . strlen($json);
+            $opts[CURLOPT_POSTFIELDS] = $json;
+        }
+
+        $opts[CURLOPT_HTTPHEADER] = $headers;
+        curl_setopt_array($ch, $opts);
+
+        $response  = curl_exec($ch);
+        $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($curlError) {
+            throw new Exception("FIB request error: $curlError");
+        }
+
+        // 204 No Content (cancel) and 202 Accepted (refund) return no body
+        if ($httpCode === 204 || $httpCode === 202) {
+            return null;
+        }
+
+        $data = json_decode((string)$response, true);
+
+        if ($httpCode >= 400) {
+            $msg = $data['message'] ?? $data['error'] ?? "HTTP $httpCode";
+            throw new Exception("FIB Error: $msg");
+        }
+
         return $data;
     }
 
-    /**
-     * Create a new payment
-     */
     public static function createPayment(int $amount, string $description, ?string $callbackUrl = null, ?string $redirectUrl = null): array {
-        return self::runBridge([
-            'create',
-            (string)$amount,
-            'IQD',
-            $description,
-            $callbackUrl ?? 'null',
-            $redirectUrl ?? 'null'
-        ]);
+        $payload = [
+            'monetaryValue' => ['amount' => $amount, 'currency' => 'IQD'],
+        ];
+        if ($description !== '') {
+            $payload['description'] = $description;
+        }
+        if ($callbackUrl !== null) {
+            $payload['statusCallbackUrl'] = $callbackUrl;
+        }
+        if ($redirectUrl !== null) {
+            $payload['redirectUrl'] = $redirectUrl;
+        }
+
+        return self::request('POST', '/protected/v1/payments', $payload) ?? [];
     }
 
-    /**
-     * Get payment status
-     */
     public static function getPaymentStatus(string $paymentId): array {
-        return self::runBridge(['status', $paymentId]);
+        return self::request('GET', "/protected/v1/payments/{$paymentId}/status") ?? [];
+    }
+
+    public static function cancelPayment(string $paymentId): void {
+        self::request('POST', "/protected/v1/payments/{$paymentId}/cancel");
+    }
+
+    public static function refundPayment(string $paymentId): void {
+        self::request('POST', "/protected/v1/payments/{$paymentId}/refund");
     }
 }

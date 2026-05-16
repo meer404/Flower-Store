@@ -11,9 +11,9 @@ declare(strict_types=1);
 
 // Database Configuration
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'bloom_vine');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_NAME', 'u997521431_bloomvine');
+define('DB_USER', 'u997521431_bloomvine');
+define('DB_PASS', 'Bloom2026Vine');
 define('DB_CHARSET', 'utf8mb4');
 
 /**
