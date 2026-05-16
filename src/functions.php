@@ -61,6 +61,9 @@ function safeRedirectTarget(string $target, string $default = 'index.php'): stri
         return $default;
     }
 
+    // Normalize common encoding issues from nested redirects.
+    $target = rawurldecode($target);
+
     // Disallow absolute URLs and protocol-relative URLs
     if (preg_match('/^(https?:)?\/\//i', $target) || strpos($target, '://') !== false) {
         return $default;
@@ -69,7 +72,38 @@ function safeRedirectTarget(string $target, string $default = 'index.php'): stri
     // Prevent header injection
     $target = str_replace(["\r", "\n"], '', $target);
 
-    return $target;
+    $parts = parse_url($target);
+    $path = $parts['path'] ?? '';
+    $query = $parts['query'] ?? '';
+    $fragment = $parts['fragment'] ?? '';
+
+    if ($path === '') {
+        return $default;
+    }
+
+    // Prevent redirect loops back to auth endpoints.
+    $normalizedPath = ltrim(strtolower($path), '/');
+    if (preg_match('/^(login|google_login|google_callback)\.php\b/', $normalizedPath)) {
+        return $default;
+    }
+
+    if ($query !== '') {
+        parse_str($query, $params);
+        if (isset($params['redirect'])) {
+            unset($params['redirect']);
+            $query = http_build_query($params);
+        }
+    }
+
+    $cleanTarget = $path;
+    if ($query !== '') {
+        $cleanTarget .= '?' . $query;
+    }
+    if ($fragment !== '') {
+        $cleanTarget .= '#' . $fragment;
+    }
+
+    return $cleanTarget;
 }
 
 /**
