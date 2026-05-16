@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+ob_start();
+
 require_once __DIR__ . '/src/language.php';
 require_once __DIR__ . '/src/functions.php';
 require_once __DIR__ . '/src/config/google_oauth.php';
@@ -37,7 +39,22 @@ $client->setClientSecret($config['client_secret']);
 $client->setRedirectUri($config['redirect_uri']);
 $client->setScopes(['email', 'profile']);
 
-$token = $client->fetchAccessTokenWithAuthCode($code);
+// Use a reliable CA bundle so SSL verification works on local dev (XAMPP/Windows)
+// and on production without extra server config.
+if (class_exists('\Composer\CaBundle\CaBundle')) {
+    $caBundle = \Composer\CaBundle\CaBundle::getSystemCaRootBundlePath();
+    if ($caBundle) {
+        $client->setHttpClient(new \GuzzleHttp\Client(['verify' => $caBundle]));
+    }
+}
+
+try {
+    $token = $client->fetchAccessTokenWithAuthCode($code);
+} catch (\Exception $e) {
+    error_log('Google OAuth token exchange exception: ' . $e->getMessage());
+    redirect('login.php', t('google_login_failed'), 'error');
+}
+
 if (isset($token['error'])) {
     error_log('Google OAuth token error: ' . ($token['error_description'] ?? $token['error']));
     redirect('login.php', t('google_login_failed'), 'error');
@@ -45,8 +62,14 @@ if (isset($token['error'])) {
 
 $client->setAccessToken($token);
 
-$idToken = $token['id_token'] ?? null;
-$payload = $idToken ? $client->verifyIdToken($idToken) : null;
+try {
+    $idToken  = $token['id_token'] ?? null;
+    $payload  = $idToken ? $client->verifyIdToken($idToken) : null;
+} catch (\Exception $e) {
+    error_log('Google OAuth ID token verification exception: ' . $e->getMessage());
+    redirect('login.php', t('google_login_failed'), 'error');
+}
+
 if (!is_array($payload) || empty($payload['email']) || empty($payload['email_verified'])) {
     error_log('Google OAuth ID token verification failed.');
     redirect('login.php', t('google_login_failed'), 'error');
@@ -79,23 +102,23 @@ try {
         $passwordHash = password_hash(bin2hex(random_bytes(32)), PASSWORD_ARGON2ID);
         $stmt = $pdo->prepare('INSERT INTO users (full_name, email, password_hash, role) VALUES (:full_name, :email, :password_hash, :role)');
         $stmt->execute([
-            'full_name' => $fullName,
-            'email' => $email,
+            'full_name'     => $fullName,
+            'email'         => $email,
             'password_hash' => $passwordHash,
-            'role' => 'customer'
+            'role'          => 'customer',
         ]);
         $userId = (int)$pdo->lastInsertId();
         $user = [
-            'id' => $userId,
-            'email' => $email,
-            'role' => 'customer',
-            'full_name' => $fullName
+            'id'        => $userId,
+            'email'     => $email,
+            'role'      => 'customer',
+            'full_name' => $fullName,
         ];
     }
 
-    $_SESSION['user_id'] = (int)$user['id'];
-    $_SESSION['email'] = $user['email'];
-    $_SESSION['role'] = $user['role'];
+    $_SESSION['user_id']   = (int)$user['id'];
+    $_SESSION['email']     = $user['email'];
+    $_SESSION['role']      = $user['role'];
     $_SESSION['full_name'] = $user['full_name'];
     if ($picture !== '') {
         $_SESSION['avatar_url'] = $picture;
@@ -103,7 +126,7 @@ try {
 
     logActivity('user_login', 'user', (int)$user['id'], "User logged in with Google: {$email}");
 } catch (PDOException $e) {
-    error_log('Google login error: ' . $e->getMessage());
+    error_log('Google login DB error: ' . $e->getMessage());
     redirect('login.php', t('google_login_failed'), 'error');
 }
 
@@ -114,4 +137,5 @@ if (($_SESSION['role'] ?? '') === 'super_admin') {
     $redirectTarget = 'admin/super_admin_dashboard.php';
 }
 
+ob_end_clean();
 redirect($redirectTarget, t('login_success'), 'success');
