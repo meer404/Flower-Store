@@ -398,20 +398,61 @@ $dir = getHtmlDir();
     <title><?= e(t('checkout')) ?> - Bloom & Vine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <?= getLuxuryTailwindConfig() ?>
+    <style>
+        .extras-slider { scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+        .extras-slider::-webkit-scrollbar { display: none; }
+        .extras-slide { flex-shrink: 0; width: 148px; }
+        @media (min-width: 480px) { .extras-slide { width: 168px; } }
+        @media (min-width: 768px) { .extras-slide { width: 186px; } }
+        @media (min-width: 1024px) { .sticky-summary { position: sticky; top: 88px; } }
+        .extra-option { transition: border-color .2s, box-shadow .2s, background-color .2s; }
+        .check-icon { transition: opacity .15s ease; }
+        .slider-btn { transition: all .15s ease; }
+        .slider-btn:hover { transform: scale(1.1); }
+        .slider-btn:active { transform: scale(0.95); }
+        .payment-card-label { transition: all .2s ease; }
+        .payment-card-label:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+        .form-control:focus { outline: none; }
+        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; }
+    </style>
 </head>
-<body class="bg-white min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
+<body class="bg-gray-50 min-h-screen" style="font-family: 'Inter', 'Segoe UI', sans-serif;">
     <?php include __DIR__ . '/src/header.php'; ?>
 
-    <div class="container mx-auto px-4 md:px-6 py-6 md:py-12">
-        <h1 class="text-3xl md:text-4xl font-luxury font-bold text-luxury-primary mb-6 md:mb-8 tracking-wide"><?= e(t('checkout')) ?></h1>
-        
+    <!-- Checkout Progress Bar -->
+    <div class="bg-white border-b border-luxury-border shadow-sm">
+        <div class="container mx-auto px-4 md:px-6 py-3">
+            <ol class="flex items-center gap-2 text-xs sm:text-sm">
+                <li class="flex items-center gap-1.5">
+                    <span class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center"><i class="fas fa-check" style="font-size:9px"></i></span>
+                    <a href="cart.php" class="text-green-600 font-medium hover:underline hidden sm:inline"><?= e(t('cart')) ?></a>
+                </li>
+                <li class="flex-1 max-w-12 h-px bg-luxury-border"></li>
+                <li class="flex items-center gap-1.5">
+                    <span class="w-6 h-6 rounded-full bg-luxury-accent text-white flex items-center justify-center font-bold text-xs">2</span>
+                    <span class="text-luxury-accent font-semibold hidden sm:inline"><?= e(t('checkout')) ?></span>
+                </li>
+                <li class="flex-1 max-w-12 h-px bg-luxury-border"></li>
+                <li class="flex items-center gap-1.5">
+                    <span class="w-6 h-6 rounded-full border-2 border-luxury-border text-luxury-textLight flex items-center justify-center text-xs">3</span>
+                    <span class="text-luxury-textLight hidden sm:inline"><?= e(t('confirmation')) ?></span>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+
+    <div class="container mx-auto px-4 md:px-6 py-6 md:py-10">
+        <h1 class="text-2xl md:text-3xl font-luxury font-bold text-luxury-primary mb-5 md:mb-7 tracking-wide"><?= e(t('checkout')) ?></h1>
+
         <?php if ($error): ?>
-            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-sm mb-6">
-                <?= e($error) ?>
-            </div>
+        <div class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-600 px-4 py-3.5 rounded-xl mb-6">
+            <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0 text-red-400"></i>
+            <span class="text-sm font-medium"><?= e($error) ?></span>
+        </div>
         <?php endif; ?>
-        
-        <form method="POST" action="" class="space-y-6">
+
+        <form method="POST" action="">
             <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
             <input type="hidden" name="customer_lat" id="customer_lat" value="<?= e(sanitizeInput('customer_lat', 'POST', '')) ?>">
             <input type="hidden" name="customer_lng" id="customer_lng" value="<?= e(sanitizeInput('customer_lng', 'POST', '')) ?>">
@@ -419,91 +460,335 @@ $dir = getHtmlDir();
             <input type="hidden" name="delivery_fee" id="delivery_fee" value="<?= e(sanitizeInput('delivery_fee', 'POST', '')) ?>">
             <input type="hidden" name="extras_total" id="extras_total" value="0.00">
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-                <!-- Column 1: Delivery Details -->
-                <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 order-1">
-                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('customer_info')) ?></h2>
-                    
-                    <div class="mb-6 p-4 bg-luxury-border rounded-sm">
-                        <p class="text-sm text-luxury-textLight mb-2"><?= e(t('name')) ?>: <span class="font-medium text-luxury-primary"><?= e($user['full_name']) ?></span></p>
-                        <p class="text-sm text-luxury-textLight"><?= e(t('email')) ?>: <span class="font-medium text-luxury-primary"><?= e($user['email']) ?></span></p>
-                    </div>
+            <!--
+                GRID LAYOUT (3 children, 5-col desktop):
+                  Mobile  : Delivery → Payment → Extras (order 1,2,3)
+                  Desktop : [Delivery    | Payment (rows 1+2)]
+                            [Extras      |                    ]
+            -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 lg:gap-7">
 
-                    <div class="space-y-6">
-                        <div>
-                            <label for="shipping_address" class="block text-sm font-medium text-luxury-text mb-2">
-                                <?= e(t('shipping_address')) ?> *
-                            </label>
-                            <textarea id="shipping_address" name="shipping_address" rows="4" required
-                                      class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent"
-                                      placeholder="<?= e(t('enter_shipping_address')) ?>"><?= e(sanitizeInput('shipping_address', 'POST', '')) ?></textarea>
-                            <div class="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                                <button type="button" id="use-location" class="inline-flex items-center justify-center gap-2 border-2 border-luxury-accent text-luxury-accent px-4 py-2 rounded-sm hover:bg-luxury-accent hover:text-white transition-all duration-300 font-medium">
-                                    <i class="fas fa-location-crosshairs"></i>
-                                    <?= e(t('use_my_location')) ?>
-                                </button>
-                                <span class="text-xs text-luxury-textLight" id="delivery-status"></span>
+                <!-- ① DELIVERY DETAILS (order-1 everywhere) -->
+                <div class="lg:col-span-3 order-1">
+                    <div class="bg-white border border-luxury-border rounded-2xl shadow-sm p-5 md:p-7">
+                        <h2 class="text-lg font-luxury font-bold text-luxury-primary mb-5 tracking-wide flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-luxury-accent/10 flex items-center justify-center">
+                                <i class="fas fa-user text-luxury-accent text-sm"></i>
+                            </span>
+                            <?= e(t('customer_info')) ?>
+                        </h2>
+
+                        <!-- User pill -->
+                        <div class="flex items-center gap-3 p-3 bg-luxury-border/30 rounded-xl mb-5">
+                            <div class="w-10 h-10 rounded-full bg-luxury-accent/20 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-luxury-accent text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-luxury-primary truncate"><?= e($user['full_name']) ?></p>
+                                <p class="text-xs text-luxury-textLight truncate"><?= e($user['email']) ?></p>
                             </div>
                         </div>
-                        
-                        <div>
-                            <label for="delivery_date" class="block text-sm font-medium text-luxury-text mb-2">
-                                <?= e(t('delivery_date')) ?> *
-                            </label>
-                            <input type="date" id="delivery_date" name="delivery_date" required
-                                   min="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>"
-                                   value="<?= e(sanitizeInput('delivery_date', 'POST', '')) ?>"
-                                   class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent focus:border-luxury-accent">
-                            <p class="text-xs text-luxury-textLight mt-1">
-                                <?= e(t('delivery_date_hint')) ?>
-                            </p>
+
+                        <div class="space-y-5">
+                            <!-- Shipping Address -->
+                            <div>
+                                <label for="shipping_address" class="block text-sm font-semibold text-luxury-text mb-1.5">
+                                    <?= e(t('shipping_address')) ?> <span class="text-red-400">*</span>
+                                </label>
+                                <textarea id="shipping_address" name="shipping_address" rows="3" required
+                                          class="w-full px-4 py-3 border border-luxury-border rounded-xl text-sm resize-none transition-colors"
+                                          style="outline:none"
+                                          placeholder="<?= e(t('enter_shipping_address')) ?>"><?= e(sanitizeInput('shipping_address', 'POST', '')) ?></textarea>
+
+                                <!-- Location button + status -->
+                                <div class="mt-3">
+                                    <button type="button" id="use-location"
+                                            class="inline-flex items-center gap-2 border-2 border-luxury-accent text-luxury-accent px-4 py-2 rounded-lg hover:bg-luxury-accent hover:text-white transition-all duration-200 font-semibold text-sm w-full sm:w-auto justify-center">
+                                        <i class="fas fa-location-crosshairs" id="loc-icon"></i>
+                                        <span id="loc-btn-text"><?= e(t('use_my_location')) ?></span>
+                                    </button>
+                                    <div id="delivery-status-box" class="mt-2 hidden">
+                                        <div id="delivery-status" class="text-xs font-medium px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-600"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delivery Date -->
+                            <div>
+                                <label for="delivery_date" class="block text-sm font-semibold text-luxury-text mb-1.5">
+                                    <?= e(t('delivery_date')) ?> <span class="text-red-400">*</span>
+                                </label>
+                                <input type="date" id="delivery_date" name="delivery_date" required
+                                       min="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>"
+                                       value="<?= e(sanitizeInput('delivery_date', 'POST', '')) ?>"
+                                       class="w-full px-4 py-3 border border-luxury-border rounded-xl text-sm transition-colors"
+                                       style="outline:none">
+                                <p class="text-xs text-luxury-textLight mt-1.5 flex items-center gap-1">
+                                    <i class="fas fa-info-circle text-luxury-accent/70"></i>
+                                    <?= e(t('delivery_date_hint')) ?>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ② ORDER SUMMARY + PAYMENT (order-2 on mobile; right column spanning 2 rows on desktop) -->
+                <div class="lg:col-span-2 lg:row-span-2 order-2 space-y-5 lg:sticky lg:top-24">
+
+                    <!-- Order Summary -->
+                    <div class="bg-white border border-luxury-border rounded-2xl shadow-sm p-5 md:p-6">
+                        <h2 class="text-lg font-luxury font-bold text-luxury-primary mb-4 tracking-wide flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-luxury-accent/10 flex items-center justify-center">
+                                <i class="fas fa-receipt text-luxury-accent text-sm"></i>
+                            </span>
+                            <?= e(t('order_summary')) ?>
+                        </h2>
+
+                        <!-- Cart Items -->
+                        <div class="space-y-3 mb-4 max-h-52 overflow-y-auto overscroll-contain pr-1">
+                            <?php foreach ($cartItems as $item): ?>
+                            <div class="flex justify-between items-start gap-2 pb-3 border-b border-luxury-border/50 last:border-0 last:pb-0">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-luxury-primary text-sm leading-tight"><?= e(getProductName($item)) ?></p>
+                                    <?php if (!empty($item['variant_labels'])): ?>
+                                    <div class="flex flex-wrap gap-0.5 mt-0.5">
+                                        <?php foreach ($item['variant_labels'] as $vl): ?>
+                                        <span class="inline-block bg-luxury-accentLight/60 text-luxury-primary px-1.5 py-0.5 rounded text-xs"><?= e($vl) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <p class="text-xs text-luxury-textLight mt-0.5"><?= e((string)$item['cart_quantity']) ?> × <?= e(formatPrice($item['unit_price'] ?? (float)$item['price'], $currency)) ?></p>
+                                </div>
+                                <p class="font-bold text-luxury-accent text-sm flex-shrink-0"><?= e(formatPrice($item['subtotal'], $currency)) ?></p>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- Pricing Breakdown -->
+                        <div class="space-y-2 border-t border-luxury-border pt-3">
+                            <div class="flex justify-between text-xs text-luxury-textLight">
+                                <span><?= e(t('delivery_distance')) ?></span>
+                                <span id="delivery-distance" class="font-medium">—</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-luxury-textLight">
+                                <span><?= e(t('delivery_fee')) ?></span>
+                                <span id="delivery-fee-amount" class="font-medium">—</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-luxury-textLight">
+                                <span><?= e(t('extras_total')) ?></span>
+                                <span id="extras-total-amount" class="font-medium"><?= e(formatPrice(0.0, $currency)) ?></span>
+                            </div>
+                            <div class="flex justify-between items-center pt-2 border-t border-luxury-border/60">
+                                <span class="text-sm text-luxury-text"><?= e(t('subtotal')) ?></span>
+                                <span class="text-sm font-semibold text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
+                            </div>
+                            <?php if ($appliedCoupon): ?>
+                            <div class="flex justify-between items-center text-sm text-pink-600">
+                                <span class="flex items-center gap-1.5">
+                                    <?= e(t('discount')) ?>
+                                    <span class="text-xs bg-pink-50 border border-pink-200 px-1.5 py-0.5 rounded font-mono"><?= e($appliedCoupon['code']) ?></span>
+                                </span>
+                                <span class="font-bold">-<?= e(formatPrice($discountAmount, $currency)) ?></span>
+                            </div>
+                            <?php endif; ?>
+                            <div class="flex justify-between items-center pt-2 border-t-2 border-luxury-border">
+                                <span class="font-bold text-luxury-primary text-sm"><?= e(t('total')) ?></span>
+                                <span class="text-lg font-bold text-luxury-accent font-luxury" id="subtotal-amount" data-base-total="<?= e((string)$finalCartTotal) ?>"><?= e(formatPrice($finalCartTotal, $currency)) ?></span>
+                            </div>
+                            <div class="flex justify-between items-center bg-luxury-border/30 rounded-xl px-3 py-2.5 -mx-1">
+                                <span class="font-bold text-luxury-primary text-sm"><?= e(t('delivery_total')) ?></span>
+                                <span class="text-xl font-bold text-luxury-accent font-luxury" id="grand-total-amount">—</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Order Extras Section -->
-                    <?php if (!empty($availableExtras)): ?>
-                    <div class="border-t border-luxury-border pt-6 mt-6">
-                        <h3 class="text-lg md:text-xl font-luxury font-bold text-luxury-primary mb-4 tracking-wide">
-                            <i class="fas fa-gift me-2"></i><?= e(t('add_extras')) ?>
-                        </h3>
-                        
-                        <div class="space-y-4">
+                    <!-- Payment Card -->
+                    <div class="bg-white border border-luxury-border rounded-2xl shadow-sm p-5 md:p-6">
+                        <h2 class="text-lg font-luxury font-bold text-luxury-primary mb-4 tracking-wide flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-luxury-accent/10 flex items-center justify-center">
+                                <i class="fas fa-credit-card text-luxury-accent text-sm"></i>
+                            </span>
+                            <?= e(t('payment_method')) ?>
+                        </h2>
+
+                        <!-- Payment Options -->
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <label class="payment-card-label payment-method-option relative flex flex-col items-center gap-2 p-3 border-2 rounded-xl cursor-pointer transition-all <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'border-[#00A69C] bg-[#00A69C]/5 shadow-sm' : 'border-luxury-border hover:border-luxury-accent' ?>">
+                                <input type="radio" name="payment_method" value="fib" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'checked' : '' ?>>
+                                <div class="w-11 h-7 bg-[#00A69C] rounded-lg flex items-center justify-center shadow-sm">
+                                    <span class="text-white font-bold text-xs">FIB</span>
+                                </div>
+                                <span class="font-semibold text-luxury-primary text-xs text-center"><?= e(t('fib')) ?></span>
+                            </label>
+                            <label class="payment-card-label payment-method-option relative flex flex-col items-center gap-2 p-3 border-2 rounded-xl cursor-pointer transition-all <?= (sanitizeInput('payment_method', 'POST', '') === 'visa') ? 'border-luxury-accent bg-luxury-border shadow-sm' : 'border-luxury-border hover:border-luxury-accent' ?>">
+                                <input type="radio" name="payment_method" value="visa" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'visa') ? 'checked' : '' ?>>
+                                <div class="w-11 h-7 bg-[#1A1F71] rounded-lg flex items-center justify-center shadow-sm">
+                                    <span class="text-white font-bold text-xs italic tracking-tight">VISA</span>
+                                </div>
+                                <span class="font-semibold text-luxury-primary text-xs text-center"><?= e(t('visa')) ?></span>
+                            </label>
+                            <label class="payment-card-label payment-method-option relative flex flex-col items-center gap-2 p-3 border-2 rounded-xl cursor-pointer transition-all <?= (sanitizeInput('payment_method', 'POST', '') === 'mastercard') ? 'border-luxury-accent bg-luxury-border shadow-sm' : 'border-luxury-border hover:border-luxury-accent' ?>">
+                                <input type="radio" name="payment_method" value="mastercard" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'mastercard') ? 'checked' : '' ?>>
+                                <div class="w-11 h-7 rounded-lg flex items-center justify-center shadow-sm overflow-hidden relative">
+                                    <div class="absolute inset-0" style="background:linear-gradient(to right,#EB001B 50%,#F79E1B 50%)"></div>
+                                    <span class="relative z-10 text-white font-bold text-xs">MC</span>
+                                </div>
+                                <span class="font-semibold text-luxury-primary text-xs text-center"><?= e(t('mastercard')) ?></span>
+                            </label>
+                        </div>
+
+                        <!-- Card Details -->
+                        <div id="card-details-section" class="<?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'hidden' : '' ?> space-y-3 mt-2 pt-4 border-t border-luxury-border">
+                            <div>
+                                <label for="card_number" class="block text-xs font-semibold text-luxury-text mb-1.5"><?= e(t('card_number')) ?> <span class="text-red-400">*</span></label>
+                                <input type="text" id="card_number" name="card_number"
+                                       placeholder="1234 5678 9012 3456" maxlength="19"
+                                       class="w-full px-3.5 py-2.5 border border-luxury-border rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-luxury-accent/30 focus:border-luxury-accent transition-colors">
+                            </div>
+                            <div>
+                                <label for="cardholder_name" class="block text-xs font-semibold text-luxury-text mb-1.5"><?= e(t('cardholder_name')) ?> <span class="text-red-400">*</span></label>
+                                <input type="text" id="cardholder_name" name="cardholder_name"
+                                       placeholder="NAME ON CARD"
+                                       value="<?= e(sanitizeInput('cardholder_name', 'POST', '')) ?>"
+                                       class="w-full px-3.5 py-2.5 border border-luxury-border rounded-xl text-sm uppercase focus:outline-none focus:ring-2 focus:ring-luxury-accent/30 focus:border-luxury-accent transition-colors">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-semibold text-luxury-text mb-1.5"><?= e(t('expiry_date')) ?> <span class="text-red-400">*</span></label>
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        <select name="expiry_month" id="expiry_month" class="px-2 py-2.5 border border-luxury-border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-luxury-accent/30 focus:border-luxury-accent transition-colors">
+                                            <option value=""><?= e(t('expiry_month')) ?></option>
+                                            <?php for ($i = 1; $i <= 12; $i++): ?>
+                                            <option value="<?= e(sprintf('%02d', $i)) ?>"><?= e(sprintf('%02d', $i)) ?></option>
+                                            <?php endfor; ?>
+                                        </select>
+                                        <select name="expiry_year" id="expiry_year" class="px-2 py-2.5 border border-luxury-border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-luxury-accent/30 focus:border-luxury-accent transition-colors">
+                                            <option value=""><?= e(t('expiry_year')) ?></option>
+                                            <?php for ($i = (int)date('Y'); $i <= (int)date('Y') + 10; $i++): ?>
+                                            <option value="<?= e((string)$i) ?>"><?= e((string)$i) ?></option>
+                                            <?php endfor; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="cvv" class="block text-xs font-semibold text-luxury-text mb-1.5">CVV <span class="text-red-400">*</span></label>
+                                    <input type="text" id="cvv" name="cvv"
+                                           placeholder="•••" maxlength="4"
+                                           class="w-full px-2 py-2.5 border border-luxury-border rounded-xl text-sm font-mono text-center focus:outline-none focus:ring-2 focus:ring-luxury-accent/30 focus:border-luxury-accent transition-colors">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="mt-5 pt-4 border-t border-luxury-border space-y-3">
+                            <?php
+                            $isFibSelected = (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '');
+                            $btnStyle = $isFibSelected ? 'style="background-color:#00A69C;"' : '';
+                            $btnText  = $isFibSelected
+                                ? '<i class="fas fa-wallet"></i> ' . e(t('pay_with_fib'))
+                                : '<i class="fas fa-check-circle"></i> ' . e(t('place_order'));
+                            ?>
+                            <button type="submit" id="place-order-btn"
+                                    class="w-full bg-luxury-accent text-white py-3.5 px-6 rounded-xl hover:opacity-90 active:scale-[0.99] transition-all duration-200 font-bold shadow-md uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+                                    <?= $btnStyle ?>>
+                                <?= $btnText ?>
+                            </button>
+                            <a href="cart.php"
+                               class="flex items-center justify-center gap-1.5 text-luxury-textLight hover:text-luxury-accent transition-colors text-sm py-1 font-medium">
+                                <i class="fas fa-arrow-left rtl:rotate-180 text-xs"></i>
+                                <?= e(t('back_to_cart')) ?>
+                            </a>
+                        </div>
+                    </div>
+
+                </div><!-- end ② payment column -->
+
+                <!-- ③ ADD EXTRAS — Horizontal Slider (order-3 on mobile; bottom-left on desktop) -->
+                <?php if (!empty($availableExtras)): ?>
+                <div class="lg:col-span-3 order-3">
+                    <div class="bg-white border border-luxury-border rounded-2xl shadow-sm p-5 md:p-7">
+                        <h2 class="text-lg font-luxury font-bold text-luxury-primary tracking-wide flex items-center gap-2.5 mb-1">
+                            <span class="w-8 h-8 rounded-xl bg-luxury-accent/10 flex items-center justify-center">
+                                <i class="fas fa-gift text-luxury-accent text-sm"></i>
+                            </span>
+                            <?= e(t('add_extras')) ?>
+                        </h2>
+                        <p class="text-xs text-luxury-textLight mb-5 ms-10"><?= e(t('add_extras_hint')) ?></p>
+
+                        <div class="space-y-6">
                             <?php foreach ($availableExtras as $type => $items): ?>
-                            <div class="extras-category" data-category="<?= e($type) ?>">
-                                <div class="bg-gradient-to-r from-luxury-border to-transparent p-3 rounded-sm mb-3">
-                                    <h4 class="font-semibold text-luxury-primary text-sm">
-                                        <?php 
+                            <?php if (empty($items)) continue; ?>
+                            <div class="extras-category">
+                                <!-- Category header + nav arrows -->
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="font-semibold text-luxury-primary text-sm flex items-center gap-2">
+                                        <?php
+                                        $catIcons = [
+                                            'greeting_card' => 'fa-envelope-open-text',
+                                            'small_gift'    => 'fa-box-open',
+                                            'chocolate_box' => 'fa-box',
+                                            'candle'        => 'fa-fire',
+                                            'balloons'      => 'fa-wind'
+                                        ];
                                         $categoryNames = [
                                             'greeting_card' => t('greeting_cards'),
-                                            'small_gift' => t('small_gifts'),
+                                            'small_gift'    => t('small_gifts'),
                                             'chocolate_box' => t('chocolate_boxes'),
-                                            'candle' => t('scented_candles'),
-                                            'balloons' => t('balloons')
+                                            'candle'        => t('scented_candles'),
+                                            'balloons'      => t('balloons')
                                         ];
-                                        echo e($categoryNames[$type] ?? $type);
                                         ?>
-                                    </h4>
+                                        <i class="fas <?= e($catIcons[$type] ?? 'fa-gift') ?> text-luxury-accent text-xs"></i>
+                                        <?= e($categoryNames[$type] ?? ucfirst($type)) ?>
+                                        <span class="text-xs text-luxury-textLight font-normal">(<?= count($items) ?>)</span>
+                                    </h3>
+                                    <?php if (count($items) > 2): ?>
+                                    <div class="flex gap-1">
+                                        <button type="button" class="slider-btn w-7 h-7 rounded-full border border-luxury-border bg-white shadow-sm flex items-center justify-center text-luxury-textLight hover:border-luxury-accent hover:text-luxury-accent"
+                                                data-target="slider-<?= e($type) ?>" data-dir="prev" aria-label="Previous">
+                                            <i class="fas fa-chevron-left" style="font-size:10px"></i>
+                                        </button>
+                                        <button type="button" class="slider-btn w-7 h-7 rounded-full border border-luxury-border bg-white shadow-sm flex items-center justify-center text-luxury-textLight hover:border-luxury-accent hover:text-luxury-accent"
+                                                data-target="slider-<?= e($type) ?>" data-dir="next" aria-label="Next">
+                                            <i class="fas fa-chevron-right" style="font-size:10px"></i>
+                                        </button>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
-                                
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                                <!-- Horizontal slider track -->
+                                <div id="slider-<?= e($type) ?>"
+                                     style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;"
+                                     class="snap-x snap-mandatory">
                                     <?php foreach ($items as $extra): ?>
-                                    <label class="relative flex flex-col items-start p-3 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent hover:bg-luxury-border transition-all extra-option overflow-hidden" data-extra-id="<?= e((string)$extra['id']) ?>" data-extra-price="<?= e((string)$extra['price']) ?>">
-                                        <input type="checkbox" name="extras[]" value="<?= e((string)$extra['id']) ?>" class="absolute top-3 left-3 w-4 h-4 text-luxury-accent rounded focus:ring-2 focus:ring-luxury-accent cursor-pointer z-10">
-                                        
-                                        <!-- Extra Image -->
+                                    <label class="extra-option relative flex-shrink-0 flex flex-col rounded-xl overflow-hidden border-2 border-luxury-border cursor-pointer snap-start bg-white hover:border-luxury-accent hover:shadow-md"
+                                           style="width:150px;min-width:150px;transition:border-color .2s,box-shadow .2s"
+                                           data-extra-id="<?= e((string)$extra['id']) ?>"
+                                           data-extra-price="<?= e((string)$extra['price']) ?>">
+
+                                        <!-- Custom checkbox indicator (top-right) -->
+                                        <div class="extra-check-ui absolute top-2 right-2 z-20 flex items-center justify-center pointer-events-none"
+                                             style="width:20px;height:20px;border-radius:6px;border:2px solid #d1d5db;background:#fff;">
+                                            <i class="fas fa-check check-icon opacity-0 text-white" style="font-size:8px"></i>
+                                        </div>
+                                        <input type="checkbox" name="extras[]" value="<?= e((string)$extra['id']) ?>" class="sr-only extra-checkbox">
+
+                                        <!-- Image or icon placeholder -->
                                         <?php if (!empty($extra['image_url'])): ?>
-                                        <div class="w-full h-28 mb-2 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center">
-                                            <img src="<?= e($extra['image_url']) ?>" alt="<?= e(getExtraName($extra)) ?>" class="w-full h-full object-cover">
+                                        <div style="height:110px;overflow:hidden;background:#f9fafb;flex-shrink:0">
+                                            <img src="<?= e($extra['image_url']) ?>" alt="<?= e(getExtraName($extra)) ?>"
+                                                 style="width:100%;height:100%;object-fit:cover">
                                         </div>
                                         <?php else: ?>
-                                        <div class="w-full h-28 mb-2 rounded-sm bg-gradient-to-br from-luxury-border to-gray-100 flex items-center justify-center">
-                                            <i class="<?= e($extra['icon'] ?? 'fas fa-gift') ?> text-3xl text-luxury-textLight"></i>
+                                        <div style="height:110px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f0ebe4,#e8ddd4)">
+                                            <i class="<?= e($extra['icon'] ?? 'fas fa-gift') ?> text-3xl" style="color:#b09080"></i>
                                         </div>
                                         <?php endif; ?>
-                                        
-                                        <div class="flex-1 w-full ps-7">
-                                            <p class="font-medium text-luxury-primary text-sm"><?= e(getExtraName($extra)) ?></p>
-                                            <p class="text-sm font-semibold text-luxury-accent mt-1">+ <?= e(formatPrice((float)$extra['price'], $currency)) ?></p>
+
+                                        <!-- Name + price -->
+                                        <div style="padding:10px;flex:1;display:flex;flex-direction:column">
+                                            <p class="font-semibold text-luxury-primary" style="font-size:11px;line-height:1.4;margin-bottom:4px"><?= e(getExtraName($extra)) ?></p>
+                                            <p class="font-bold text-luxury-accent" style="font-size:11px">+ <?= e(formatPrice((float)$extra['price'], $currency)) ?></p>
                                         </div>
                                     </label>
                                     <?php endforeach; ?>
@@ -512,145 +797,10 @@ $dir = getHtmlDir();
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    <?php endif; ?>
-                </div>
-                <!-- Column 2: Order Review & Payment -->
-                <div class="bg-white border border-luxury-border shadow-luxury p-6 md:p-8 order-2">
-                    <h2 class="text-xl md:text-2xl font-luxury font-bold text-luxury-primary mb-6 tracking-wide"><?= e(t('order_summary')) ?></h2>
-                    
-                    <div class="space-y-4 md:space-y-6 mb-6">
-                        <?php foreach ($cartItems as $item): ?>
-                            <div class="flex justify-between items-start border-b border-luxury-border pb-4">
-                                <div class="flex-1">
-                                    <p class="font-medium text-luxury-primary mb-1"><?= e(getProductName($item)) ?></p>
-                                    <?php if (!empty($item['variant_labels'])): ?>
-                                        <p class="text-xs text-luxury-textLight mb-1">
-                                            <?php foreach ($item['variant_labels'] as $vl): ?>
-                                                <span class="inline-block bg-luxury-accentLight/60 text-luxury-primary px-1.5 py-0.5 rounded mr-1 text-xs"><?= e($vl) ?></span>
-                                            <?php endforeach; ?>
-                                        </p>
-                                    <?php endif; ?>
-                                    <p class="text-sm text-luxury-textLight"><?= e((string)$item['cart_quantity']) ?> x <?= e(formatPrice($item['unit_price'] ?? (float)$item['price'], $currency)) ?></p>
-                                </div>
-                                <p class="font-semibold text-luxury-accent ms-4"><?= e(formatPrice($item['subtotal'], $currency)) ?></p>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    
-                    <div class="border-t border-luxury-border pt-4 space-y-2">
-                        <div class="flex justify-between items-center text-sm text-luxury-textLight">
-                            <span><?= e(t('delivery_fee')) ?></span>
-                            <span id="delivery-fee-amount">—</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm text-luxury-textLight">
-                            <span><?= e(t('delivery_distance')) ?></span>
-                            <span id="delivery-distance">—</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm text-luxury-textLight">
-                            <span><?= e(t('extras_total')) ?></span>
-                            <span id="extras-total-amount"><?= e(formatPrice(0.0, $currency)) ?></span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm text-luxury-textLight pt-2 border-t border-luxury-border">
-                            <span class="text-md md:text-lg text-luxury-primary"><?= e(t('subtotal')) ?>:</span>
-                            <span class="text-md md:text-lg text-luxury-accent font-luxury"><?= e(formatPrice($cartTotal, $currency)) ?></span>
-                        </div>
-                        <?php if ($appliedCoupon): ?>
-                        <div class="flex justify-between items-center text-sm text-pink-500">
-                            <span class="text-md md:text-lg text-pink-600"><?= e(t('discount')) ?> (<?= e($appliedCoupon['code']) ?>):</span>
-                            <span class="text-md md:text-lg text-pink-600 font-luxury">-<?= e(formatPrice($discountAmount, $currency)) ?></span>
-                        </div>
-                        <?php endif; ?>
-                        <div class="flex justify-between items-center pt-2">
-                            <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('total')) ?>:</span>
-                            <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="subtotal-amount" data-base-total="<?= e((string)$finalCartTotal) ?>"><?= e(formatPrice($finalCartTotal, $currency)) ?></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-lg md:text-xl font-bold text-luxury-primary"><?= e(t('delivery_total')) ?>:</span>
-                            <span class="text-xl md:text-2xl font-bold text-luxury-accent font-luxury" id="grand-total-amount">—</span>
-                        </div>
-                    </div>
+                </div><!-- end ③ extras -->
+                <?php endif; ?>
 
-                    <!-- Payment Method Section -->
-                    <div class="border-t border-luxury-border pt-6 mt-6">
-                        <h3 class="text-lg md:text-xl font-luxury font-bold text-luxury-primary mb-4 tracking-wide"><?= e(t('payment_method')) ?></h3>
-                        
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <label class="relative flex items-center p-4 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent transition-colors payment-method-option <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'border-[#00A69C] bg-[#00A69C]/5' : '' ?>">
-                                    <input type="radio" name="payment_method" value="fib" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'checked' : '' ?>>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-8 bg-[#00A69C] rounded flex items-center justify-center">
-                                            <span class="text-white font-bold text-xs">FIB</span>
-                                        </div>
-                                        <span class="font-medium text-luxury-primary"><?= e(t('fib')) ?></span>
-                                    </div>
-                                </label>
-                                <label class="relative flex items-center p-4 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent transition-colors payment-method-option <?= (sanitizeInput('payment_method', 'POST', '') === 'visa') ? 'border-luxury-accent bg-luxury-border' : '' ?>">
-                                    <input type="radio" name="payment_method" value="visa" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'visa') ? 'checked' : '' ?>>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-8 bg-blue-600 rounded flex items-center justify-center">
-                                            <span class="text-white font-bold text-xs">VISA</span>
-                                        </div>
-                                        <span class="font-medium text-luxury-primary"><?= e(t('visa')) ?></span>
-                                    </div>
-                                </label>
-                                <label class="relative flex items-center p-4 border-2 border-luxury-border rounded-sm cursor-pointer hover:border-luxury-accent transition-colors payment-method-option <?= (sanitizeInput('payment_method', 'POST', '') === 'mastercard') ? 'border-luxury-accent bg-luxury-border' : '' ?>">
-                                    <input type="radio" name="payment_method" value="mastercard" required class="sr-only" <?= (sanitizeInput('payment_method', 'POST', '') === 'mastercard') ? 'checked' : '' ?>>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-8 bg-red-600 rounded flex items-center justify-center">
-                                            <span class="text-white font-bold text-xs">MC</span>
-                                        </div>
-                                        <span class="font-medium text-luxury-primary"><?= e(t('mastercard')) ?></span>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div id="card-details-section" class="<?= (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '') ? 'hidden' : '' ?> space-y-4 mt-4">
-                                <div>
-                                    <label for="card_number" class="block text-sm font-medium text-luxury-text mb-2"><?= e(t('card_number')) ?> *</label>
-                                    <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <select name="expiry_month" id="expiry_month" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
-                                            <option value=""><?= e(t('expiry_month')) ?></option>
-                                            <?php for ($i = 1; $i <= 12; $i++): ?>
-                                                <option value="<?= e(sprintf('%02d', $i)) ?>"><?= e(sprintf('%02d', $i)) ?></option>
-                                            <?php endfor; ?>
-                                        </select>
-                                        <select name="expiry_year" id="expiry_year" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
-                                            <option value=""><?= e(t('expiry_year')) ?></option>
-                                            <?php for ($i = (int)date('Y'); $i <= (int)date('Y') + 10; $i++): ?>
-                                                <option value="<?= e((string)$i) ?>"><?= e((string)$i) ?></option>
-                                            <?php endfor; ?>
-                                        </select>
-                                    </div>
-                                    <input type="text" id="cvv" name="cvv" placeholder="CVV" class="w-full px-4 py-2.5 border border-luxury-border rounded-sm focus:outline-none focus:ring-2 focus:ring-luxury-accent">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="mt-8 pt-6 border-t border-luxury-border space-y-4">
-                        <?php 
-                        $isFibSelected = (sanitizeInput('payment_method', 'POST', '') === 'fib' || sanitizeInput('payment_method', 'POST', '') === '');
-                        $btnStyle = $isFibSelected ? 'style="background-color: #00A69C;"' : '';
-                        $btnText = $isFibSelected ? '<i class="fas fa-wallet"></i> ' . e(t('pay_with_fib')) : '<i class="fas fa-check-circle"></i> ' . e(t('place_order'));
-                        ?>
-                        <button type="submit" id="place-order-btn"
-                                class="w-full bg-luxury-accent text-white py-4 px-6 rounded-sm hover:bg-opacity-90 transition-all duration-300 font-bold shadow-lg uppercase tracking-widest text-sm flex items-center justify-center gap-2"
-                                <?= $btnStyle ?>>
-                            <?= $btnText ?>
-                        </button>
-                        
-                        <a href="cart.php" 
-                           class="block text-center text-luxury-textLight hover:text-luxury-accent transition-colors font-medium text-sm">
-                            <i class="fas fa-arrow-left rtl:rotate-180"></i> <?= e(t('back_to_cart')) ?>
-                        </a>
-                    </div>
-                </div>
-            </div>
+            </div><!-- end grid -->
         </form>
     </div>
 
@@ -658,345 +808,308 @@ $dir = getHtmlDir();
     
     <script>
     const deliveryConfig = <?= json_encode([
-        'store' => getStoreCoordinates(),
-        'tiers' => getDeliveryFeeTiers(),
-        'outerFee' => getOuterZoneDeliveryFee(),
-        'currency' => $currency,
-        'isIqd' => $isIqdCurrency,
+        'store'        => getStoreCoordinates(),
+        'tiers'        => getDeliveryFeeTiers(),
+        'outerFee'     => getOuterZoneDeliveryFee(),
+        'currency'     => $currency,
+        'isIqd'        => $isIqdCurrency,
         'usdToIqdRate' => $usdToIqdRate
     ], JSON_UNESCAPED_SLASHES) ?>;
 
     const deliveryMessages = {
-        calculating: <?= json_encode(t('delivery_calculating')) ?>,
-        outOfRange: <?= json_encode(t('delivery_out_of_range')) ?>,
-        outerZone: <?= json_encode(t('delivery_outer_zone')) ?>,
-        denied: <?= json_encode(t('delivery_location_denied')) ?>,
-        unsupported: <?= json_encode(t('delivery_geolocation_unsupported')) ?>
+        calculating : <?= json_encode(t('delivery_calculating')) ?>,
+        outOfRange  : <?= json_encode(t('delivery_out_of_range')) ?>,
+        outerZone   : <?= json_encode(t('delivery_outer_zone')) ?>,
+        denied      : <?= json_encode(t('delivery_location_denied')) ?>,
+        unsupported : <?= json_encode(t('delivery_geolocation_unsupported')) ?>
     };
 
-    const deliveryUi = {
-        fee: document.getElementById('delivery-fee-amount'),
-        distance: document.getElementById('delivery-distance'),
-        status: document.getElementById('delivery-status'),
-        grandTotal: document.getElementById('grand-total-amount'),
-        baseTotal: document.getElementById('subtotal-amount'),
-        lat: document.getElementById('customer_lat'),
-        lng: document.getElementById('customer_lng'),
-        distanceInput: document.getElementById('delivery_distance_km'),
-        feeInput: document.getElementById('delivery_fee'),
-        button: document.getElementById('place-order-btn'),
-        form: document.querySelector('form')
-    };
+    // DOM references
+    const elFee      = document.getElementById('delivery-fee-amount');
+    const elDist     = document.getElementById('delivery-distance');
+    const elStatus   = document.getElementById('delivery-status');
+    const elStatusBox= document.getElementById('delivery-status-box');
+    const elGrandTot = document.getElementById('grand-total-amount');
+    const elBaseTot  = document.getElementById('subtotal-amount');
+    const elLatInput = document.getElementById('customer_lat');
+    const elLngInput = document.getElementById('customer_lng');
+    const elDistKm   = document.getElementById('delivery_distance_km');
+    const elFeeInput = document.getElementById('delivery_fee');
+    const elSubmit   = document.getElementById('place-order-btn');
+    const elLocBtn   = document.getElementById('use-location');
+    const elLocIcon  = document.getElementById('loc-icon');
+    const elForm     = document.querySelector('form');
 
     function formatMoney(amount) {
         const a = deliveryConfig.isIqd ? (amount * (deliveryConfig.usdToIqdRate || 1300)) : amount;
-        const decimals = deliveryConfig.isIqd ? 0 : 2;
-        const formatted = Number(a).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-        return `${deliveryConfig.currency}${deliveryConfig.isIqd ? ' ' : ''}${formatted}`;
+        const dec = deliveryConfig.isIqd ? 0 : 2;
+        return `${deliveryConfig.currency}${deliveryConfig.isIqd ? ' ' : ''}${Number(a).toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
     }
 
     function haversineKm(lat1, lng1, lat2, lng2) {
-        const earthRadius = 6371;
-        const toRad = (value) => (value * Math.PI) / 180;
-        const dLat = toRad(lat2 - lat1);
-        const dLng = toRad(lng2 - lng1);
-        const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-        return 2 * earthRadius * Math.asin(Math.sqrt(a));
+        const R = 6371, r = v => v * Math.PI / 180;
+        const dLat = r(lat2 - lat1), dLng = r(lng2 - lng1);
+        const a = Math.sin(dLat/2)**2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(dLng/2)**2;
+        return 2 * R * Math.asin(Math.sqrt(a));
     }
 
-    function getFeeForDistance(distanceKm) {
-        for (const tier of deliveryConfig.tiers) {
-            if (distanceKm <= tier.max) {
-                return tier.fee;
-            }
-        }
-        if (typeof deliveryConfig.outerFee === 'number') {
-            return deliveryConfig.outerFee;
-        }
-        return null;
+    function getFeeForDistance(km) {
+        for (const t of deliveryConfig.tiers) { if (km <= t.max) return t.fee; }
+        return typeof deliveryConfig.outerFee === 'number' ? deliveryConfig.outerFee : null;
     }
 
-    function updateDeliveryUi(distanceKm, fee) {
-        if (!deliveryUi.baseTotal) {
-            return;
-        }
-
-        const baseTotal = parseFloat(deliveryUi.baseTotal.dataset.baseTotal || '0');
-        if (fee === null) {
-            deliveryUi.fee.textContent = deliveryMessages.outOfRange;
-            deliveryUi.distance.textContent = `${distanceKm.toFixed(1)} km`;
-            deliveryUi.grandTotal.textContent = '—';
-            deliveryUi.status.textContent = deliveryMessages.outOfRange;
-            if (deliveryUi.button) {
-                deliveryUi.button.disabled = true;
-                deliveryUi.button.classList.add('opacity-60', 'cursor-not-allowed');
-            }
-            return;
-        }
-
-        const grandTotal = baseTotal + fee;
-        deliveryUi.fee.textContent = formatMoney(fee);
-        deliveryUi.distance.textContent = `${distanceKm.toFixed(1)} km`;
-        deliveryUi.grandTotal.textContent = formatMoney(grandTotal);
-        deliveryUi.status.textContent = distanceKm > deliveryConfig.tiers[deliveryConfig.tiers.length - 1]?.max
-            ? deliveryMessages.outerZone
-            : '';
-
-        if (deliveryUi.button) {
-            deliveryUi.button.disabled = false;
-            deliveryUi.button.classList.remove('opacity-60', 'cursor-not-allowed');
-        }
+    function currentExtrasTotal() {
+        return parseFloat(document.getElementById('extras_total').value || 0);
     }
 
-    function setDeliveryInputs(lat, lng, distanceKm, fee) {
-        deliveryUi.lat.value = lat.toFixed(6);
-        deliveryUi.lng.value = lng.toFixed(6);
-        deliveryUi.distanceInput.value = distanceKm.toFixed(2);
-        deliveryUi.feeInput.value = fee === null ? '' : fee.toFixed(2);
+    function setStatus(msg, type) {
+        if (!elStatus) return;
+        elStatus.textContent = msg;
+        if (elStatusBox) elStatusBox.classList.toggle('hidden', !msg);
+        const c = { ok:'bg-green-50 border-green-200 text-green-700', err:'bg-red-50 border-red-200 text-red-600', info:'bg-blue-50 border-blue-200 text-blue-600', warn:'bg-yellow-50 border-yellow-200 text-yellow-700' };
+        elStatus.className = 'text-xs font-medium px-3 py-2 rounded-lg border ' + (c[type] || c.info);
     }
 
-    function lockCheckout(message) {
-        deliveryUi.fee.textContent = '—';
-        deliveryUi.distance.textContent = '—';
-        deliveryUi.grandTotal.textContent = '—';
-        deliveryUi.status.textContent = message;
-        if (deliveryUi.button) {
-            deliveryUi.button.disabled = true;
-            deliveryUi.button.classList.add('opacity-60', 'cursor-not-allowed');
-        }
-    }
-
-    function handleLocation(position) {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const distanceKm = haversineKm(lat, lng, deliveryConfig.store.lat, deliveryConfig.store.lng);
-        const fee = getFeeForDistance(distanceKm);
-
-        updateDeliveryUi(distanceKm, fee);
-        setDeliveryInputs(lat, lng, distanceKm, fee);
-    }
-
-    function handleLocationError(error) {
-        if (error.code === 1) {
-            lockCheckout(deliveryMessages.denied);
+    // Only spins the icon — never disables the button so user can always retry
+    function setLocBusy(busy) {
+        if (busy) {
+            elLocIcon?.classList.replace('fa-location-crosshairs', 'fa-spinner');
+            elLocIcon?.classList.add('fa-spin');
         } else {
-            lockCheckout(deliveryMessages.unsupported);
+            elLocIcon?.classList.replace('fa-spinner', 'fa-location-crosshairs');
+            elLocIcon?.classList.remove('fa-spin');
         }
+    }
+
+    function lockSubmit() {
+        if (elSubmit) { elSubmit.disabled = true; elSubmit.classList.add('opacity-60','cursor-not-allowed'); }
+    }
+
+    function unlockSubmit() {
+        if (elSubmit) { elSubmit.disabled = false; elSubmit.classList.remove('opacity-60','cursor-not-allowed'); }
+    }
+
+    function updateDeliveryUi(distKm, fee) {
+        const base = parseFloat(elBaseTot?.dataset.baseTotal || '0');
+        if (fee === null) {
+            if (elFee) elFee.textContent = deliveryMessages.outOfRange;
+            if (elDist) elDist.textContent = `${distKm.toFixed(1)} km`;
+            if (elGrandTot) elGrandTot.textContent = '—';
+            setStatus(deliveryMessages.outOfRange, 'err');
+            lockSubmit();
+            return;
+        }
+        if (elFee) elFee.textContent = formatMoney(fee);
+        if (elDist) elDist.textContent = `${distKm.toFixed(1)} km`;
+        if (elGrandTot) elGrandTot.textContent = formatMoney(base + fee + currentExtrasTotal());
+        const lastMax = deliveryConfig.tiers[deliveryConfig.tiers.length - 1]?.max;
+        const isOuter = distKm > lastMax;
+        setStatus(isOuter ? deliveryMessages.outerZone : `✓ ${distKm.toFixed(1)} km — ${formatMoney(fee)}`, isOuter ? 'warn' : 'ok');
+        unlockSubmit();
+    }
+
+    let locWatchdog = null;
+
+    function onLocSuccess(pos) {
+        clearTimeout(locWatchdog);
+        setLocBusy(false);
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        const km  = haversineKm(lat, lng, deliveryConfig.store.lat, deliveryConfig.store.lng);
+        const fee = getFeeForDistance(km);
+        if (elLatInput) elLatInput.value = lat.toFixed(6);
+        if (elLngInput) elLngInput.value = lng.toFixed(6);
+        if (elDistKm)   elDistKm.value   = km.toFixed(2);
+        if (elFeeInput) elFeeInput.value  = fee === null ? '' : fee.toFixed(2);
+        updateDeliveryUi(km, fee);
+    }
+
+    function onLocError(err) {
+        clearTimeout(locWatchdog);
+        setLocBusy(false);
+        const msg = err.code === 1 ? deliveryMessages.denied : deliveryMessages.unsupported;
+        setStatus(msg, 'err');
+        // Unlock so user can retry or see the error clearly
+        unlockSubmit();
     }
 
     function requestLocation() {
         if (!navigator.geolocation) {
-            lockCheckout(deliveryMessages.unsupported);
+            setStatus(deliveryMessages.unsupported, 'err');
+            unlockSubmit();
             return;
         }
-
-        deliveryUi.status.textContent = deliveryMessages.calculating;
-        navigator.geolocation.getCurrentPosition(handleLocation, handleLocationError, {
+        // On non-HTTPS (and not localhost) browsers silently block geolocation
+        const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        if (!isSecure) {
+            setLocBusy(false);
+            setStatus('Location requires HTTPS. Please enable location access in your browser or switch to HTTPS.', 'err');
+            unlockSubmit();
+            return;
+        }
+        setLocBusy(true);
+        setStatus(deliveryMessages.calculating, 'info');
+        // Watchdog: in case browser blocks silently (shouldn't happen on HTTPS, but safety net)
+        clearTimeout(locWatchdog);
+        locWatchdog = setTimeout(() => {
+            setLocBusy(false);
+            setStatus(deliveryMessages.denied, 'err');
+            unlockSubmit();
+        }, 12000);
+        navigator.geolocation.getCurrentPosition(onLocSuccess, onLocError, {
             enableHighAccuracy: true,
-            timeout: 10000
+            timeout: 10000,
+            maximumAge: 0
         });
     }
 
-    document.getElementById('use-location')?.addEventListener('click', () => {
-        requestLocation();
-    });
+    elLocBtn?.addEventListener('click', requestLocation);
 
-    if (deliveryUi.button) {
-        lockCheckout(deliveryMessages.calculating);
-    }
+    // Lock submit while waiting for location; auto-detect on page load
+    lockSubmit();
+    setStatus(deliveryMessages.calculating, 'info');
     requestLocation();
 
-    deliveryUi.form?.addEventListener('submit', (event) => {
-        if (!deliveryUi.lat.value || !deliveryUi.lng.value) {
-            event.preventDefault();
-            lockCheckout(deliveryMessages.denied);
+    elForm?.addEventListener('submit', e => {
+        if (!elLatInput?.value || !elLngInput?.value) {
+            e.preventDefault();
+            setStatus(deliveryMessages.denied, 'err');
+            elLocBtn?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
+
     // Card number formatting
     document.getElementById('card_number')?.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, ''); // Only digits
-        if (value.length > 16) {
-            value = value.substr(0, 16);
-        }
-        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-        e.target.value = formattedValue;
+        const v = e.target.value.replace(/\D/g, '').substr(0, 16);
+        e.target.value = v.match(/.{1,4}/g)?.join(' ') || v;
     });
-    
-    // Payment method selection visual feedback
-    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            document.querySelectorAll('.payment-method-option').forEach(option => {
-                option.classList.remove('border-luxury-accent', 'bg-luxury-border');
-            });
-            if (this.checked) {
-                this.closest('.payment-method-option').classList.add('border-luxury-accent', 'bg-luxury-border');
-            }
-        });
-    });
-    
-    // Card number validation based on payment method
+
+    // Card number validation
     document.getElementById('card_number')?.addEventListener('blur', function() {
-        const cardNumber = this.value.replace(/\s+/g, '');
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
-        
-        if (cardNumber && paymentMethod) {
-            let isValid = false;
-            if (paymentMethod === 'visa') {
-                isValid = /^4\d{15}$/.test(cardNumber);
-            } else if (paymentMethod === 'mastercard') {
-                isValid = /^5[1-5]\d{14}$/.test(cardNumber);
-            }
-            
-            if (!isValid && cardNumber.length >= 16) {
-                this.setCustomValidity('<?= e(t('card_mismatch')) ?>');
-                this.classList.add('border-red-500');
-            } else {
-                this.setCustomValidity('');
-                this.classList.remove('border-red-500');
-            }
-        }
+        const num = this.value.replace(/\s+/g, '');
+        const method = document.querySelector('input[name="payment_method"]:checked')?.value;
+        if (!num || !method) return;
+        const ok = method === 'visa' ? /^4\d{15}$/.test(num) : method === 'mastercard' ? /^5[1-5]\d{14}$/.test(num) : true;
+        if (!ok && num.length >= 16) { this.setCustomValidity('<?= e(t('card_mismatch')) ?>'); this.classList.add('border-red-400'); }
+        else { this.setCustomValidity(''); this.classList.remove('border-red-400'); }
     });
-    
-    // CVV validation
-    document.getElementById('cvv')?.addEventListener('input', function(e) {
-        e.target.value = e.target.value.replace(/\D/g, '');
-    });
-    
-    // Expiry date validation
+
+    // CVV — digits only
+    document.getElementById('cvv')?.addEventListener('input', function(e) { e.target.value = e.target.value.replace(/\D/g, ''); });
+
+    // Expiry validation
     const expiryMonth = document.getElementById('expiry_month');
-    const expiryYear = document.getElementById('expiry_year');
-    
+    const expiryYear  = document.getElementById('expiry_year');
     function validateExpiry() {
-        if (expiryMonth?.value && expiryYear?.value) {
-            const month = parseInt(expiryMonth.value);
-            const year = parseInt(expiryYear.value);
-            const currentYear = new Date().getFullYear();
-            const currentMonth = new Date().getMonth() + 1;
-            
-            if (year < currentYear || (year === currentYear && month < currentMonth)) {
-                expiryMonth.setCustomValidity('<?= e(t('card_expired')) ?>');
-                expiryYear.setCustomValidity('<?= e(t('card_expired')) ?>');
-            } else {
-                expiryMonth.setCustomValidity('');
-                expiryYear.setCustomValidity('');
-            }
-        }
+        if (!expiryMonth?.value || !expiryYear?.value) return;
+        const m = parseInt(expiryMonth.value), y = parseInt(expiryYear.value);
+        const now = new Date();
+        if (y < now.getFullYear() || (y === now.getFullYear() && m < now.getMonth() + 1)) {
+            expiryMonth.setCustomValidity('<?= e(t('card_expired')) ?>');
+            expiryYear.setCustomValidity('<?= e(t('card_expired')) ?>');
+        } else { expiryMonth.setCustomValidity(''); expiryYear.setCustomValidity(''); }
     }
-    
     expiryMonth?.addEventListener('change', validateExpiry);
     expiryYear?.addEventListener('change', validateExpiry);
 
-    // Extras handling
-    const extrasCheckboxes = document.querySelectorAll('input[name="extras[]"]');
-    const extrasTotalInput = document.getElementById('extras_total');
+    // ===== EXTRAS =====
+    const extrasTotalInput   = document.getElementById('extras_total');
     const extrasTotalDisplay = document.getElementById('extras-total-amount');
-    const grandTotalDisplay = document.getElementById('grand-total-amount');
-    const baseTotal = parseFloat(document.getElementById('subtotal-amount').dataset.baseTotal);
-    const currency = deliveryConfig.currency;
+    const baseTotal          = parseFloat(document.getElementById('subtotal-amount').dataset.baseTotal);
 
     function updateExtrasTotal() {
-        let extrasTotal = 0;
-        
-        extrasCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                const label = checkbox.closest('.extra-option');
-                const price = parseFloat(label.dataset.extraPrice);
-                extrasTotal += price;
-            }
+        let total = 0;
+        document.querySelectorAll('.extra-checkbox').forEach(cb => {
+            if (cb.checked) total += parseFloat(cb.closest('.extra-option')?.dataset.extraPrice || 0);
         });
-        
-        // Update hidden input (store in base currency units, same as DB)
-        extrasTotalInput.value = extrasTotal.toFixed(2);
-        
-        // Update display
-        extrasTotalDisplay.textContent = formatMoney(extrasTotal);
-        
-        // Update grand total if all components are available
-        const deliveryFee = parseFloat(deliveryUi.feeInput.value || 0);
-        if (!isNaN(baseTotal) && !isNaN(deliveryFee) && !isNaN(extrasTotal)) {
-            const newGrandTotal = baseTotal + deliveryFee + extrasTotal;
-            grandTotalDisplay.textContent = formatMoney(newGrandTotal);
+        extrasTotalInput.value = total.toFixed(2);
+        extrasTotalDisplay.textContent = formatMoney(total);
+        const fee = parseFloat(elFeeInput?.value || 0);
+        if (!isNaN(baseTotal) && !isNaN(fee)) {
+            if (elGrandTot) elGrandTot.textContent = formatMoney(baseTotal + fee + total);
         }
     }
 
-    // Add event listeners to all extras checkboxes
-    extrasCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateExtrasTotal);
-    });
-
-    // Add visual feedback for extra options
     document.querySelectorAll('.extra-option').forEach(label => {
-        const checkbox = label.querySelector('input[name="extras[]"]');
-        checkbox.addEventListener('change', function() {
+        const cb      = label.querySelector('.extra-checkbox');
+        const checkUI = label.querySelector('.extra-check-ui');
+        const icon    = label.querySelector('.check-icon');
+        if (!cb) return;
+
+        cb.addEventListener('change', function () {
             if (this.checked) {
-                label.classList.add('border-luxury-accent', 'bg-luxury-border');
+                label.style.borderColor = 'var(--luxury-accent, #b47864)';
+                label.style.boxShadow   = '0 4px 12px rgba(0,0,0,0.12)';
+                if (checkUI) {
+                    checkUI.style.background   = 'var(--luxury-accent, #b47864)';
+                    checkUI.style.borderColor  = 'var(--luxury-accent, #b47864)';
+                }
+                icon?.classList.remove('opacity-0');
+                icon?.classList.add('opacity-100');
             } else {
-                label.classList.remove('border-luxury-accent', 'bg-luxury-border');
+                label.style.borderColor = '';
+                label.style.boxShadow   = '';
+                if (checkUI) {
+                    checkUI.style.background  = '#fff';
+                    checkUI.style.borderColor = '#d1d5db';
+                }
+                icon?.classList.add('opacity-0');
+                icon?.classList.remove('opacity-100');
             }
+            updateExtrasTotal();
         });
     });
 
-    // Payment method toggle
-    document.querySelectorAll('input[name="payment_method"]').forEach(input => {
-        input.addEventListener('change', (e) => {
+    // ===== SLIDER NAVIGATION =====
+    document.querySelectorAll('.slider-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const slider = document.getElementById(this.dataset.target);
+            if (!slider) return;
+            const slide = slider.querySelector('.extra-option');
+            const w = slide ? slide.offsetWidth + 12 : 162;
+            slider.scrollBy({ left: this.dataset.dir === 'prev' ? -(w * 2) : (w * 2), behavior: 'smooth' });
+        });
+    });
+
+    // ===== PAYMENT METHOD TOGGLE =====
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function () {
             const cardSection = document.getElementById('card-details-section');
-            const cardInputs = cardSection.querySelectorAll('input, select');
-            const placeOrderBtn = document.getElementById('place-order-btn');
-            
-            if (e.target.value === 'fib') {
+            const cardInputs  = cardSection.querySelectorAll('input, select');
+            const btn         = document.getElementById('place-order-btn');
+
+            document.querySelectorAll('.payment-method-option').forEach(el => {
+                el.classList.remove('border-luxury-accent','bg-luxury-border','shadow-sm','border-[#00A69C]','bg-[#00A69C]/5');
+                el.classList.add('border-luxury-border');
+            });
+            const sel = this.closest('.payment-method-option');
+
+            if (this.value === 'fib') {
                 cardSection.classList.add('hidden');
                 cardInputs.forEach(i => i.removeAttribute('required'));
-                
-                // Update place order button for FIB
-                if (placeOrderBtn) {
-                    placeOrderBtn.style.backgroundColor = '#00A69C';
-                    placeOrderBtn.innerHTML = '<i class="fas fa-wallet"></i> <?= e(t('pay_with_fib')) ?>';
-                }
+                if (btn) { btn.style.backgroundColor = '#00A69C'; btn.innerHTML = '<i class="fas fa-wallet"></i> <?= e(t('pay_with_fib')) ?>'; }
+                sel?.classList.add('border-[#00A69C]','bg-[#00A69C]/5','shadow-sm');
             } else {
                 cardSection.classList.remove('hidden');
                 cardInputs.forEach(i => i.setAttribute('required', ''));
-                
-                // Reset place order button
-                if (placeOrderBtn) {
-                    placeOrderBtn.style.backgroundColor = '';
-                    placeOrderBtn.innerHTML = '<i class="fas fa-check-circle"></i> <?= e(t('place_order')) ?>';
-                }
+                if (btn) { btn.style.backgroundColor = ''; btn.innerHTML = '<i class="fas fa-check-circle"></i> <?= e(t('place_order')) ?>'; }
+                sel?.classList.add('border-luxury-accent','bg-luxury-border','shadow-sm');
             }
-            
-            // Update UI styles
-            document.querySelectorAll('.payment-method-option').forEach(opt => {
-                opt.classList.remove('border-luxury-accent', 'bg-luxury-border', 'border-[#00A69C]', 'bg-[#00A69C]/5');
-            });
-            
-            const selectedOption = e.target.closest('.payment-method-option');
-            if (e.target.value === 'fib') {
-                selectedOption.classList.add('border-[#00A69C]', 'bg-[#00A69C]/5');
-            } else {
-                selectedOption.classList.add('border-luxury-accent', 'bg-luxury-border');
-            }
+            sel?.classList.remove('border-luxury-border');
         });
     });
 
-    // Initialize state
-    const initialPaymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
-    if (initialPaymentMethod === 'fib') {
-        const cardSection = document.getElementById('card-details-section');
-        const placeOrderBtn = document.getElementById('place-order-btn');
-        if (cardSection) {
-            cardSection.classList.add('hidden');
-            cardSection.querySelectorAll('input, select').forEach(i => i.removeAttribute('required'));
+    // Init payment state on page load
+    (() => {
+        const method = document.querySelector('input[name="payment_method"]:checked')?.value;
+        if (method === 'fib') {
+            const cs = document.getElementById('card-details-section');
+            const pb = document.getElementById('place-order-btn');
+            cs?.classList.add('hidden');
+            cs?.querySelectorAll('input, select').forEach(i => i.removeAttribute('required'));
+            if (pb) { pb.style.backgroundColor = '#00A69C'; pb.innerHTML = '<i class="fas fa-wallet"></i> <?= e(t('pay_with_fib')) ?>'; }
+            document.querySelector('input[value="fib"]')?.closest('.payment-method-option')?.classList.add('border-[#00A69C]','bg-[#00A69C]/5','shadow-sm');
         }
-        if (placeOrderBtn) {
-            placeOrderBtn.style.backgroundColor = '#00A69C';
-            placeOrderBtn.innerHTML = '<i class="fas fa-wallet"></i> <?= e(t('pay_with_fib')) ?>';
-        }
-        const fibOption = document.querySelector('input[value="fib"]')?.closest('.payment-method-option');
-        if (fibOption) {
-            fibOption.classList.remove('border-luxury-accent', 'bg-luxury-border');
-            fibOption.classList.add('border-[#00A69C]', 'bg-[#00A69C]/5');
-        }
-    }
+    })();
     </script>
 </body>
 </html>

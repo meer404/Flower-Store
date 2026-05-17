@@ -1353,15 +1353,21 @@ function exportToCsv(string $filename, array $headers, array $rows): void {
 function getAvailableExtras(): array {
     try {
         $pdo = getDB();
-        $stmt = $pdo->query('
-            SELECT id, extra_type, name_en, name_ku, description_en, description_ku, price, icon, image_url, sort_order
+
+        // Check if image_url column exists (added in a later migration)
+        $colCheck = $pdo->query("SHOW COLUMNS FROM `available_extras` LIKE 'image_url'");
+        $hasImageUrl = (bool) $colCheck->fetch();
+        $imageCol = $hasImageUrl ? ', image_url' : ', NULL AS image_url';
+
+        $stmt = $pdo->query("
+            SELECT id, extra_type, name_en, name_ku, description_en, description_ku, price, icon{$imageCol}, sort_order
             FROM available_extras
             WHERE is_active = TRUE
             ORDER BY sort_order, id
-        ');
-        
+        ");
+
         $extras = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         // Group by type
         $grouped = [];
         foreach ($extras as $extra) {
@@ -1371,7 +1377,7 @@ function getAvailableExtras(): array {
             }
             $grouped[$type][] = $extra;
         }
-        
+
         return $grouped;
     } catch (PDOException $e) {
         error_log('Get available extras error: ' . $e->getMessage());

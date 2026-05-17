@@ -571,6 +571,7 @@ return [
 
     // Order Extras & Add-ons
     'add_extras' => 'Add Extras',
+    'add_extras_hint' => 'Swipe left / right to browse — tap to add',
     'add_extras_heading' => 'Make it Special - Add Extras to Your Order',
     'no_extras_selected' => 'No extras selected',
     'extras_total' => 'Extras Total',
