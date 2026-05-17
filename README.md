@@ -1,436 +1,454 @@
+# 🌸 Bloom & Vine - Premium Flower E-Commerce Platform
 
-## Bloom & Vine Flower Store
+![Bloom & Vine](https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=for-the-badge)
+![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Language](https://img.shields.io/badge/Languages-English%20%7C%20Kurdish-orange?style=for-the-badge)
 
-Bloom & Vine is a production-ready, bilingual (English and Kurdish) e-commerce platform for a flower shop. It includes a full customer experience, a permission-based admin panel, and a super admin control layer. This README is a complete, page-by-page and file-by-file reference for both developers and non-technical readers.
+> A beautiful, fully-responsive e-commerce platform for a premium online flower shop based in the Kurdistan Region, Iraq. Featuring bilingual support, secure authentication, advanced admin controls, and seamless payment integration.
 
-## Who This Is For
+---
 
-- Store owners and operators who want to understand the features.
-- Developers and maintainers who need to work on every page, module, and flow.
+## 🌐 Live Demo
 
-## Core Features (Quick Overview)
+**🎯 Visit the live store:** [https://flower.mir.codes/](https://flower.mir.codes/)
 
-- Bilingual interface (LTR English, RTL Kurdish).
-- Secure authentication with Argon2ID password hashing.
-- Cart, wishlist, reviews, and notifications.
-- Order processing with delivery dates, extras, and payments.
-- Admin management with granular permissions and audit logging.
-- Super admin reporting, settings, and system controls.
+Experience Bloom & Vine's responsive design, smooth user experience, and bilingual interface (English & Kurdish) in action.
 
-## Tech Stack
+---
 
-- Backend: PHP 8.2+, MySQL 5.7+ or MariaDB 10.2+.
-- Frontend: Tailwind CSS, HTML5, Vanilla JavaScript.
-- Security: CSRF tokens, output escaping, prepared statements.
+## ✨ Key Features
 
-## Quick Start (Setup)
+### 🛍️ **Customer Experience**
+- ✅ **Fully Responsive Design** - Optimized for desktop, tablet, and mobile devices
+- ✅ **Bilingual Interface** - Complete English (LTR) and Kurdish (RTL) support
+- ✅ **User Authentication** - Secure login and registration with Argon2ID password hashing
+- ✅ **Google OAuth** - Quick sign-up and login via Google accounts
+- ✅ **Product Browsing** - Categorized shopping (Wedding, Anniversary, Birthday, Graduation, etc.)
+- ✅ **Advanced Filters** - Search, category, price range, and rating filters
+- ✅ **Shopping Cart** - Add/remove items, update quantities, calculate delivery tiers
+- ✅ **Wishlist** - Save favorite products for later
+- ✅ **Product Reviews** - 5-star rating system with customer reviews
+- ✅ **Multiple Payment Methods** - First Iraqi Bank (FIB) online payments and Cash on Delivery
 
-### Requirements
+### 🎨 **Featured Products Showcase**
+- Curated homepage featuring bestsellers and new arrivals
+- Product statistics (views, sales, ratings)
+- Category highlights and special collections
 
-- PHP 8.2 or higher
-- MySQL 5.7+ or MariaDB 10.2+
-- Apache with mod_rewrite (or Nginx)
-- File uploads enabled
+### 👥 **Admin Dashboard**
+- ✅ **Product Management** - Add, edit, delete products with bilingual fields
+- ✅ **Inventory Management** - Product variants, gallery images, expiry dates
+- ✅ **Order Management** - View, filter, and update order statuses
+- ✅ **Coupon System** - Create and manage discount codes with usage limits
+- ✅ **Customer Support** - Manage contact form submissions and reply via email
+- ✅ **Analytics Dashboard** - Revenue tracking, order statistics, and customer insights
+- ✅ **Permission-Based Access** - Granular admin permissions and role management
 
-### Installation
+### 👨‍💼 **Super Admin Controls**
+- ✅ **Admin User Management** - Create and assign permissions to admin accounts
+- ✅ **Customer Management** - Search, view, and manage customer accounts
+- ✅ **Advanced Reporting** - Sales summaries, profit/loss analysis, and exports
+- ✅ **System Settings** - Configure delivery fees, currency, email settings, and more
+- ✅ **Audit Logging** - Track all admin actions for security and compliance
 
-1. Place the project in your web root (XAMPP example):
+### 🔒 **Security & Performance**
+- ✅ **CSRF Protection** - Token-based cross-site request forgery prevention
+- ✅ **Input Validation** - Server-side validation and output escaping
+- ✅ **Prepared Statements** - SQL injection protection with PDO
+- ✅ **Secure Password Hashing** - Argon2ID algorithm for strong security
+- ✅ **PWA Support** - Progressive web app features with offline support
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+|-------|--------------|
+| **Backend** | PHP 8.2+, MySQL 5.7+ / MariaDB 10.2+ |
+| **Frontend** | HTML5, CSS3, Tailwind CSS, Vanilla JavaScript |
+| **Security** | Argon2ID hashing, CSRF tokens, Prepared statements |
+| **Payment** | First Iraqi Bank (FIB) API Integration |
+| **Email** | PHPMailer, Gmail SMTP |
+| **Authentication** | Google OAuth 2.0 |
+| **PWA** | Service Workers, Web Manifest |
+
+---
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **PHP 8.2 or higher**
+- **MySQL 5.7+ or MariaDB 10.2+**
+- **Apache with mod_rewrite enabled** (or Nginx with proper rewrite rules)
+- **Composer** (optional, for package management)
+- **File upload permissions** on your server
+- **OpenSSL** for secure connections
+
+### System Requirements
+- Minimum 500MB disk space
+- 256MB RAM minimum (recommended 512MB+)
+- Modern browser with JavaScript enabled
+
+---
+
+## 🚀 Installation Guide
+
+### Step 1: Clone the Repository
 
 ```bash
+# Clone the repository
+git clone https://github.com/meer404/Flower-Store.git
+cd Flower-Store
+```
+
+### Step 2: Setup Your Local Server
+
+#### Option A: Using XAMPP (Windows/Mac/Linux)
+
+```bash
+# Place the project in htdocs
 cd /path/to/xampp/htdocs
+git clone https://github.com/meer404/Flower-Store.git
+cd Flower-Store
 ```
 
-2. Create the database:
-
-```sql
-CREATE DATABASE bloom_vine CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-3. Import the base schema:
+#### Option B: Using Built-in PHP Server (Development Only)
 
 ```bash
+# Start PHP development server
+php -S localhost:8000
+```
+
+Then open your browser and navigate to `http://localhost:8000`
+
+### Step 3: Create and Configure the Database
+
+```bash
+# Create a new database
+mysql -u root -p
+
+# In MySQL shell:
+CREATE DATABASE bloom_vine CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+exit
+```
+
+### Step 4: Import Database Schema
+
+```bash
+# Import the base schema
 mysql -u root -p bloom_vine < database/schema.sql
 ```
 
-4. Run optional migrations:
+### Step 5: Run Database Migrations (Optional)
+
+These migrations add additional features to your database:
 
 ```bash
+# Admin permissions migration
 php database/run_admin_permissions_migration.php
+
+# Delivery date feature migration
 php database/run_delivery_date_migration.php
+
+# Payment method migration
 php database/run_payment_method_migration.php
 ```
 
-5. Configure the database in `src/config/db.php`:
+### Step 6: Configure Database Connection
+
+Edit `src/config/db.php` with your database credentials:
 
 ```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'bloom_vine');
-define('DB_USER', 'your_username');
-define('DB_PASS', 'your_password');
+<?php
+define('DB_HOST', 'localhost');      // Your database host
+define('DB_NAME', 'bloom_vine');     // Database name
+define('DB_USER', 'root');           // Database username
+define('DB_PASS', 'your_password');  // Database password
+define('DB_PORT', 3306);             // Database port (optional)
 ```
 
-6. Ensure `uploads/` is writable by the web server.
+### Step 7: Set File Permissions
 
-### Default Access
+Ensure the `uploads/` directory is writable by the web server:
 
-- Customer site: `http://localhost/flower-store/`
-- Admin panel: `http://localhost/flower-store/admin/dashboard.php`
-
-### Default Credentials
-
-- Admin: `admin@bloomvine.com` / `admin123`
-- Super admin: `superadmin@bloomvine.com` / `superadmin123`
-
-Change these immediately after first login.
-
-## High-Level System Flows
-
-1. Browse and purchase: Home -> Shop -> Product -> Cart -> Checkout -> Payment -> Order
-2. Admin product management: Login -> Products -> Add/Edit -> Publish -> Featured
-3. Payment processing: Checkout -> FIB payment -> Webhook -> Order paid -> Notification
-4. Permissions: Super admin assigns permissions -> Admin actions are enforced per permission
-5. Language handling: `$_SESSION['lang']` drives all translations and layout direction
-
-## Project Structure (Short)
-
-```
-admin/       Admin and super admin panels
-database/    SQL schemas and migrations
-src/         Core modules and shared UI
-uploads/     Product images
-*.php        Customer pages and action handlers
+```bash
+# Linux/Mac
+chmod -R 755 uploads/
+chmod -R 755 admin/
+chmod -R 755 src/
 ```
 
-## Page-By-Page Documentation (Customer Site)
+### Step 8: Configure Email Settings (Optional)
+
+Edit `src/gmail_config.php` to set up email notifications:
+
+```php
+<?php
+define('GMAIL_ADDRESS', 'your-email@gmail.com');
+define('GMAIL_APP_PASSWORD', 'your-app-specific-password');
+```
+
+---
+
+## 🔐 Default Access Credentials
+
+### 🌐 Access Points
+
+| Access Point | URL |
+|---|---|
+| **Customer Store** | `http://localhost/Flower-Store/` or `http://localhost:8000` |
+| **Admin Dashboard** | `http://localhost/Flower-Store/admin/dashboard.php` |
+| **Super Admin Panel** | `http://localhost/Flower-Store/admin/super_admin_dashboard.php` |
+
+### 👤 Default Accounts
+
+| Role | Email | Password | Notes |
+|------|-------|----------|-------|
+| **Admin** | `admin@bloomvine.com` | `admin123` | Standard admin access |
+| **Super Admin** | `superadmin@bloomvine.com` | `superadmin123` | Full system access |
+
+⚠️ **IMPORTANT:** Change these credentials immediately after your first login in production!
+
+---
+
+## 📁 Project Structure
+
+```
+Flower-Store/
+├── admin/                      # Admin and super admin panels
+│   ├── dashboard.php          # Admin dashboard
+│   ├── products.php           # Product management
+│   ├── add_product.php        # Add new product
+│   ├── edit_product.php       # Edit product
+│   ├── orders.php             # Order management
+│   ├── super_admin_*          # Super admin pages
+│   └── ...
+├── database/                   # Database schemas and migrations
+│   ├── schema.sql             # Base database schema
+│   ├── run_admin_permissions_migration.php
+│   ├── run_delivery_date_migration.php
+│   └── run_payment_method_migration.php
+├── src/                        # Core modules and shared components
+│   ├── config/                # Configuration files
+│   │   └── db.php            # Database connection
+│   ├── translations/          # Language files
+│   │   ├── en.php            # English translations
+│   │   └── ku.php            # Kurdish translations
+│   ├── pages/                # Static content pages
+│   │   ├── en/               # English pages
+│   │   └── ku/               # Kurdish pages
+│   ├── components.php         # Reusable UI components
+│   ├── functions.php          # Helper functions
+│   ├── header.php            # Navigation header
+│   ├── email.php             # Email utilities
+│   ├── FibService.php        # Payment integration
+│   └── pwa_head.php          # PWA configuration
+├── uploads/                    # Product images and media
+├── public/                     # Static assets
+│   ├── css/                   # Stylesheets
+│   ├── js/                    # JavaScript files
+│   ├── manifest.json          # PWA manifest
+│   └── service-worker.js      # Service worker
+├── index.php                   # Home page
+├── shop.php                    # Product listing
+├── product.php                # Product detail
+├── cart.php                    # Shopping cart
+├── checkout.php               # Checkout page
+├── login.php                   # Login page
+├── register.php               # Registration page
+├── account.php                # User account
+├── wishlist.php               # Wishlist page
+├── contact.php                # Contact form
+├── about.php, shipping.php, terms.php, privacy.php  # Static pages
+└── README.md                   # This file
+```
+
+---
+
+## 🔄 Main User Flows
+
+### 1️⃣ **Customer Shopping Flow**
+```
+Home → Shop/Browse → View Product Details → Add to Cart → 
+Wishlist (optional) → View Cart → Checkout → Select Payment → 
+Complete Purchase → Order Confirmation
+```
+
+### 2️⃣ **Authentication Flow**
+```
+Register/Login → Email Verification (optional) → 
+Dashboard Access → Account Management → Order History
+```
 
-Each page includes its purpose, main actions, and important data or components used.
+### 3️⃣ **Admin Product Management**
+```
+Login → Products → Add/Edit → Upload Images → 
+Set Variants → Publish → Feature (optional)
+```
 
-### index.php (Home)
+### 4️⃣ **Payment Processing**
+```
+Checkout → Select FIB Payment → Payment Gateway → 
+Webhook Confirmation → Order Status Update → 
+Customer Notification
+```
 
-- Purpose: Landing page and featured product showcase.
-- Key features: hero section, featured products, category highlights.
-- Data: pulls featured products and display stats (views, sales).
+---
 
-### shop.php (Shop Catalog)
+## 🌍 Bilingual Support
 
-- Purpose: Full product listing and filtering.
-- Key features: category filter, price range, rating, search, and sorting.
-- Data: paginated product query with filter parameters.
+Bloom & Vine supports both English and Kurdish with automatic:
 
-### product.php (Product Detail)
+- **Text Direction**: LTR for English, RTL for Kurdish
+- **Translations**: Complete UI translations in `src/translations/`
+- **Language Switching**: Seamless language toggle in navigation
+- **SEO Support**: Language-specific meta tags and content
 
-- Purpose: Detailed product view with image gallery and reviews.
-- Key features: image gallery, add-to-cart, wishlist toggle, reviews display.
-- Data: product details, variants, gallery images, reviews, and rating average.
+Switch languages using the language switcher in the header navigation.
 
-### cart.php (Cart)
+---
 
-- Purpose: Review and update cart items before checkout.
-- Key features: quantity update, remove item, calculate delivery tier, extras.
-- Data: session cart (compound keys for variants) and totals calculation.
+## 🎨 Customization
 
-### cart_action.php (Cart Actions)
+### Update Shop Information
 
-- Purpose: Handles cart changes via POST or GET actions.
-- Actions: add, update quantity, remove, clear cart.
-- Security: CSRF validation and safe redirect logic.
+Edit `src/config/db.php` and `src/functions.php` to customize:
+- Store name and branding
+- Contact information
+- Delivery zones and fees
+- Currency settings
+- Email signatures
 
-### checkout.php (Checkout)
+### Modify Colors and Styling
 
-- Purpose: Final order creation and payment selection.
-- Key features: shipping address, delivery date, order extras, coupon support.
-- Payments: FIB (online) and Cash on Delivery.
-- Data: creates order, order items, and sends confirmation email.
+All styling is managed through:
+- **Tailwind CSS** for utility classes
+- **`src/design_config.php`** for design system constants
+- **CSS files** in `public/css/`
 
-### fib_payment.php (FIB Payment Page)
+### Add New Pages
 
-- Purpose: Dedicated payment UI for First Iraqi Bank integration.
-- Key features: payment request, status polling, success/fail states.
-- Data: uses payment ID and order ID for verification.
+1. Create a new `.php` file in the root directory
+2. Include the header: `<?php include 'src/header.php'; ?>`
+3. Include the footer if needed
+4. Use translation functions for multi-language support
 
-### fib_webhook.php (FIB Payment Webhook)
+---
 
-- Purpose: Receives payment callbacks from First Iraqi Bank.
-- Actions: update order payment status, send email, create notification, clear cart.
-- Security: validates input and expected order status before update.
+## 🔒 Security Best Practices
 
-### wishlist.php (Wishlist)
+✅ **Implemented Security Features:**
+- Passwords hashed with Argon2ID (strongest algorithm)
+- CSRF tokens on all forms
+- SQL injection protection with prepared statements
+- XSS protection with output escaping
+- Secure session management
+- Permission-based access control
 
-- Purpose: Shows saved products for logged-in users.
-- Key features: remove item, add to cart.
-- Data: user wishlist table joined to products.
+**For Production Deployment:**
+1. Use HTTPS/SSL certificates
+2. Set strong database passwords
+3. Change default admin credentials
+4. Keep PHP and dependencies updated
+5. Enable error logging (disable display_errors)
+6. Set proper file permissions (644 for files, 755 for directories)
+7. Configure email with valid SMTP credentials
+8. Review `SECURITY.md` for detailed guidelines
 
-### wishlist_action.php (Wishlist Actions)
+---
 
-- Purpose: Toggle wishlist via AJAX or form post.
-- Actions: add or remove wishlist item.
-- Security: login required, CSRF validation.
+## 📚 Documentation
 
-### review.php (Product Review)
+The repository includes comprehensive documentation:
 
-- Purpose: Submit a review and rating for a product.
-- Key features: 1 to 5 star rating, comment text.
-- Rules: one review per user per product.
+| Document | Purpose |
+|----------|---------|
+| **ADMIN_PERMISSIONS_INDEX.md** | Admin permissions reference |
+| **ADMIN_PERMISSIONS_GUIDE.md** | Complete permission setup guide |
+| **ADMIN_PERMISSIONS_QUICK_REF.md** | Quick permission reference |
+| **FEATURES.md** | Detailed feature documentation |
+| **SECURITY.md** | Security implementation details |
+| **DELIVERY_DATE_FEATURE.md** | Delivery date feature guide |
+| **PAYMENT_METHOD_FEATURE.md** | Payment method configuration |
 
-### account.php (My Account)
+---
 
-- Purpose: Customer dashboard for profile and orders.
-- Key features: update profile, view order history, manage addresses.
-- Data: user profile, past orders, and order status summary.
+## 🛠️ Troubleshooting
 
-### order_details.php (Customer Order Details)
+### Common Issues
 
-- Purpose: Full order breakdown for a single order.
-- Key features: items, extras, delivery address, payment status.
-- Data: order header, line items, and extras.
+**Problem:** 404 errors on all pages
+- **Solution:** Ensure mod_rewrite is enabled in Apache, or configure Nginx rewrite rules
 
-### notifications.php (Notifications)
+**Problem:** Database connection fails
+- **Solution:** Verify credentials in `src/config/db.php`, ensure MySQL is running
 
-- Purpose: User notifications and status updates.
-- Key features: mark read/unread, view order and payment updates.
-- Data: notification table ordered by latest.
+**Problem:** File uploads not working
+- **Solution:** Check `uploads/` directory permissions (should be 755)
 
-### login.php (Login)
+**Problem:** Email notifications not sending
+- **Solution:** Configure SMTP credentials in `src/gmail_config.php`
 
-- Purpose: Authenticate users.
-- Key features: email/password login, Google OAuth option.
-- Data: session login, optional redirect target.
+**Problem:** Language switching not working
+- **Solution:** Ensure `$_SESSION['lang']` is properly set in `src/language.php`
 
-### register.php (Register)
+For more troubleshooting help, check the documentation files or open an issue on GitHub.
 
-- Purpose: Create a customer account.
-- Key features: validation, Argon2ID hashing, auto-login.
-- Rules: password length and email uniqueness enforcement.
+---
 
-### logout.php (Logout)
+## 📊 Database Schema Highlights
 
-- Purpose: End session and return to home.
-- Actions: session destroy, redirect.
+Core tables include:
+- `users` - Customer accounts
+- `admin_users` - Admin accounts with permissions
+- `products` - Product catalog
+- `categories` - Product categories (bilingual)
+- `orders` - Customer orders
+- `order_items` - Order line items
+- `product_images` - Product gallery
+- `reviews` - Product reviews and ratings
+- `wishlist` - User wishlists
+- `notifications` - User notifications
+- `coupons` - Discount codes
+- `activity_log` - Admin action audit trail
+- `system_settings` - Configuration values
 
-### contact.php (Contact)
+See `database/schema.sql` for complete schema details.
 
-- Purpose: Contact form for customers.
-- Key features: stores messages in database and optional auto-table creation.
+---
 
-### about.php / shipping.php / returns.php / terms.php / privacy.php
+## 🤝 Contributing
 
-- Purpose: Static informational pages.
-- Content source: `src/pages/en/` and `src/pages/ku/`.
+We welcome contributions! Please follow these steps:
 
-### cookie.php (Cookie Notice)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-- Purpose: Shows cookie policy and usage explanation.
-- Content source: `src/pages/en/` and `src/pages/ku/`.
+---
 
-## Page-By-Page Documentation (Admin Panel)
+## 📞 Contact & Support
 
-All admin pages require an authenticated admin session and specific permissions.
+**Get in touch with the Bloom & Vine team:**
 
-### admin/dashboard.php
+| Channel | Information |
+|---------|-------------|
+| 📧 **Email** | contact@mir.codes |
+| 🌐 **Website** | https://flower.mir.codes |
+| 💻 **GitHub** | https://github.com/meer404/Flower-Store |
+| 👤 **Developer** | https://github.com/meer404 |
 
-- Purpose: Admin overview dashboard.
-- Key features: revenue stats, order counts, recent orders list, chart summary.
+---
 
-### admin/products.php
+## 📜 License
 
-- Purpose: Product management list.
-- Key features: edit, delete, view; prevents delete if linked to orders.
+This project is licensed under the **MIT License** - see below for details:
 
-### admin/add_product.php
-
-- Purpose: Create a new product.
-- Key features: bilingual fields, variants, gallery images, featured flag.
-
-### admin/edit_product.php
-
-- Purpose: Update product data.
-- Key features: edit product details, manage images and variants.
-
-### admin/categories.php
-
-- Purpose: Category CRUD.
-- Key features: bilingual names, slug management.
-
-### admin/expired_products.php
-
-- Purpose: List expired products.
-- Key features: show expired items and allow cleanup.
-
-### admin/orders.php
-
-- Purpose: Orders list and search.
-- Key features: pagination, search, export (if permitted).
-
-### admin/order_details.php
-
-- Purpose: View and update order.
-- Key features: update status, view delivery data, send notification email.
-
-### admin/coupons.php
-
-- Purpose: Manage coupon codes.
-- Key features: type (percent/fixed), minimum order, usage limits, expiry.
-
-### admin/contact_messages.php
-
-- Purpose: Manage contact form submissions.
-- Key features: reply by email, mark read, delete.
-
-### admin/header.php / admin/sidebar.php / admin/footer.php
-
-- Purpose: Shared admin layout components.
-- Key features: navigation, permission-based menu display, consistent UI.
-
-## Page-By-Page Documentation (Super Admin)
-
-Super admin has full system control with all permissions.
-
-### admin/super_admin_dashboard.php
-
-- Purpose: High-level system analytics.
-- Key features: total revenue, product counts, customer counts, top products.
-
-### admin/super_admin_admins.php
-
-- Purpose: Create and manage admin users.
-- Key features: permission checkboxes, admin creation, updates, and removal.
-
-### admin/super_admin_users.php
-
-- Purpose: Customer management.
-- Key features: search, status toggle, delete.
-
-### admin/super_admin_reports.php
-
-- Purpose: Reporting and analytics.
-- Key features: sales summaries by period, profit and loss, exports.
-
-### admin/super_admin_settings.php
-
-- Purpose: System-wide settings.
-- Key features: delivery fees, currency, exchange rates, email settings.
-
-## Core Modules and Shared Components (src/)
-
-### src/config/db.php
-
-- Purpose: Database connection configuration.
-- Used by: all pages via shared helpers.
-
-### src/functions.php
-
-- Purpose: Core helper functions and system utilities.
-- Includes: sanitization, authentication, permission checks, CSRF, redirects,
-  notifications, reporting helpers, flash messages, system settings.
-
-### src/language.php
-
-- Purpose: Language switch and RTL/LTR handling.
-- Data: uses session variable `lang` to select translations.
-
-### src/translations/en.php and src/translations/ku.php
-
-- Purpose: Translation dictionaries for all UI text.
-
-### src/components.php
-
-- Purpose: Reusable UI components.
-- Includes: buttons, cards, alerts, product cards, breadcrumbs, pagination.
-
-### src/header.php
-
-- Purpose: Customer-facing navigation bar.
-- Features: language switcher, cart/wishlist badges, search, user menu.
-
-### src/design_config.php
-
-- Purpose: Design system configuration.
-- Defines: fonts, colors, shadows, animation classes.
-
-### src/email.php
-
-- Purpose: Email sending utilities (PHPMailer and SMTP).
-- Used for: order confirmations, status updates, contact replies.
-
-### src/FibService.php
-
-- Purpose: First Iraqi Bank payment integration.
-- Provides: payment initiation, status checks, webhook handling.
-
-### src/gmail_config.php
-
-- Purpose: Gmail SMTP configuration for email delivery.
-
-### src/pwa_head.php
-
-- Purpose: Adds PWA meta tags and manifest links to page headers.
-
-### src/pages/en/* and src/pages/ku/*
-
-- Purpose: Static content for about, contact, cookie, privacy, returns, shipping, terms.
-
-## Action Handlers and Integration Endpoints
-
-### order_action.php
-
-- Purpose: Admin-only order status update handler.
-- Actions: validates permission, updates status, sends notifications.
-
-### google_login.php
-
-- Purpose: Starts Google OAuth login flow.
-- Security: stores state and redirect target in session.
-
-### google_callback.php
-
-- Purpose: Completes Google OAuth.
-- Actions: validates state, exchanges code, creates or logs in user.
-
-### fib_payment.php and fib_webhook.php
-
-- Purpose: Online payment with First Iraqi Bank.
-- Actions: payment request, status checks, order update on webhook.
-
-## PWA and Offline Support
-
-- manifest.json: PWA metadata and app identity.
-- service-worker.js: caching and offline handling.
-- pwa.js: registers service worker and client-side PWA logic.
-- offline.html: fallback offline page.
-
-## Database Design (Summary)
-
-Core tables include `users`, `admin_permissions`, `products`, `categories`,
-`orders`, `order_items`, `product_images`, `reviews`, `wishlist`,
-`notifications`, `activity_log`, and `system_settings`.
-
-Schemas are stored in `database/` and include migration scripts for permissions,
-delivery dates, payment methods, and notifications.
-
-## Security and Data Protection
-
-- Passwords are hashed with Argon2ID.
-- All sensitive POST forms use CSRF tokens.
-- Output is escaped with `htmlspecialchars` via helper functions.
-- Database access uses PDO prepared statements.
-- Permissions guard admin and super admin routes.
-
-## Additional Documentation
-
-See the documentation files in the repository for deeper guides:
-
-- ADMIN_PERMISSIONS_INDEX.md
-- ADMIN_PERMISSIONS_GUIDE.md
-- ADMIN_PERMISSIONS_SETUP.md
-- ADMIN_PERMISSIONS_QUICK_REF.md
-- ADMIN_PERMISSIONS_UI_GUIDE.md
-- FEATURES.md
-- SECURITY.md
-- DELIVERY_DATE_FEATURE.md
-- PAYMENT_METHOD_FEATURE.md
-
-## License
-
+```
 MIT License
 
 Copyright (c) 2026 Bloom & Vine Flower Store
@@ -452,15 +470,52 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+```
 
-## Author
+---
 
-Bloom & Vine Development Team
+## 📈 Project Statistics
 
-- GitHub: https://github.com/meer404
-- Project: https://github.com/meer404/Flower-Store
-- Contact: contact@mir.codes
+- **Version:** 2.0
+- **Status:** Production Ready ✅
+- **Created:** December 20, 2025
+- **Last Updated:** May 16, 2026
+- **Languages:** PHP, HTML, CSS, JavaScript
+- **Language Support:** English, Kurdish
+- **License:** MIT
 
-Version: 2.0
-Last Updated: May 7, 2026
-Status: Production Ready
+---
+
+## 🎯 Roadmap
+
+Future enhancements planned for Bloom & Vine:
+
+- [ ] Mobile app (iOS & Android)
+- [ ] Multi-currency support
+- [ ] Advanced inventory management
+- [ ] Customer loyalty program
+- [ ] Live chat support
+- [ ] AI-powered recommendations
+- [ ] Social media integration
+- [ ] Enhanced analytics dashboard
+
+---
+
+## 💡 Tips for Success
+
+1. **Read the Documentation** - Check the doc files in the repo for detailed guides
+2. **Test Locally First** - Always test changes on your local environment
+3. **Keep Backups** - Regular database backups are essential
+4. **Monitor Logs** - Check error logs for issues
+5. **Stay Updated** - Keep PHP and dependencies current
+6. **Security First** - Follow security best practices from `SECURITY.md`
+
+---
+
+<div align="center">
+
+**Made with 🌹 by the Bloom & Vine Development Team**
+
+[Visit Store](https://flower.mir.codes/) • [GitHub](https://github.com/meer404/Flower-Store) • [Contact Us](contact@mir.codes)
+
+</div>
