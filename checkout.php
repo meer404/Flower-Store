@@ -774,10 +774,15 @@ $dir = getHtmlDir();
                                         <input type="checkbox" name="extras[]" value="<?= e((string)$extra['id']) ?>" class="sr-only extra-checkbox">
 
                                         <!-- Image or icon placeholder -->
-                                        <?php if (!empty($extra['image_url'])): ?>
+                                        <?php
+                                        $imgUrl = $extra['image_url'] ?? '';
+                                        $imgFile = !empty($imgUrl) ? __DIR__ . '/' . ltrim($imgUrl, '/') : '';
+                                        $showImg = !empty($imgUrl) && file_exists($imgFile);
+                                        ?>
+                                        <?php if ($showImg): ?>
                                         <div style="height:110px;overflow:hidden;background:#f9fafb;flex-shrink:0">
-                                            <img src="<?= e($extra['image_url']) ?>" alt="<?= e(getExtraName($extra)) ?>"
-                                                 style="width:100%;height:100%;object-fit:cover">
+                                            <img src="<?= e($imgUrl) ?>" alt="<?= e(getExtraName($extra)) ?>"
+                                                 style="width:100%;height:100%;object-fit:cover" loading="lazy">
                                         </div>
                                         <?php else: ?>
                                         <div style="height:110px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f0ebe4,#e8ddd4)">
